@@ -1,2 +1,44 @@
 @import "tailwindcss";
 @import "uniwind";
+
+@theme static {
+    --breakpoint-sm-tablet: 480px;
+    --breakpoint-lg-tablet: 769px;
+
+    --text-message: 16px;
+    --text-timestamp: 11px;
+    --text-chat-name: 17px;
+    --text-chat-preview: 14px;
+
+    --spacing-bubble-x: 10px;
+    --spacing-bubble-y: 7px;
+    --radius-bubble: 8px;
+}
+@layer theme {
+    :root {
+        @variant light {
+            --color-background: #f0f2f5;
+            --color-surface: #ffffff;
+            --color-bubble-sent: #d9fdd3;
+            --color-bubble-received: #ffffff;
+            --color-foreground: #111b21;
+            --color-muted: #667781;
+            --color-accent: #25d366;
+            --color-accent-dark: #128c7e;
+            --color-link: #53bdeb;
+            --color-border: #e9edef;
+        }
+        @variant dark {
+            --color-background: #0b141a;
+            --color-surface: #111b21;
+            --color-bubble-sent: #005c4b;
+            --color-bubble-received: #202c33;
+            --color-foreground: #e9edef;
+            --color-muted: #8696a0;
+            --color-accent: #25d366;
+            --color-accent-dark: #00a884;
+            --color-link: #53bdeb;
+            --color-border: #222d34;
+        }
+    }
+}
