@@ -2,6 +2,7 @@
   "name": "whatsapp-clone",
   "main": "expo-router/entry",
   "version": "1.0.0",
+  "packageManager": "pnpm@10.28.2",
   "dependencies": {
     "@config-plugins/react-native-webrtc": "^15.0.1",
     "@expo/ui": "~57.0.9",
