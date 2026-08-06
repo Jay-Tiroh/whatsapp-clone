@@ -1,13 +1,18 @@
+import "../global.css";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
-
+import { View } from "react-native";
+import { SafeAreaListener } from "react-native-safe-area-context";
+import { Uniwind, useCSSVariable } from "uniwind";
 // 1. Prevent the splash screen from auto-hiding immediately
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [isAppReady, setIsAppReady] = useState(false);
-
+  const backgroundColor = useCSSVariable("--color-background") as
+    string | undefined;
+  console.log(backgroundColor);
   useEffect(() => {
     async function prepareApp() {
       try {
@@ -43,9 +48,20 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack>
-      {/* Configure your root navigation here */}
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-    </Stack>
+    <SafeAreaListener
+      onChange={({ insets }) => {
+        Uniwind.updateInsets(insets);
+      }}
+    >
+      <View className="flex-1 bg-background">
+        <Stack
+          screenOptions={{
+            contentStyle: { backgroundColor: backgroundColor ?? "#e6f4fe" },
+          }}
+        >
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+        </Stack>
+      </View>
+    </SafeAreaListener>
   );
 }
