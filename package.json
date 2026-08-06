@@ -63,9 +63,5 @@
     "web": "expo start --web",
     "lint": "expo lint"
   },
-  "private": true,
-  "resolutions": {
-    "core-js-compat": "~3.49.0",
-    "terser": "~5.48.0"
-  }
+  "private": true
 }
