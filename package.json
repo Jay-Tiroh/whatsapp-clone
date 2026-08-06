@@ -64,10 +64,8 @@
     "lint": "expo lint"
   },
   "private": true,
-  "pnpm": {
-    "overrides": {
-      "core-js-compat": "~3.49.0",
-      "terser": "~5.48.0"
-    }
+  "resolutions": {
+    "core-js-compat": "~3.49.0",
+    "terser": "~5.48.0"
   }
 }
