@@ -8,7 +8,7 @@ module.exports = {
   userInterfaceStyle: "automatic",
   extra: {
     eas: {
-      projectId: "67bb1638-d2f5-4f09-b65c-889bb8384863",
+      projectId: "97e18e3e-bf33-4108-ae19-f4f0ca6db714",
     },
   },
   ios: {
