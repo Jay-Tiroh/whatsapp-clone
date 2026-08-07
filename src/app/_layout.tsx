@@ -1,3 +1,4 @@
+import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
@@ -5,44 +6,49 @@ import { View } from "react-native";
 import { SafeAreaListener } from "react-native-safe-area-context";
 import { Uniwind, useCSSVariable } from "uniwind";
 import "../global.css";
-// 1. Prevent the splash screen from auto-hiding immediately
+
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts({
+    "SFProDisplay-Regular": require("@/assets/fonts/sf-pro-display/SFPRODISPLAYREGULAR.otf"),
+    "SFProDisplay-Medium": require("@/assets/fonts/sf-pro-display/SFPRODISPLAYMEDIUM.otf"),
+    "SFProDisplay-Semibold": require("@/assets/fonts/sf-pro-display/SFPRODISPLAYSEMIBOLDITALIC.otf"),
+    "SFProDisplay-Bold": require("@/assets/fonts/sf-pro-display/SFPRODISPLAYBOLD.otf"),
+  });
+
   const [isAppReady, setIsAppReady] = useState(false);
   const backgroundColor = useCSSVariable("--color-background") as
     string | undefined;
+
   useEffect(() => {
     async function prepareApp() {
       try {
-        // Pre-load fonts, make any API calls you need to do here,
-        // initialize your MMKV storage, SQLite database, or check Auth state.
-
-        // Example: await Font.loadAsync(customFonts);
-        // Example: await initializeDatabase();
-
-        // Artificially delay for demonstration (remove in production)
+        // Any API calls, MMKV/SQLite init, auth checks, etc. go here
         await new Promise((resolve) => setTimeout(resolve, 2000));
       } catch (e) {
         console.warn("Error during app initialization:", e);
       } finally {
-        // Tell the application to render
         setIsAppReady(true);
       }
     }
-
     prepareApp();
   }, []);
 
   useEffect(() => {
-    if (isAppReady) {
-      // 2. Hide the splash screen once everything is loaded
+    if (fontError) {
+      console.warn("Font loading error:", fontError);
+    }
+  }, [fontError]);
+
+  useEffect(() => {
+    // Wait on BOTH the app-prep work and font loading, not just one
+    if (isAppReady && (fontsLoaded || fontError)) {
       SplashScreen.hideAsync();
     }
-  }, [isAppReady]);
+  }, [isAppReady, fontsLoaded, fontError]);
 
-  if (!isAppReady) {
-    // Return null to keep the native splash screen mounted while we prepare
+  if (!isAppReady || (!fontsLoaded && !fontError)) {
     return null;
   }
 
@@ -55,7 +61,7 @@ export default function RootLayout() {
       <View className="flex-1 bg-background">
         <Stack
           screenOptions={{
-            contentStyle: { backgroundColor: backgroundColor ?? "#e6f4fe" },
+            contentStyle: { backgroundColor: backgroundColor ?? "#F5F7F9" }, // fixed: matches --color-background light value
           }}
         >
           <Stack.Screen name="index" options={{ headerShown: false }} />
