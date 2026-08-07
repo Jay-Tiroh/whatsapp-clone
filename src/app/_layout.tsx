@@ -1,10 +1,10 @@
-import "../global.css";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { SafeAreaListener } from "react-native-safe-area-context";
 import { Uniwind, useCSSVariable } from "uniwind";
+import "../global.css";
 // 1. Prevent the splash screen from auto-hiding immediately
 SplashScreen.preventAutoHideAsync();
 
@@ -12,7 +12,6 @@ export default function RootLayout() {
   const [isAppReady, setIsAppReady] = useState(false);
   const backgroundColor = useCSSVariable("--color-background") as
     string | undefined;
-  console.log(backgroundColor);
   useEffect(() => {
     async function prepareApp() {
       try {
