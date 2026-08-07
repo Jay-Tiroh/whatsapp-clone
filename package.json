@@ -1,5 +1,5 @@
 {
-  "name": "whatsapp-clone",
+  "name": "chatme",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "packageManager": "pnpm@10.28.2",

@@ -1,10 +1,10 @@
 module.exports = {
-  name: "whatsapp-clone",
-  slug: "whatsapp-clone",
+  name: "ChatMe",
+  slug: "chatme",
   version: "1.0.0",
   orientation: "portrait",
   icon: "./assets/images/icon.png",
-  scheme: "whatsappclone",
+  scheme: "chatme",
   userInterfaceStyle: "automatic",
   extra: {
     eas: {
@@ -13,28 +13,28 @@ module.exports = {
   },
   ios: {
     icon: "./assets/expo.icon",
-    bundleIdentifier: "com.yourcompany.whatsappclone",
+    bundleIdentifier: "com.yourcompany.chatme",
     infoPlist: {
       NSCameraUsageDescription:
-        "Allow WhatsApp Clone to access your camera for video calls and taking photos.",
+        "Allow ChatMe to access your camera for video calls and taking photos.",
       NSMicrophoneUsageDescription:
-        "Allow WhatsApp Clone to access your microphone for voice notes and calls.",
+        "Allow ChatMe to access your microphone for voice notes and calls.",
       NSContactsUsageDescription:
-        "Allow WhatsApp Clone to access your contacts to connect with friends.",
+        "Allow ChatMe to access your contacts to connect with friends.",
       NSPhotoLibraryUsageDescription:
-        "Allow WhatsApp Clone to access your photos to share media.",
+        "Allow ChatMe to access your photos to share media.",
       NSPhotoLibraryAddUsageDescription:
-        "Allow WhatsApp Clone to save photos to your library.",
+        "Allow ChatMe to save photos to your library.",
       NSLocationWhenInUseUsageDescription:
-        "Allow WhatsApp Clone to access your location to share with friends.",
+        "Allow ChatMe to access your location to share with friends.",
       NSFaceIDUsageDescription:
-        "Allow WhatsApp Clone to use FaceID to securely lock your chats.",
+        "Allow ChatMe to use FaceID to securely lock your chats.",
     },
   },
   android: {
-    package: "com.yourcompany.whatsappclone",
+    package: "com.yourcompany.chatme",
     adaptiveIcon: {
-      backgroundColor: "#E6F4FE",
+      backgroundColor: "#C8EFDF",
       foregroundImage: "./assets/images/android-icon-foreground.png",
       backgroundImage: "./assets/images/android-icon-background.png",
       monochromeImage: "./assets/images/android-icon-monochrome.png",
@@ -61,12 +61,12 @@ module.exports = {
     [
       "expo-splash-screen",
       {
-        backgroundColor: "#E6F4FE",
-        image: "./assets/images/splash-icon-light.png",
+        backgroundColor: "#F5FEF8",
+        image: "./assets/images/splash-icon.png",
         imageWidth: 76,
         dark: {
-          backgroundColor: "#111B21",
-          image: "./assets/images/splash-icon-dark.png",
+          backgroundColor: "#081C2C",
+          image: "./assets/images/splash-icon.png",
           imageWidth: 76,
         },
       },
@@ -78,28 +78,28 @@ module.exports = {
     [
       "expo-camera",
       {
-        cameraPermission: "Allow WhatsApp Clone to access your camera.",
-        microphonePermission: "Allow WhatsApp Clone to access your microphone.",
+        cameraPermission: "Allow ChatMe to access your camera.",
+        microphonePermission: "Allow ChatMe to access your microphone.",
       },
     ],
     [
       "expo-contacts",
       {
-        contactsPermission: "Allow WhatsApp Clone to access your contacts.",
+        contactsPermission: "Allow ChatMe to access your contacts.",
       },
     ],
     [
       "expo-location",
       {
         locationAlwaysAndWhenInUsePermission:
-          "Allow WhatsApp Clone to use your location.",
+          "Allow ChatMe to use your location.",
       },
     ],
     [
       "expo-media-library",
       {
-        photosPermission: "Allow WhatsApp Clone to access your photos.",
-        savePhotosPermission: "Allow WhatsApp Clone to save photos.",
+        photosPermission: "Allow ChatMe to access your photos.",
+        savePhotosPermission: "Allow ChatMe to save photos.",
       },
     ],
     [
@@ -112,7 +112,7 @@ module.exports = {
     [
       "expo-local-authentication",
       {
-        faceIDPermission: "Allow WhatsApp Clone to use Face ID.",
+        faceIDPermission: "Allow ChatMe to use Face ID.",
       },
     ],
     "expo-document-picker",
