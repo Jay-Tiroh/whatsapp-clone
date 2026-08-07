@@ -5,7 +5,42 @@
     --breakpoint-sm-tablet: 480px;
     --breakpoint-lg-tablet: 769px;
 
-    --font-sans: "SF-Pro-Display-Regular";
+    /* Font families — one file per weight, register via expo-font */
+    --font-display-regular: "SFProDisplay-Regular";
+    --font-display-medium: "SFProDisplay-Medium";
+    --font-display-semibold: "SFProDisplay-Semibold";
+    --font-display-bold: "SFProDisplay-Bold";
+
+    /* Heading scale — all Bold in the kit, weight still applied via font-display-bold */
+    --text-heading-14: 14px;
+    --text-heading-14--line-height: 1.25;
+    --text-heading-18: 18px;
+    --text-heading-18--line-height: 1.25;
+    --text-heading-20: 20px;
+    --text-heading-20--line-height: 1.25;
+    --text-heading-28: 28px;
+    --text-heading-28--line-height: 1.25;
+
+    /* Body scale — same size/line-height across Regular/Medium/Semibold weights */
+    --text-body-lg: 16px;
+    --text-body-lg--line-height: 1.5;
+    --text-body-md: 14px;
+    --text-body-md--line-height: 1.5;
+    --text-body-md--letter-spacing: 0.5px;
+    --text-body-sm: 12px;
+    --text-body-sm--line-height: 1.5;
+
+    /* iOS system-style text */
+    --text-title2: 22px;
+    --text-title2--line-height: 28px;
+    --text-title2--letter-spacing: 0.35px;
+    --text-callout: 16px;
+    --text-callout--line-height: 21px;
+    --text-callout--letter-spacing: -0.32px;
+
+    /* Component-specific */
+    --text-button: 14px;
+    --text-button--line-height: 1.5;
 }
 
 @layer theme {
