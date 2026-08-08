@@ -6,6 +6,7 @@ module.exports = {
   icon: "./assets/images/icon.png",
   scheme: "chatme",
   userInterfaceStyle: "automatic",
+  newArchEnabled: true,
   extra: {
     eas: {
       projectId: "67bb1638-d2f5-4f09-b65c-889bb8384863",
@@ -33,6 +34,7 @@ module.exports = {
   },
   android: {
     package: "com.yourcompany.chatme",
+    softwareKeyboardLayoutMode: "resize",
     adaptiveIcon: {
       backgroundColor: "#C8EFDF",
       foregroundImage: "./assets/images/android-icon-foreground.png",
