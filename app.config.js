@@ -6,6 +6,7 @@ module.exports = {
   icon: "./assets/images/icon.png",
   scheme: "chatme",
   userInterfaceStyle: "automatic",
+  newArchEnabled: true,
   extra: {
     eas: {
       projectId: "97e18e3e-bf33-4108-ae19-f4f0ca6db714",
@@ -33,10 +34,10 @@ module.exports = {
   },
   android: {
     package: "com.yourcompany.chatme",
+    softwareKeyboardLayoutMode: "resize",
     adaptiveIcon: {
-      backgroundColor: "#C8EFDF",
+      backgroundColor: "#0F261E",
       foregroundImage: "./assets/images/android-icon-foreground.png",
-      backgroundImage: "./assets/images/android-icon-background.png",
       monochromeImage: "./assets/images/android-icon-monochrome.png",
     },
     predictiveBackGestureEnabled: false,
@@ -63,11 +64,11 @@ module.exports = {
       {
         backgroundColor: "#F5FEF8",
         image: "./assets/images/splash-icon.png",
-        imageWidth: 76,
+        imageWidth: 140,
         dark: {
           backgroundColor: "#081C2C",
           image: "./assets/images/splash-icon.png",
-          imageWidth: 76,
+          imageWidth: 140,
         },
       },
     ],

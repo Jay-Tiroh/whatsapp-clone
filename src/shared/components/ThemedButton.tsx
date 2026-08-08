@@ -4,13 +4,12 @@ import { tv, type VariantProps } from "tailwind-variants";
 
 // 1. Container Variants
 const buttonVariants = tv({
-  // ADDED: `gap-2` for consistent spacing between icons and text
-  base: "flex-row items-center justify-center gap-2 rounded-2xl px-8 py-4.5 active:opacity-80",
+  base: "flex-row items-center justify-center gap-2.5 rounded-2xl px-8 py-4.5 active:opacity-80",
   variants: {
     variant: {
       primary: "bg-primary",
-      secondary: "bg-surface border border-border",
-      tertiary: "bg-transparent",
+      secondary: "bg-primary-tint",
+      tertiary: "bg-transparent px-0 py-0",
       outline: "bg-transparent border border-primary",
       elevated: "bg-surface shadow-sm shadow-neutral-900/10",
     },
@@ -18,6 +17,15 @@ const buttonVariants = tv({
       true: "opacity-50",
     },
   },
+  compoundVariants: [
+    {
+      // Primary's disabled state has a fixed color in Figma (#ABDBBE),
+      // not an opacity effect — so override with the light token directly.
+      variant: "primary",
+      isDisabled: true,
+      className: "bg-primary-light opacity-100",
+    },
+  ],
   defaultVariants: {
     variant: "primary",
     isDisabled: false,
@@ -30,7 +38,7 @@ const textVariants = tv({
   variants: {
     variant: {
       primary: "text-white",
-      secondary: "text-foreground",
+      secondary: "text-primary",
       tertiary: "text-primary",
       outline: "text-primary",
       elevated: "text-foreground",
