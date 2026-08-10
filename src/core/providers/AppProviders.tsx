@@ -1,10 +1,12 @@
-// @/core/providers/AppProviders.tsx
 import { clientStoragePersister } from "@/core/lib/persister";
 import { queryClient } from "@/core/lib/queryClient";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { ReactNode } from "react";
 import { KeyboardProvider } from "react-native-keyboard-controller";
-import { SafeAreaListener } from "react-native-safe-area-context";
+import {
+  SafeAreaListener,
+  SafeAreaProvider,
+} from "react-native-safe-area-context";
 import { Uniwind } from "uniwind";
 
 const AppProviders = ({ children }: { children: ReactNode }) => {
@@ -19,9 +21,13 @@ const AppProviders = ({ children }: { children: ReactNode }) => {
         },
       }}
     >
-      <SafeAreaListener onChange={({ insets }) => Uniwind.updateInsets(insets)}>
-        <KeyboardProvider>{children}</KeyboardProvider>
-      </SafeAreaListener>
+      <SafeAreaProvider>
+        <SafeAreaListener
+          onChange={({ insets }) => Uniwind.updateInsets(insets)}
+        >
+          <KeyboardProvider>{children}</KeyboardProvider>
+        </SafeAreaListener>
+      </SafeAreaProvider>
     </PersistQueryClientProvider>
   );
 };

@@ -1,6 +1,6 @@
 // @/shared/components/ChatLayoutWrapper.tsx
 import { ReactNode } from "react";
-import { Keyboard, Pressable, View, ViewStyle, StyleProp } from "react-native";
+import { Keyboard, Pressable, StyleProp, View, ViewStyle } from "react-native";
 import {
   KeyboardAwareScrollView,
   KeyboardStickyView,
@@ -17,7 +17,6 @@ type ChatLayoutWrapperProps = {
   /** Disable tap-outside-to-dismiss behavior if needed */
   dismissOnTap?: boolean;
 };
-
 const ChatLayoutWrapper = ({
   children,
   bottomInput,
@@ -27,26 +26,36 @@ const ChatLayoutWrapper = ({
   const insets = useSafeAreaInsets();
 
   const handleDismissKeyboard = () => {
-    if (dismissOnTap) Keyboard.dismiss();
+    if (dismissOnTap) {
+      Keyboard.dismiss();
+    }
   };
 
   return (
-    <View className="flex-1" style={containerStyle}>
+    <View className="flex-1 bg-background" style={containerStyle}>
       <KeyboardAwareScrollView
-        className="flex-1"
-        contentContainerClassName="flex-grow"
+        className="flex-1 bg-background"
+        contentContainerClassName="grow bg-background"
         keyboardDismissMode="interactive"
         bottomOffset={16}
       >
-        <Pressable className="flex-1" onPress={handleDismissKeyboard}>
+        <Pressable
+          className="flex-1 bg-background"
+          onPress={handleDismissKeyboard}
+        >
           {children}
         </Pressable>
       </KeyboardAwareScrollView>
 
-      <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
+      <KeyboardStickyView
+        offset={{ closed: 0, opened: 0 }}
+        className="bg-background"
+      >
         <View
           className="bg-background"
-          style={{ paddingBottom: insets.bottom }}
+          style={{
+            paddingBottom: insets.bottom,
+          }}
         >
           {bottomInput}
         </View>
@@ -54,5 +63,4 @@ const ChatLayoutWrapper = ({
     </View>
   );
 };
-
 export default ChatLayoutWrapper;
