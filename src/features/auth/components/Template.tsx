@@ -1,16 +1,11 @@
 // @/shared/components/AuthTemplate.tsx
+import ChatLayoutWrapper from "@/shared/components/ChatLayoutWrapper";
 import Spacer from "@/shared/components/Spacer";
 import ThemedButton from "@/shared/components/ThemedButton";
 import Feather from "@expo/vector-icons/Feather";
 import { useRouter } from "expo-router";
 import { ComponentProps, ReactNode } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { withUniwind } from "uniwind";
 
 const StyledFeather = withUniwind(Feather);
@@ -36,11 +31,14 @@ const AuthTemplate = ({
   const handleBack = onBack ?? (() => router.back());
 
   return (
-    <View className="p-safe-offset-4 flex-1 gap-6">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1"
-      >
+    <ChatLayoutWrapper
+      bottomInput={
+        <View className="px-safe-offset-6 pb-4 ">
+          <ThemedButton label="Next" variant="primary" {...buttonProps} />
+        </View>
+      }
+    >
+      <View className="p-safe-offset-6 gap-6 flex-1">
         {goBack ? (
           <Pressable
             onPress={handleBack}
@@ -57,7 +55,7 @@ const AuthTemplate = ({
           <Spacer size={40} />
         )}
 
-        <View className="max-w-82 gap-1">
+        <View className="max-w-96 gap-1">
           {typeof title === "string" ? (
             <Text className="text-h3 font-display-bold text-neutral-900 dark:text-white/90">
               {title}
@@ -76,12 +74,9 @@ const AuthTemplate = ({
           ) : null}
         </View>
 
-        <View className="flex-1">{children}</View>
-        <View className="justify-end">
-          <ThemedButton label="Next" variant="primary" {...buttonProps} />
-        </View>
-      </KeyboardAvoidingView>
-    </View>
+        {children}
+      </View>
+    </ChatLayoutWrapper>
   );
 };
 
