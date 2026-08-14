@@ -1,9 +1,5 @@
-import { Text, View } from "react-native";
+import { ChatList } from "@/features/chats";
 
 export default function Index() {
-  return (
-    <View>
-      <Text>Index</Text>
-    </View>
-  );
+  return <ChatList />;
 }

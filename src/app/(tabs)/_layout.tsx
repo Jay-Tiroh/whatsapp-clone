@@ -5,6 +5,7 @@ import {
   TabBarLayout,
 } from "@/shared/constants/TabsConfig";
 import { Tabs } from "expo-router";
+import { getFocusedRouteNameFromRoute } from "expo-router/build/react-navigation";
 import { ColorValue, Text, ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SvgProps } from "react-native-svg";
@@ -33,15 +34,21 @@ export default function TabsLayout() {
 
   return (
     <Tabs
-      screenOptions={{
-        tabBarStyle: {
-          ...(TabBarLayout as ViewStyle),
-          backgroundColor: surface as string,
-          paddingBottom: insets.bottom + 10,
-        },
-        tabBarActiveTintColor: primary400 as ColorValue,
-        tabBarInactiveTintColor: neutral300 as ColorValue,
-        tabBarBackground: () => null,
+      screenOptions={({ route }) => {
+        const focusedRoute = getFocusedRouteNameFromRoute(route) ?? "index";
+        const showTabBar = focusedRoute === "index";
+        return {
+          tabBarStyle: showTabBar
+            ? {
+                ...(TabBarLayout as ViewStyle),
+                backgroundColor: surface as string,
+                paddingBottom: insets.bottom + 10,
+              }
+            : { display: "none" },
+          tabBarActiveTintColor: primary400 as ColorValue,
+          tabBarInactiveTintColor: neutral300 as ColorValue,
+          tabBarBackground: () => null,
+        };
       }}
     >
       {TABS.map((tab) => (

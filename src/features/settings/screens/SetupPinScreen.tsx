@@ -1,0 +1,68 @@
+import Keypad from "@/features/settings/components/CustomKeypad";
+import PinInput from "@/features/settings/components/PinInput";
+import Feather from "@expo/vector-icons/Feather";
+import { useRouter } from "expo-router";
+import { useState } from "react";
+import { Pressable, Text, View } from "react-native";
+import { withUniwind } from "uniwind";
+
+const StyledFeather = withUniwind(Feather);
+
+export default function SetupPin() {
+  const router = useRouter();
+  const [pin, setPin] = useState("");
+
+  const handleBack = () => {
+    router.back();
+  };
+
+  const handleKeyPress = (value: string) => {
+    if (pin.length < 4) {
+      const newPin = pin + value;
+      setPin(newPin);
+
+      // Optional: Trigger your submit logic when 4 digits are reached
+      if (newPin.length === 4) {
+        console.log(`Pin complete: ${newPin}`);
+      }
+    }
+  };
+
+  const handleDelete = () => {
+    setPin((prev) => prev.slice(0, -1));
+  };
+
+  return (
+    <View className="p-safe-offset-6 gap-6 flex-1 bg-background">
+      <Pressable
+        onPress={handleBack}
+        hitSlop={8}
+        className="size-10 rounded-xl border-2 border-border flex items-center justify-center"
+      >
+        <StyledFeather
+          name="chevron-left"
+          size={24}
+          colorClassName="accent-neutral-900 dark:accent-white/90"
+        />
+      </Pressable>
+
+      <View className="gap-2 max-w-70 mx-auto p-6">
+        <Text className="text-h4 font-display-bold text-neutral-900 dark:text-white/90 text-center">
+          Setup pin code
+        </Text>
+        <Text className="text-body-md font-display-regular text-neutral-300 dark:text-neutral-200 text-center">
+          Make sure the code is safe and no one else knows.
+        </Text>
+      </View>
+
+      <View className="mt-4">
+        <PinInput pin={pin} />
+      </View>
+
+      {/* Push the keypad to the bottom */}
+      <View className="mt-auto pb-6">
+        <Keypad onPress={handleKeyPress} onDelete={handleDelete} />
+      </View>
+    </View>
+  );
+}
