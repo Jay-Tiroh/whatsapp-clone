@@ -1,5 +1,5 @@
 import Spacer from "@/shared/components/Spacer";
-import { formatPhoneInternational } from "@/shared/utils/formatPhoneNumber";
+import ThemedText from "@/shared/components/ThemedText";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
@@ -10,7 +10,7 @@ import {
   LoginFormInput,
   LoginFormOutput,
   loginSchema,
-} from "../schemas/loginSchema";
+} from "../validation/auth.validation";
 
 const LoginScreen = () => {
   const {
@@ -28,8 +28,8 @@ const LoginScreen = () => {
   });
   const router = useRouter();
   const onSubmit = (data: LoginFormOutput) => {
-    // data.country is guaranteed non-null here — Zod already validated it
-    const e164 = `${data.country.dialCode}${data.phone.replace(/\D/g, "")}`;
+    // data.phone is now the full merged string, e.g. "+234 801 234 5678"
+    const e164 = `+${data.phone.replace(/\D/g, "")}`;
     console.log({ ...data, e164 });
     router.navigate("/(auth)/verify");
   };
@@ -47,9 +47,14 @@ const LoginScreen = () => {
       }}
     >
       <View className="flex-1">
-        <Text className="text-body-md font-display-medium text-neutral-600 dark:text-neutral-50 px-1">
+        <ThemedText
+          type="bodyMd"
+          weight="medium"
+          className="px-1"
+          color="label"
+        >
           Phone Number
-        </Text>
+        </ThemedText>
         <Spacer size={8} />
         <Controller
           control={control}
@@ -57,7 +62,7 @@ const LoginScreen = () => {
           render={({ field: { value, onChange } }) => (
             <CountryPicker
               value={value}
-              onChangeText={(text) => onChange(formatPhoneInternational(text))}
+              onChangeText={onChange}
               onCountryChange={(country) =>
                 setValue("country", country, { shouldValidate: true })
               }

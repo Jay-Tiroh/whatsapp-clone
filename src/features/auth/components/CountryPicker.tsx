@@ -1,3 +1,4 @@
+// CountryPicker.tsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -20,8 +21,30 @@ type CountryPickerProps = {
   showPhoneInput?: boolean;
 };
 
-const digitsOnly = (s: string) => s.replace(/[^\d]/g, "");
 const DEFAULT_COUNTRY_CODE = "NG";
+
+const onlyDigits = (s: string) => s.replace(/[^\d]/g, "");
+const dialDigits = (c: Country) => onlyDigits(c.dialCode);
+
+// Longest matching dial code wins, so "+1242..." resolves to Bahamas
+// (1242) rather than US/Canada (1), same as most phone-input libs.
+const matchCountryByDigits = (digits: string, countries: Country[]) => {
+  let best: Country | null = null;
+  for (const c of countries) {
+    const code = dialDigits(c);
+    if (!code) continue;
+    if (
+      digits.startsWith(code) &&
+      (!best || code.length > dialDigits(best).length)
+    ) {
+      best = c;
+    }
+  }
+  return best;
+};
+
+const buildValue = (country: Country, localDigits: string) =>
+  `+${dialDigits(country)}${localDigits ? " " + localDigits : " "}`;
 
 export const CountryPicker = ({
   value = "",
@@ -34,29 +57,27 @@ export const CountryPicker = ({
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
   const insets = useSafeAreaInsets();
   const hasSyncedDefault = useRef(false);
-
-  const detectedCountry = useMemo(() => {
-    // ...unchanged
-  }, [value, countries, showPhoneInput]);
 
   const defaultCountry = useMemo(
     () => countries.find((c) => c.code === DEFAULT_COUNTRY_CODE) ?? null,
     [countries],
   );
 
-  const displayCountry = selectedCountry || detectedCountry || defaultCountry;
+  const displayCountry = selectedCountry || defaultCountry;
 
-  // Once the default country resolves, tell the parent — otherwise
-  // the picker can visually show a country the form doesn't know about.
+  // Seed the field once, the first time a default country resolves —
+  // otherwise the flag can show a country the form doesn't know about yet.
   useEffect(() => {
-    if (hasSyncedDefault.current) return;
-    if (!displayCountry) return;
-
+    if (hasSyncedDefault.current || !displayCountry) return;
     hasSyncedDefault.current = true;
+    setSelectedCountry(displayCountry);
     onCountryChange?.(displayCountry);
-  }, [displayCountry, onCountryChange]);
+    if (!value) onChangeText?.(buildValue(displayCountry, ""));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [displayCountry]);
 
   const filteredCountries = useMemo(() => {
     if (!searchQuery) return countries;
@@ -65,13 +86,42 @@ export const CountryPicker = ({
     );
   }, [countries, searchQuery]);
 
+  const handlePhoneChange = (text: string) => {
+    const digits = onlyDigits(text);
+
+    if (text.trim().startsWith("+") && digits.length > 0) {
+      const match = matchCountryByDigits(digits, countries);
+      if (match) {
+        if (!selectedCountry || match.code !== selectedCountry.code) {
+          setSelectedCountry(match);
+          onCountryChange?.(match);
+        }
+        const local = digits.slice(dialDigits(match).length);
+        onChangeText?.(buildValue(match, local));
+        return;
+      }
+    }
+
+    // Not enough digits yet to confidently match a dial code (or no
+    // leading "+") — pass the raw text through so we don't fight the cursor.
+    onChangeText?.(text);
+  };
+
   const handleSelect = (country: Country) => {
     setSelectedCountry(country);
     setModalVisible(false);
     setSearchQuery("");
-    if (onCountryChange) onCountryChange(country);
+    onCountryChange?.(country);
+
+    const digits = onlyDigits(value);
+    const oldCode = selectedCountry ? dialDigits(selectedCountry) : "";
+    const local =
+      oldCode && digits.startsWith(oldCode)
+        ? digits.slice(oldCode.length)
+        : digits;
+
+    onChangeText?.(buildValue(country, local));
   };
-  const [isFocused, setIsFocused] = useState(false);
 
   return (
     <View>
@@ -104,7 +154,7 @@ export const CountryPicker = ({
                   </Text>
                 )}
               </View>
-              {showDialCode && (
+              {!showPhoneInput && showDialCode && (
                 <Text className="ml-1.5 text-body-md text-foreground">
                   {displayCountry?.dialCode}
                 </Text>
@@ -118,10 +168,10 @@ export const CountryPicker = ({
             placeholderTextColorClassName="accent-muted"
             keyboardType="phone-pad"
             value={value}
-            onChangeText={onChangeText}
+            onChangeText={handlePhoneChange}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            placeholder="Phone number"
+            placeholder="+234 801 234 5678"
           />
         )}
       </View>

@@ -1,16 +1,17 @@
 import AuthTemplate from "@/features/auth/components/Template";
 import StyledOtpInput from "@/shared/components/StyledOtpInput";
 import ThemedButton from "@/shared/components/ThemedButton";
+import ThemedText from "@/shared/components/ThemedText";
 import { useRouter } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 const VerifyScreen = () => {
   const desc = (
-    <Text className="text-body-md font-display-regular text-neutral-300 dark:text-neutral-200 mt-2">
+    <ThemedText type="bodyMd" className="mt-2 text-center" color="muted">
       Enter the code number we sent to{" "}
-      <Text className="text-body-md font-display-medium text-neutral-600 dark:text-white/90 mt-2">
+      <ThemedText type="bodyMd" weight="medium" className="mt-2" color="label">
         +62 85-830-544-382.
-      </Text>
-    </Text>
+      </ThemedText>
+    </ThemedText>
   );
   const router = useRouter();
   return (
@@ -24,13 +25,19 @@ const VerifyScreen = () => {
     >
       <View className="gap-2">
         <StyledOtpInput />
-        <Text className="text-body-md font-display-regular text-neutral-300 dark:text-neutral-200 mt-2 text-center">
+
+        <ThemedText type="bodyMd" className="mt-2 text-center" color="muted">
           If you don't get the code, resend it in{" "}
-          <Text className="text-body-md font-display-medium text-neutral-600 dark:text-white/90 mt-2 ">
+          <ThemedText
+            type="bodyMd"
+            weight="medium"
+            className="mt-2"
+            color="label"
+          >
             0
-          </Text>{" "}
+          </ThemedText>{" "}
           seconds.
-        </Text>
+        </ThemedText>
 
         <ThemedButton label="Resend code" variant="tertiary" />
       </View>

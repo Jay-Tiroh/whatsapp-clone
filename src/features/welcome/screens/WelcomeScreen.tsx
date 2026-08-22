@@ -2,8 +2,9 @@ import Logo from "@/assets/icons/logo.svg";
 import IllDark from "@/assets/images/onboard-ill-dark.svg";
 import Ill from "@/assets/images/onboard-ill.svg";
 import ThemedButton from "@/shared/components/ThemedButton";
+import ThemedText from "@/shared/components/ThemedText";
 import { useRouter } from "expo-router";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 export default function WelcomeScreen() {
   const router = useRouter();
   return (
@@ -17,12 +18,16 @@ export default function WelcomeScreen() {
           <IllDark />
         </View>
         <View className="items-center w-full pb-safe-offset-5">
-          <Text className=" font-display-bold mb-4 text-h3 dark:text-white text-neutral-900 text-center max-w-82 ">
+          <ThemedText type="h3" className="mb-4 text-center max-w-82">
             Stay connected with your friends and family
-          </Text>
-          <Text className="text-body-md text-neutral-300 text-center  max-w-82 font-display-regular">
+          </ThemedText>
+          <ThemedText
+            type="bodyMd"
+            color="muted"
+            className="text-center dark:text-neutral-300 max-w-82"
+          >
             ChatMe is messaging app that will help you to connect with everyone.
-          </Text>
+          </ThemedText>
         </View>
       </View>
 

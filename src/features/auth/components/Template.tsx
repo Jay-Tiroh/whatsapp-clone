@@ -2,10 +2,11 @@
 import ChatLayoutWrapper from "@/shared/components/ChatLayoutWrapper";
 import Spacer from "@/shared/components/Spacer";
 import ThemedButton from "@/shared/components/ThemedButton";
+import ThemedText from "@/shared/components/ThemedText";
 import Feather from "@expo/vector-icons/Feather";
 import { useRouter } from "expo-router";
 import { ComponentProps, ReactNode } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { withUniwind } from "uniwind";
 
 const StyledFeather = withUniwind(Feather);
@@ -57,17 +58,15 @@ const AuthTemplate = ({
 
         <View className="max-w-96 gap-1">
           {typeof title === "string" ? (
-            <Text className="text-h3 font-display-bold text-neutral-900 dark:text-white/90">
-              {title}
-            </Text>
+            <ThemedText type="h3">{title}</ThemedText>
           ) : (
             title
           )}
           {description ? (
             typeof description === "string" ? (
-              <Text className="text-body-md font-display-regular text-neutral-300 dark:text-neutral-200 mt-2">
+              <ThemedText type="bodyMd" color="muted" className="mt-2">
                 {description}
-              </Text>
+              </ThemedText>
             ) : (
               description
             )

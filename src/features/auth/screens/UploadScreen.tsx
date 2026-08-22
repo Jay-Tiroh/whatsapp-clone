@@ -4,12 +4,13 @@ import UploadIcon from "@/assets/images/upload-icon.svg";
 import UploadRect from "@/assets/images/upload-rect.svg";
 import UploadModal from "@/features/auth/components/UploadModal";
 import ThemedButton from "@/shared/components/ThemedButton";
+import ThemedText from "@/shared/components/ThemedText";
 import Feather from "@expo/vector-icons/Feather";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, View } from "react-native";
 import { withUniwind } from "uniwind";
 
 const StyledMaterialIcons = withUniwind(MaterialIcons);
@@ -38,9 +39,9 @@ export default function UploadScreen() {
       </Pressable>
 
       <View className="max-w-96 gap-1">
-        <Text className="text-h3 font-display-bold text-neutral-900 dark:text-white/90 text-center">
+        <ThemedText type="h3" className="text-center">
           Upload a profile picture
-        </Text>
+        </ThemedText>
       </View>
       <View className="flex-1 items-center pt-30">
         <Pressable onPress={() => setModalVisible(true)} className="relative">
@@ -88,9 +89,14 @@ export default function UploadScreen() {
             />
           </View>
         </Pressable>
-        <Text className="text-body-lg  font-display-medium text-neutral-300 dark:text-neutral-200 mt-4 text-center max-w-46.5">
+        <ThemedText
+          type="bodyLg"
+          color="muted"
+          weight="medium"
+          className="mt-4 text-center max-w-46.5"
+        >
           Wait a second, your photo is being uploaded.
-        </Text>
+        </ThemedText>
       </View>
       <View className="px-safe-offset-6 pb-4 ">
         <ThemedButton label="Next" variant="primary" onPress={pushToHome} />

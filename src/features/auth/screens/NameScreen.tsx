@@ -1,9 +1,10 @@
 import AuthTemplate from "@/features/auth/components/Template";
 import Spacer from "@/shared/components/Spacer";
+import ThemedText from "@/shared/components/ThemedText";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Text, TextInput, View } from "react-native";
+import { TextInput, View } from "react-native";
 import { cn } from "tailwind-variants";
 import { withUniwind } from "uniwind";
 
@@ -21,9 +22,14 @@ export default function NameScreen() {
       }}
     >
       <View className="flex-1">
-        <Text className="text-body-md font-display-medium text-neutral-600 dark:text-neutral-50 px-1">
+        <ThemedText
+          type="bodyMd"
+          weight="medium"
+          className="px-1"
+          color="label"
+        >
           Name
-        </Text>
+        </ThemedText>
         <Spacer size={8} />
         <View
           className={cn(
