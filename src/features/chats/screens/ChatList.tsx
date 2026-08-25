@@ -1,10 +1,12 @@
 import ChatListEmpty from "@/features/chats/components/ChatListEmpty";
 import PinPromptModal from "@/features/chats/components/PinPromptModal";
 import ThemedButton from "@/shared/components/ThemedButton";
+import { useExitOnDoubleBack } from "@/shared/hooks/useExitOnDoubleBack";
 import { useState } from "react";
 import { View } from "react-native";
 
 export default function ChatList() {
+  useExitOnDoubleBack("Press back again to exit");
   const isEmpty = false;
   if (isEmpty) {
     return <ChatListEmpty />;

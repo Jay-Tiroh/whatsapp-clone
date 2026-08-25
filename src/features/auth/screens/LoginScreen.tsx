@@ -2,6 +2,8 @@ import { useRequestOtp } from "@/features/auth/hooks/useAuth";
 import Spacer from "@/shared/components/Spacer";
 import ThemedText from "@/shared/components/ThemedText";
 import { showErrorToast } from "@/shared/hooks/showToast";
+import { getErrorMessage } from "@/shared/utils/errors";
+import { logger } from "@/shared/utils/logger";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AxiosError } from "axios";
 import { useRouter } from "expo-router";
@@ -51,15 +53,16 @@ const LoginScreen = () => {
         },
         onError: (error) => {
           if (error instanceof AxiosError) {
-            console.log("status:", error.response?.status);
-            console.log("data:", error.response?.data);
-            console.log(error);
+            logger.log("status:", error.response?.status);
+            logger.log("data:", error.response?.data);
+            logger.log(error);
           } else {
-            console.log("unexpected error:", error);
+            logger.log("unexpected error:", error);
           }
           showErrorToast({
             title: "Couldn't send code",
-            message: "Check your number and try again.",
+            message:
+              getErrorMessage(error) ?? "Check your number and try again.",
           });
         },
       },
@@ -67,7 +70,7 @@ const LoginScreen = () => {
   };
 
   const onError = (errors: any) => {
-    console.log("Validation Failed!", errors);
+    logger.log("Validation Failed!", errors);
   };
 
   return (

@@ -1,7 +1,7 @@
-import { tokenStorage } from "@/core/lib/tokenStorage";
 import { useAuthStore } from "@/core/store/authStore";
 import AuthTemplate from "@/features/auth/components/Template";
 import { useResendOtp, useVerifyOtp } from "@/features/auth/hooks/useAuth";
+import { getAuthDestination } from "@/features/auth/utils/getAuthDestination";
 import {
   VerifyOtpFormValues,
   verifyOtpSchema,
@@ -10,9 +10,11 @@ import StyledOtpInput from "@/shared/components/StyledOtpInput";
 import ThemedButton from "@/shared/components/ThemedButton";
 import ThemedText from "@/shared/components/ThemedText";
 import { showErrorToast } from "@/shared/hooks/showToast";
+import { getErrorMessage } from "@/shared/utils/errors";
+import { logger } from "@/shared/utils/logger";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AxiosError } from "axios";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { Href, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { View } from "react-native";
@@ -58,23 +60,21 @@ const VerifyScreen = () => {
       { challengeId, code: values.code },
       {
         onSuccess: (data) => {
-          tokenStorage.setTokens(data.accessToken, data.refreshToken);
-          useAuthStore.getState().updateUser(data.user);
-          router.navigate(
-            data.user.profileComplete ? "/chats" : "/(auth)/name",
-          );
+          useAuthStore.getState().setSession(data);
+          router.navigate(getAuthDestination(true, data.user) as Href);
         },
         onError: (error) => {
           if (error instanceof AxiosError) {
-            console.log("status:", error.response?.status);
-            console.log("data:", error.response?.data);
+            logger.log("status:", error.response?.status);
+            logger.log("data:", error.response?.data);
           } else {
-            console.log("unexpected error:", error);
+            logger.log("unexpected error:", error);
           }
           otpRef.current?.clear();
           showErrorToast({
             title: "Invalid or expired code",
-            message: "Please check the code and try again.",
+            message:
+              getErrorMessage(error) ?? "Please check the code and try again.",
           });
         },
       },
@@ -91,10 +91,10 @@ const VerifyScreen = () => {
         },
         onError: (error) => {
           if (error instanceof AxiosError) {
-            console.log("status:", error.response?.status);
-            console.log("data:", error.response?.data);
+            logger.log("status:", error.response?.status);
+            logger.log("data:", error.response?.data);
           } else {
-            console.log("unexpected error:", error);
+            logger.log("unexpected error:", error);
           }
           showErrorToast({
             title: "Couldn't resend code",

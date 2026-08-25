@@ -39,6 +39,8 @@ export default function TabsLayout() {
 
   return (
     <Tabs
+      initialRouteName="chats"
+      backBehavior="initialRoute"
       screenOptions={({ route }) => {
         const focusedRoute = getFocusedRouteNameFromRoute(route) ?? "index";
         const showTabBar = focusedRoute === "index";
@@ -83,7 +85,7 @@ export default function TabsLayout() {
             tabPress: (e) => {
               e.preventDefault();
               navigation.navigate(tab.name, {
-                screen: tab.initialRoute ?? "chats",
+                screen: tab.initialRoute ?? "index",
               });
             },
           })}

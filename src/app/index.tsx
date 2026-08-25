@@ -1,8 +1,17 @@
+import { useAuthStore } from "@/core/store/authStore";
+import { getAuthDestination } from "@/features/auth/utils/getAuthDestination";
 import { WelcomeScreen } from "@/features/welcome";
-import { StyleSheet } from "react-native";
+import { Href, Redirect } from "expo-router";
 
 export default function Index() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const user = useAuthStore((s) => s.user);
+
+  if (isAuthenticated) {
+    return (
+      <Redirect href={getAuthDestination(isAuthenticated, user) as Href} />
+    );
+  }
+
   return <WelcomeScreen />;
 }
-
-const styles = StyleSheet.create({});

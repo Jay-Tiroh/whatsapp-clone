@@ -12,38 +12,28 @@ import "../global.css";
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const ready = useAppReady();
-
+  const { isReady, initialDestination } = useAppReady();
   const backgroundColor = useCSSVariable("--color-background") as
     string | undefined;
-
   const background = backgroundColor ?? "#F5F7F9";
 
   useEffect(() => {
-    if (ready) {
+    if (isReady) {
       SplashScreen.hideAsync();
     }
-  }, [ready]);
+  }, [isReady]);
 
-  // FIX: Hold off on rendering the Stack until fonts and auth are fully loaded
-  if (!ready) {
+  if (!isReady) {
     return null;
   }
 
   return (
     <AppProviders>
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: background,
-        }}
-      >
+      <View style={{ flex: 1, backgroundColor: background }}>
         <Stack
           screenOptions={{
             headerShown: false,
-            contentStyle: {
-              backgroundColor: background,
-            },
+            contentStyle: { backgroundColor: background },
             animation: "slide_from_right",
             animationTypeForReplace: "push",
             animationDuration: 300,
