@@ -25,6 +25,11 @@ export default function RootLayout() {
     }
   }, [ready]);
 
+  // FIX: Hold off on rendering the Stack until fonts and auth are fully loaded
+  if (!ready) {
+    return null;
+  }
+
   return (
     <AppProviders>
       <View
@@ -45,7 +50,6 @@ export default function RootLayout() {
           }}
         >
           <Stack.Screen name="index" options={{ headerShown: false }} />
-
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         </Stack>

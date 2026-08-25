@@ -1,10 +1,15 @@
-import { Stack } from "expo-router";
+import { useAuthStore } from "@/core/store/authStore";
+import { Redirect, Stack } from "expo-router";
 import { View } from "react-native";
 import { useCSSVariable } from "uniwind";
-
 export default function AuthLayout() {
   const backgroundColor = useCSSVariable("--color-background") as
     string | undefined;
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  if (isAuthenticated) {
+    return <Redirect href="/chats" />;
+  }
   return (
     <View className="flex-1 bg-background">
       <Stack

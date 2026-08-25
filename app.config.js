@@ -117,6 +117,35 @@ module.exports = {
       },
     ],
     "expo-document-picker",
+    [
+      "expo-notifications",
+      {
+        icon: "./assets/notifications/ic_stat_notify.png",
+        color: "#25D366",
+        defaultChannel: "default",
+      },
+    ],
+    [
+      "react-native-notify-kit",
+      {
+        androidIcons: [
+          {
+            name: "ic_stat_notify",
+            path: "./assets/notifications/ic_stat_notify.png",
+            type: "small",
+          },
+        ],
+      },
+    ],
+    [
+      "expo-build-properties",
+      {
+        android: {
+          compileSdkVersion: 34,
+          targetSdkVersion: 34,
+        },
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,

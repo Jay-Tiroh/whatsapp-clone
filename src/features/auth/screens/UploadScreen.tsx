@@ -68,12 +68,12 @@ export default function UploadScreen() {
               </View>
             </View>
           </View>
+
           <View className="size-10 rounded-full bg-primary-400 flex items-center justify-center top-0 right-0 absolute ">
             <StyledMaterialCommunityIcons
               name="camera-plus"
               size={20}
               colorClassName="accent-white/90"
-              // className="hidden"
             />
             <StyledMaterialIcons
               name="mode-edit"
@@ -89,6 +89,7 @@ export default function UploadScreen() {
             />
           </View>
         </Pressable>
+        {/*if uploading show this*/}
         <ThemedText
           type="bodyLg"
           color="muted"

@@ -33,13 +33,23 @@ export const TabBarLayout = {
 export const TabBarLabelSize = 12;
 
 export const TABS: TabConfig[] = [
-  { name: "calls", label: "Calls", icon: CallsIcon, initialRoute: "index" },
-  { name: "chats", label: "Chats", icon: ChatsIcon, initialRoute: "index" },
+  {
+    name: "calls",
+    label: "Calls",
+    icon: CallsIcon,
+    initialRoute: "/chats/index",
+  },
+  {
+    name: "chats",
+    label: "Chats",
+    icon: ChatsIcon,
+    initialRoute: "/chats/index",
+  },
   {
     name: "settings",
     label: "Settings",
     icon: SettingsIcon,
-    initialRoute: "index",
+    initialRoute: "/chats/index",
   },
 ];
 

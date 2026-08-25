@@ -1,5 +1,10 @@
 import React from "react";
-import { Pressable, PressableProps, Text } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  PressableProps,
+  Text,
+} from "react-native";
 import { tv, type VariantProps } from "tailwind-variants";
 
 // 1. Container Variants
@@ -49,25 +54,25 @@ const textVariants = tv({
   },
 });
 
-// 3. Types
 interface ThemedButtonProps
   extends PressableProps, VariantProps<typeof buttonVariants> {
   label: string;
   iconLeft?: React.ReactNode;
   iconRight?: React.ReactNode;
+  isLoading?: boolean;
 }
 
 const ThemedButton = ({
   label,
   variant,
   disabled,
+  isLoading = false,
   iconLeft,
   iconRight,
   className,
   ...props
 }: ThemedButtonProps) => {
-  const isButtonDisabled = !!disabled;
-
+  const isButtonDisabled = !!disabled || isLoading;
   return (
     <Pressable
       disabled={isButtonDisabled}
@@ -78,9 +83,15 @@ const ThemedButton = ({
       })}
       {...props}
     >
-      {iconLeft}
-      <Text className={textVariants({ variant })}>{label}</Text>
-      {iconRight}
+      {isLoading ? (
+        <ActivityIndicator color={variant === "primary" ? "#fff" : undefined} />
+      ) : (
+        <>
+          {iconLeft}
+          <Text className={textVariants({ variant })}>{label}</Text>
+          {iconRight}
+        </>
+      )}
     </Pressable>
   );
 };

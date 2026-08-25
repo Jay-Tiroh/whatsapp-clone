@@ -1,6 +1,9 @@
+import { useRequestOtp } from "@/features/auth/hooks/useAuth";
 import Spacer from "@/shared/components/Spacer";
 import ThemedText from "@/shared/components/ThemedText";
+import { showErrorToast } from "@/shared/hooks/showToast";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { AxiosError } from "axios";
 import { useRouter } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
 import { Text, View } from "react-native";
@@ -27,12 +30,42 @@ const LoginScreen = () => {
     mode: "onChange",
   });
   const router = useRouter();
+  const requestOtp = useRequestOtp();
+
   const onSubmit = (data: LoginFormOutput) => {
-    // data.phone is now the full merged string, e.g. "+234 801 234 5678"
     const e164 = `+${data.phone.replace(/\D/g, "")}`;
-    console.log({ ...data, e164 });
-    router.navigate("/(auth)/verify");
+
+    requestOtp.mutate(
+      { phoneNumber: e164 },
+      {
+        onSuccess: (response) => {
+          router.navigate({
+            pathname: "/(auth)/verify",
+            params: {
+              challengeId: response.challengeId,
+              phoneNumberMasked: response.phoneNumberMasked,
+              codeLength: String(response.codeLength),
+              resendInSeconds: String(response.resendInSeconds),
+            },
+          });
+        },
+        onError: (error) => {
+          if (error instanceof AxiosError) {
+            console.log("status:", error.response?.status);
+            console.log("data:", error.response?.data);
+            console.log(error);
+          } else {
+            console.log("unexpected error:", error);
+          }
+          showErrorToast({
+            title: "Couldn't send code",
+            message: "Check your number and try again.",
+          });
+        },
+      },
+    );
   };
+
   const onError = (errors: any) => {
     console.log("Validation Failed!", errors);
   };
@@ -41,9 +74,9 @@ const LoginScreen = () => {
     <AuthTemplate
       title="What's your phone number?"
       description="We will send you the verification code."
-
       buttonProps={{
-        onPress: handleSubmit(onSubmit),
+        onPress: handleSubmit(onSubmit, onError),
+        isLoading: requestOtp.isPending,
       }}
     >
       <View className="flex-1">

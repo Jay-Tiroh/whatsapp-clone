@@ -1,16 +1,16 @@
 // TabsLayout.tsx
+import { useAuthStore } from "@/core/store/authStore";
 import {
   TABS,
   TabBarLabelSize,
   TabBarLayout,
 } from "@/shared/constants/TabsConfig";
-import { Tabs } from "expo-router";
+import { Redirect, Tabs } from "expo-router";
 import { getFocusedRouteNameFromRoute } from "expo-router/build/react-navigation";
 import { ColorValue, Text, ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SvgProps } from "react-native-svg";
 import { useCSSVariable } from "uniwind";
-
 function renderIcon(Icon: React.FC<SvgProps>, focused: boolean) {
   return (
     <Icon
@@ -31,6 +31,11 @@ export default function TabsLayout() {
     "--font-display-medium",
     "--font-display-bold",
   ]);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  if (!isAuthenticated) {
+    return <Redirect href="/(auth)/login" />;
+  }
 
   return (
     <Tabs
@@ -78,7 +83,7 @@ export default function TabsLayout() {
             tabPress: (e) => {
               e.preventDefault();
               navigation.navigate(tab.name, {
-                screen: tab.initialRoute ?? "index",
+                screen: tab.initialRoute ?? "chats",
               });
             },
           })}

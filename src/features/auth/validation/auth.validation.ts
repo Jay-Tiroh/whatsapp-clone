@@ -46,3 +46,9 @@ export const verifyOtpSchema = z.object({
     .regex(/^\d+$/, "Code must contain only digits"),
 });
 export type VerifyOtpFormValues = z.infer<typeof verifyOtpSchema>;
+
+export const completeProfileSchema = z.object({
+  displayName: z.string().min(2, "Name must be at least 2 characters"),
+});
+
+export type CompleteProfileFormValues = z.infer<typeof completeProfileSchema>;
