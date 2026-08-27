@@ -1,5 +1,5 @@
-import { ChatList } from "@/features/chats";
+import { ChatListScreen } from "@/features/chats";
 
 export default function Index() {
-  return <ChatList />;
+  return <ChatListScreen />;
 }

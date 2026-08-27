@@ -12,11 +12,9 @@ export default function ArchivedButton() {
   return (
     <Pressable
       onPress={() => router.push("/(tabs)/chats/archived")}
-      className="w-full px-safe-offset-6 gap-4 flex-row items-center rounded-xl h-20
- active:bg-primary-50 active:dark:bg-neutral-700 bg-background
-      "
+      className="w-full px-safe-offset-6 gap-4 flex-row items-center rounded-xl h-20 active:bg-primary-50 active:dark:bg-neutral-700 bg-background"
     >
-      <View className="w-fit size-14 rounded-full  bg-primary-400 true-center">
+      <View className="w-fit size-14 rounded-full bg-primary-400 true-center">
         <StyledFontAwesome6
           name="box-archive"
           size={24}

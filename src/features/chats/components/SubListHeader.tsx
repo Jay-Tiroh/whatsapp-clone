@@ -48,8 +48,8 @@ export default function SubListHeader({
       intensity={5}
       className="w-full bg-primary-400 dark:bg-neutral-700 p-safe-offset-6 pb-6 gap-5"
     >
-      <View className="flex-row  justify-center items-center">
-        <View className="flex-row  justify-center items-center">
+      <View className="flex-row justify-center items-center">
+        <View className="flex-row justify-center items-center">
           <Pressable className="active:opacity-70" onPress={handleGoBack}>
             <StyledIonicons
               name="chevron-back"

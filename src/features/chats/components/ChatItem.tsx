@@ -1,4 +1,3 @@
-// features/chats/components/ChatItem.tsx
 import MuteIcon from "@/assets/icons/mute.svg";
 import TrashIcon from "@/assets/icons/trash.svg";
 import ThemedText from "@/shared/components/ThemedText";
@@ -13,7 +12,7 @@ import Swipeable, {
   SwipeableMethods,
 } from "react-native-gesture-handler/ReanimatedSwipeable";
 import { withUniwind } from "uniwind";
-import type { ConversationResponseDto } from "../types/conversation.types";
+import type { Conversation } from "../types/conversation.types";
 
 const StyledMaterialIcons = withUniwind(MaterialIcons);
 const StyledFontAwesome6 = withUniwind(FontAwesome6);
@@ -24,7 +23,7 @@ const StyledFoundation = withUniwind(Foundation);
 const StyledTouchableOpacity = withUniwind(TouchableOpacity);
 
 interface ChatItemProps {
-  conversation: ConversationResponseDto;
+  conversation: Conversation;
   currentUserId?: string;
   isSelecting?: boolean;
   setSelectedConversations?: React.Dispatch<React.SetStateAction<string[]>>;
@@ -52,6 +51,12 @@ export default function ChatItem({
   const isYou = !!latestMessage && latestMessage.senderId === currentUserId;
   const hasUnread = unreadCount > 0;
 
+  const swipeableRef = useRef<SwipeableMethods>(null);
+  const [isPressed, setIsPressed] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const isInteracting = isPressed || isOpen;
+
   const handlePinPress = () => {
     setIsPinned((prev) => !prev);
     swipeableRef.current?.close();
@@ -60,17 +65,8 @@ export default function ChatItem({
     setIsMuted((prev) => !prev);
     swipeableRef.current?.close();
   };
-  const handleDeletePress = () => {
-    swipeableRef.current?.close();
-  };
-  const handleArchivePress = () => {
-    swipeableRef.current?.close();
-  };
-  const swipeableRef = useRef<SwipeableMethods>(null);
-  const [isPressed, setIsPressed] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
-
-  const isInteracting = isPressed || isOpen;
+  const handleDeletePress = () => swipeableRef.current?.close();
+  const handleArchivePress = () => swipeableRef.current?.close();
 
   const handleLongPress = () => {
     if (setSelectedConversations) {
@@ -86,18 +82,10 @@ export default function ChatItem({
 
   const handlePress = () => {
     if (isSelecting && setSelectedConversations) {
-      setSelectedConversations((prev: string[]) => {
-        if (prev.includes(conversation.id)) {
-          return prev.filter((id: string) => id !== conversation.id);
-        } else {
-          return [...prev, conversation.id];
-        }
-      });
-    } else {
-      // Navigate to the chat screen for this conversation
-      // navigation.navigate('ChatScreen', { conversationId: conversation.id });
+      handleLongPress();
     }
   };
+
   useEffect(() => {
     selectedConversations?.includes(conversation.id)
       ? setIsPressed(true)
@@ -219,7 +207,6 @@ export default function ChatItem({
                 weight="bold"
                 ellipsizeMode="tail"
                 numberOfLines={1}
-                className=""
               >
                 {otherParticipant.displayName ?? "Unknown"}
               </ThemedText>
