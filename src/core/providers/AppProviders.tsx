@@ -2,13 +2,13 @@ import { clientStoragePersister } from "@/core/lib/persister";
 import { queryClient } from "@/core/lib/queryClient";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { ReactNode } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import {
   SafeAreaListener,
   SafeAreaProvider,
 } from "react-native-safe-area-context";
 import { Uniwind } from "uniwind";
-
 const AppProviders = ({ children }: { children: ReactNode }) => {
   return (
     <PersistQueryClientProvider
@@ -21,13 +21,15 @@ const AppProviders = ({ children }: { children: ReactNode }) => {
         },
       }}
     >
-      <SafeAreaProvider>
-        <SafeAreaListener
-          onChange={({ insets }) => Uniwind.updateInsets(insets)}
-        >
-          <KeyboardProvider>{children}</KeyboardProvider>
-        </SafeAreaListener>
-      </SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <SafeAreaListener
+            onChange={({ insets }) => Uniwind.updateInsets(insets)}
+          >
+            <KeyboardProvider>{children}</KeyboardProvider>
+          </SafeAreaListener>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
     </PersistQueryClientProvider>
   );
 };

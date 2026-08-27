@@ -1,6 +1,7 @@
 // core/store/authStore.ts
 import { storage } from "@/core/lib/storage";
 import { tokenStorage } from "@/core/lib/tokenStorage";
+import { usePinStore } from "@/core/store/pinStore";
 import type {
   AuthResponseDto,
   UserResponseDto,
@@ -45,6 +46,7 @@ export const useAuthStore = create<AuthState>()(
 
       clearSession: () => {
         tokenStorage.clearTokens();
+        usePinStore.getState().clearPin();
         set({ isAuthenticated: false, user: null });
       },
 

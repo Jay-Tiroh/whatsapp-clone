@@ -1,5 +1,8 @@
+import { useAppLockGate } from "@/core/hooks/useAppLockGate";
 import { useAppReady } from "@/core/hooks/useAppReady";
 import AppProviders from "@/core/providers/AppProviders";
+import { usePinStore } from "@/core/store/pinStore";
+import { PinLockScreen } from "@/features/settings";
 import { toastConfig } from "@/shared/constants/toastConfig";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -16,7 +19,9 @@ export default function RootLayout() {
   const backgroundColor = useCSSVariable("--color-background") as
     string | undefined;
   const background = backgroundColor ?? "#F5F7F9";
-
+  useAppLockGate();
+  const isLocked = usePinStore((s) => s.isLocked);
+  const hasSetupPin = usePinStore((s) => s.hasSetupPin);
   useEffect(() => {
     if (isReady) {
       SplashScreen.hideAsync();
@@ -43,6 +48,7 @@ export default function RootLayout() {
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         </Stack>
+        {hasSetupPin && isLocked && <PinLockScreen />}
       </View>
       <Toast config={toastConfig} />
     </AppProviders>

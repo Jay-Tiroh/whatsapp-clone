@@ -1,3 +1,4 @@
+import * as Haptics from "expo-haptics";
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 
@@ -19,6 +20,18 @@ const Keypad: React.FC<KeypadProps> = ({
     ["7", "8", "9"],
   ];
 
+  // Wrapper for standard keys to include a light haptic tap
+  const handlePress = (key: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onPress(key);
+  };
+
+  // Wrapper for the delete key to include a slightly heavier haptic tap
+  const handleDelete = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    onDelete();
+  };
+
   return (
     <View className="flex-col items-center justify-center w-full px-8 gap-y-6">
       {/* 1-9 Keys */}
@@ -27,8 +40,7 @@ const Keypad: React.FC<KeypadProps> = ({
           {row.map((key) => (
             <Pressable
               key={key}
-              onPress={() => onPress(key)}
-              // Uses your theme: surface bg, border, and neutral interaction states
+              onPress={() => handlePress(key)}
               className="w-20 h-20 items-center justify-center rounded-full bg-surface border border-border active:bg-neutral-100 dark:active:bg-neutral-800"
             >
               <Text className="text-h2 font-display-medium text-foreground">
@@ -48,7 +60,7 @@ const Keypad: React.FC<KeypadProps> = ({
 
         {/* Zero Key */}
         <Pressable
-          onPress={() => onPress("0")}
+          onPress={() => handlePress("0")}
           className="w-20 h-20 items-center justify-center rounded-full bg-surface border border-border active:bg-neutral-100 dark:active:bg-neutral-800"
         >
           <Text className="text-h2 font-display-medium text-foreground">0</Text>
@@ -56,10 +68,9 @@ const Keypad: React.FC<KeypadProps> = ({
 
         {/* Delete Key */}
         <Pressable
-          onPress={onDelete}
+          onPress={handleDelete}
           className="w-20 h-20 items-center justify-center rounded-full active:bg-neutral-100 dark:active:bg-neutral-800"
         >
-          {/* Using text-muted for the delete button, you can swap this for an SVG/Icon */}
           <Text className="text-body-lg font-display-bold text-muted">DEL</Text>
         </Pressable>
       </View>

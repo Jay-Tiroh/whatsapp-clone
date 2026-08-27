@@ -1,1 +1,2 @@
-export { default as ChatList } from "./screens/ChatList";
+export { default as ArchivedScreen } from "./screens/ArchivedScreen";
+export { default as ChatList } from "./screens/ChatListScreen";
