@@ -4,7 +4,7 @@ import {
   AUTH_ENDPOINTS_SKIP_REFRESH,
 } from "@/core/constants/endpoints";
 import { tokenStorage } from "@/core/lib/tokenStorage";
-import { useAuthStore } from "@/core/store/authStore";
+import { useAuthStore } from "@/features/auth";
 import axios from "axios";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;

@@ -22,7 +22,6 @@ export default function CameraCapture({
   const cameraRef = useRef<CameraView>(null);
 
   if (visible && !permission?.granted) {
-    // Fire off the request; render nothing until the user responds.
     requestPermission();
   }
 
@@ -38,7 +37,6 @@ export default function CameraCapture({
           <CameraView ref={cameraRef} style={{ flex: 1 }} facing={facing} />
         )}
 
-        {/* Top bar */}
         <View className="absolute top-14 left-0 right-0 flex-row justify-between px-6">
           <Pressable
             onPress={onClose}
@@ -62,7 +60,6 @@ export default function CameraCapture({
           </Pressable>
         </View>
 
-        {/* Shutter */}
         <View className="absolute bottom-12 left-0 right-0 items-center">
           <Pressable
             onPress={handleCapture}

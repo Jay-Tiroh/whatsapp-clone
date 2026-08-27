@@ -1,10 +1,10 @@
-import type { UserResponseDto } from "../types/auth.types";
+import type { User } from "../types/auth.types";
 
 export type AuthDestination = "/login" | "/name" | "/upload" | "/chats";
 
 export function getAuthDestination(
   isAuthenticated: boolean,
-  user: UserResponseDto | null,
+  user: User | null,
 ): AuthDestination {
   if (!isAuthenticated || !user) return "/login";
   if (user.profileComplete) return "/chats";

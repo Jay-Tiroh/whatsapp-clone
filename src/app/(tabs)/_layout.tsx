@@ -1,5 +1,5 @@
 // TabsLayout.tsx
-import { useAuthStore } from "@/core/store/authStore";
+import { useAuthStore } from "@/features/auth";
 import {
   TABS,
   TabBarLabelSize,

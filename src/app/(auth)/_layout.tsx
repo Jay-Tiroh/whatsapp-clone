@@ -1,4 +1,4 @@
-import { useAuthStore } from "@/core/store/authStore";
+import { useAuthStore } from "@/features/auth";
 import { getAuthDestination } from "@/features/auth/utils/getAuthDestination";
 import { Href, Redirect, Stack, useSegments } from "expo-router";
 import { View } from "react-native";

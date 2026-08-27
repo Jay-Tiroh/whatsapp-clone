@@ -11,7 +11,7 @@ const COUNTRIES_BASE_URL =
   process.env.EXPO_PUBLIC_REST_COUNTRIES_API_URL ??
   "https://restcountries.com/v3.1";
 const API_KEY = process.env.EXPO_PUBLIC_REST_COUNTRIES_API_KEY;
-const PAGE_LIMIT = 100; // free-plan max
+const PAGE_LIMIT = 100;
 
 type ApiCountryObject = {
   names?: { common?: string };
@@ -67,7 +67,7 @@ async function fetchCountriesPage(
   if (!res.ok) {
     const body = await res.json().catch(() => null);
     const message = body?.errors?.[0]?.message ?? res.statusText;
-    throw new Error(`Failed to fetch countries (${res.status}): ${message}`);
+    throw new Error(`Failed to fetch countries: ${message}`);
   }
 
   const json: ApiListResponse = await res.json();

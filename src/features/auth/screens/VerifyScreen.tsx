@@ -1,4 +1,4 @@
-import { useAuthStore } from "@/core/store/authStore";
+import { useAuthStore } from "@/features/auth";
 import AuthTemplate from "@/features/auth/components/Template";
 import { useResendOtp, useVerifyOtp } from "@/features/auth/hooks/useAuth";
 import { getAuthDestination } from "@/features/auth/utils/getAuthDestination";
@@ -20,8 +20,20 @@ import { useForm } from "react-hook-form";
 import { View } from "react-native";
 import { OtpInputRef } from "react-native-otp-entry";
 
+const useResendTimer = (initialSeconds: number) => {
+  const [secondsLeft, setSecondsLeft] = useState(initialSeconds);
+  useEffect(() => {
+    if (secondsLeft <= 0) return;
+    const timer = setInterval(() => setSecondsLeft((s) => s - 1), 1000);
+    return () => clearInterval(timer);
+  }, [secondsLeft]);
+  return { secondsLeft, setSecondsLeft };
+};
+
 const VerifyScreen = () => {
   const router = useRouter();
+  const setSession = useAuthStore((state) => state.setSession);
+
   const params = useLocalSearchParams<{
     challengeId: string;
     phoneNumberMasked: string;
@@ -45,30 +57,24 @@ const VerifyScreen = () => {
   const resendOtp = useResendOtp();
 
   const [challengeId, setChallengeId] = useState(params.challengeId);
-  const [secondsLeft, setSecondsLeft] = useState(
+  const { secondsLeft, setSecondsLeft } = useResendTimer(
     Number(params.resendInSeconds) || 0,
   );
-
-  useEffect(() => {
-    if (secondsLeft <= 0) return;
-    const timer = setInterval(() => setSecondsLeft((s) => s - 1), 1000);
-    return () => clearInterval(timer);
-  }, [secondsLeft]);
 
   const onSubmit = (values: VerifyOtpFormValues) => {
     verifyOtp.mutate(
       { challengeId, code: values.code },
       {
         onSuccess: (data) => {
-          useAuthStore.getState().setSession(data);
+          setSession(data);
           router.navigate(getAuthDestination(true, data.user) as Href);
         },
         onError: (error) => {
           if (error instanceof AxiosError) {
-            logger.log("status:", error.response?.status);
-            logger.log("data:", error.response?.data);
+            logger.error("status:", error.response?.status);
+            logger.error("data:", error.response?.data);
           } else {
-            logger.log("unexpected error:", error);
+            logger.error("unexpected error:", error);
           }
           otpRef.current?.clear();
           showErrorToast({
@@ -91,10 +97,10 @@ const VerifyScreen = () => {
         },
         onError: (error) => {
           if (error instanceof AxiosError) {
-            logger.log("status:", error.response?.status);
-            logger.log("data:", error.response?.data);
+            logger.error("status:", error.response?.status);
+            logger.error("data:", error.response?.data);
           } else {
-            logger.log("unexpected error:", error);
+            logger.error("unexpected error:", error);
           }
           showErrorToast({
             title: "Couldn't resend code",

@@ -1,30 +1,28 @@
-// features/auth/hooks/useAuth.ts
-
 import { tokenStorage } from "@/core/lib/tokenStorage";
-import { useAuthStore } from "@/core/store/authStore";
+import { useAuthStore } from "@/features/auth/store/authStore";
 import { useMutation } from "@tanstack/react-query";
 import { authApi } from "../api/auth.api";
 import type {
-  RequestOtpDto,
-  ResendOtpDto,
-  VerifyOtpDto,
+  RequestOtpPayload,
+  ResendOtpPayload,
+  VerifyOtpPayload,
 } from "../types/auth.types";
 
 export function useRequestOtp() {
   return useMutation({
-    mutationFn: (payload: RequestOtpDto) => authApi.requestOtp(payload),
+    mutationFn: (payload: RequestOtpPayload) => authApi.requestOtp(payload),
   });
 }
 
 export function useResendOtp() {
   return useMutation({
-    mutationFn: (payload: ResendOtpDto) => authApi.resendOtp(payload),
+    mutationFn: (payload: ResendOtpPayload) => authApi.resendOtp(payload),
   });
 }
 
 export function useVerifyOtp() {
   return useMutation({
-    mutationFn: (payload: VerifyOtpDto) => authApi.verifyOtp(payload),
+    mutationFn: (payload: VerifyOtpPayload) => authApi.verifyOtp(payload),
   });
 }
 
@@ -37,8 +35,6 @@ export function useLogout() {
       return authApi.logout({ refreshToken: refreshToken! });
     },
     onSettled: () => {
-      // Clear locally regardless of API outcome — a failed logout
-      // shouldn't trap the user in a dead session.
       tokenStorage.clearTokens();
       clearSession();
     },
