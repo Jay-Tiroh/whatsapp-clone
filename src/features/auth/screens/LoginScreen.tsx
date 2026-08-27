@@ -1,4 +1,11 @@
+import AuthTemplate from "@/features/auth/components/Template";
 import { useRequestOtp } from "@/features/auth/hooks/useAuth";
+import {
+  LoginFormInput,
+  LoginFormOutput,
+  loginSchema,
+} from "@/features/auth/validation/auth.validation";
+import { CountryPicker } from "@/shared/components/CountryPicker";
 import Spacer from "@/shared/components/Spacer";
 import ThemedText from "@/shared/components/ThemedText";
 import { showErrorToast } from "@/shared/hooks/showToast";
@@ -9,15 +16,11 @@ import { AxiosError } from "axios";
 import { useRouter } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
 import { Text, View } from "react-native";
-import { CountryPicker } from "../components/CountryPicker";
-import AuthTemplate from "../components/Template";
-import {
-  LoginFormInput,
-  LoginFormOutput,
-  loginSchema,
-} from "../validation/auth.validation";
 
 const LoginScreen = () => {
+  const router = useRouter();
+  const requestOtp = useRequestOtp();
+
   const {
     control,
     handleSubmit,
@@ -31,8 +34,6 @@ const LoginScreen = () => {
     },
     mode: "onChange",
   });
-  const router = useRouter();
-  const requestOtp = useRequestOtp();
 
   const onSubmit = (data: LoginFormOutput) => {
     const e164 = `+${data.phone.replace(/\D/g, "")}`;
@@ -53,11 +54,11 @@ const LoginScreen = () => {
         },
         onError: (error) => {
           if (error instanceof AxiosError) {
-            logger.log("status:", error.response?.status);
-            logger.log("data:", error.response?.data);
-            logger.log(error);
+            logger.error("status:", error.response?.status);
+            logger.error("data:", error.response?.data);
+            logger.error(error);
           } else {
-            logger.log("unexpected error:", error);
+            logger.error("unexpected error:", error);
           }
           showErrorToast({
             title: "Couldn't send code",
@@ -70,7 +71,7 @@ const LoginScreen = () => {
   };
 
   const onError = (errors: any) => {
-    logger.log("Validation Failed!", errors);
+    logger.warn("Validation Failed!", errors);
   };
 
   return (

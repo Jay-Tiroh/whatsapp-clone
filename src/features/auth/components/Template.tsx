@@ -1,4 +1,3 @@
-// @/shared/components/AuthTemplate.tsx
 import ChatLayoutWrapper from "@/shared/components/ChatLayoutWrapper";
 import Spacer from "@/shared/components/Spacer";
 import ThemedButton from "@/shared/components/ThemedButton";

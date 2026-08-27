@@ -1,10 +1,9 @@
-// features/chats/components/ChatListEmpty.tsx
 import ThemedText from "@/shared/components/ThemedText";
 import { Image, View } from "react-native";
-import type { ContactMatchDto } from "../types/discovery.types";
+import type { ContactMatch } from "../types/discovery.types";
 
 interface ChatListEmptyProps {
-  matches: ContactMatchDto[];
+  matches: ContactMatch[];
 }
 
 export default function ChatListEmpty({ matches }: ChatListEmptyProps) {

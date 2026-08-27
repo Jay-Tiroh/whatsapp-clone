@@ -1,6 +1,6 @@
 import { usePinStore } from "@/core/store/pinStore";
-import Keypad from "@/features/settings/components/CustomKeypad";
-import PinInput from "@/features/settings/components/PinInput";
+import Keypad from "@/shared/components/CustomKeypad";
+import PinInput from "@/shared/components/PinInput";
 import { useState } from "react";
 import { Text, View } from "react-native";
 

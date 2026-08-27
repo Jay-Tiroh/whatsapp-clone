@@ -1,4 +1,3 @@
-// features/auth/validation/auth.validation.ts
 import { z } from "zod";
 
 const digitsOnly = (value: string) => value.replace(/\D/g, "");
@@ -22,13 +21,13 @@ export const loginSchema = z
   })
   .refine(
     (data) => {
-      if (!data.country) return true; // country's own refine already flags this
+      if (!data.country) return true;
       const dialDigits = digitsOnly(data.country.dialCode);
       const allDigits = digitsOnly(data.phone);
       const localDigits = allDigits.startsWith(dialDigits)
         ? allDigits.slice(dialDigits.length)
         : allDigits;
-      // National significant number is realistically 7–12 digits
+
       return localDigits.length >= 7 && localDigits.length <= 12;
     },
     { message: "Enter a valid phone number", path: ["phone"] },
@@ -37,7 +36,6 @@ export const loginSchema = z
 export type LoginFormInput = z.input<typeof loginSchema>;
 export type LoginFormOutput = z.output<typeof loginSchema>;
 
-// Verify OTP form — code length is dynamic per challenge (4–8 digits)
 export const verifyOtpSchema = z.object({
   code: z
     .string()

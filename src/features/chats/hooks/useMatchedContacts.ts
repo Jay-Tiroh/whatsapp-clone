@@ -1,4 +1,3 @@
-// features/discovery/hooks/useMatchedContacts.ts
 import { useEffect } from "react";
 import { useDeviceContacts } from "./useDeviceContacts";
 import { useMatchContacts } from "./useDiscovery";
@@ -11,8 +10,7 @@ export function useMatchedContacts() {
     if (status === "granted" && phoneNumbers.length > 0) {
       matchMutation.mutate({ phoneNumbers });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, phoneNumbers]);
+  }, [status, phoneNumbers, matchMutation]);
 
   return {
     matches: matchMutation.data?.matches ?? [],

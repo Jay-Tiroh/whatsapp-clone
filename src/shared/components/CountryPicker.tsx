@@ -1,4 +1,4 @@
-// CountryPicker.tsx
+import { useCountries, type Country } from "@/shared/hooks/useCountries";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -11,7 +11,6 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { cn } from "tailwind-variants";
-import { Country, useCountries } from "../hooks/useCountries";
 
 type CountryPickerProps = {
   value?: string;
@@ -26,8 +25,6 @@ const DEFAULT_COUNTRY_CODE = "NG";
 const onlyDigits = (s: string) => s.replace(/[^\d]/g, "");
 const dialDigits = (c: Country) => onlyDigits(c.dialCode);
 
-// Longest matching dial code wins, so "+1242..." resolves to Bahamas
-// (1242) rather than US/Canada (1), same as most phone-input libs.
 const matchCountryByDigits = (digits: string, countries: Country[]) => {
   let best: Country | null = null;
   for (const c of countries) {
@@ -68,16 +65,13 @@ export const CountryPicker = ({
 
   const displayCountry = selectedCountry || defaultCountry;
 
-  // Seed the field once, the first time a default country resolves —
-  // otherwise the flag can show a country the form doesn't know about yet.
   useEffect(() => {
     if (hasSyncedDefault.current || !displayCountry) return;
     hasSyncedDefault.current = true;
     setSelectedCountry(displayCountry);
     onCountryChange?.(displayCountry);
     if (!value) onChangeText?.(buildValue(displayCountry, ""));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [displayCountry]);
+  }, [displayCountry, onCountryChange, onChangeText, value]);
 
   const filteredCountries = useMemo(() => {
     if (!searchQuery) return countries;
@@ -102,8 +96,6 @@ export const CountryPicker = ({
       }
     }
 
-    // Not enough digits yet to confidently match a dial code (or no
-    // leading "+") — pass the raw text through so we don't fight the cursor.
     onChangeText?.(text);
   };
 
@@ -164,7 +156,7 @@ export const CountryPicker = ({
         </TouchableOpacity>
         {showPhoneInput && (
           <TextInput
-            className="flex-1 ml-3 font-display-medium  text-foreground text-body-md h-full"
+            className="flex-1 ml-3 font-display-medium text-foreground text-body-md h-full"
             placeholderTextColorClassName="accent-muted"
             keyboardType="phone-pad"
             value={value}

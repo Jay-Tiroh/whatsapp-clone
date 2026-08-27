@@ -1,3 +1,5 @@
+import CameraCapture from "@/shared/components/CameraCapture";
+import { logger } from "@/shared/utils/logger";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import * as ImagePicker from "expo-image-picker";
 import * as MediaLibrary from "expo-media-library/legacy";
@@ -13,7 +15,6 @@ import {
   View,
 } from "react-native";
 import { withUniwind } from "uniwind";
-import CameraCapture from "./CameraCapture";
 
 const StyledMaterialCommunityIcons = withUniwind(MaterialCommunityIcons);
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -35,8 +36,6 @@ export default function UploadModal({
   const [recentPhotos, setRecentPhotos] = useState<MediaLibrary.Asset[]>([]);
   const [showCamera, setShowCamera] = useState(false);
 
-  // Controls whether the RN <Modal> is actually mounted, so the
-  // close animation can finish before it unmounts.
   const [isRendered, setIsRendered] = useState(modalVisible);
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
@@ -56,10 +55,9 @@ export default function UploadModal({
       });
       setRecentPhotos(assets);
     } catch (err) {
-      console.warn("Failed to load recent photos", err);
+      logger.warn("Failed to load recent photos", err);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [mediaPermission, requestMediaPermission]);
 
   useEffect(() => {
     if (modalVisible) {
@@ -137,7 +135,6 @@ export default function UploadModal({
                 showsHorizontalScrollIndicator={false}
                 contentContainerClassName="flex-row pt-4 px-4 gap-3"
               >
-                {/* Camera Item */}
                 <Pressable
                   onPress={() => setShowCamera(true)}
                   className="items-center justify-center active:opacity-80 size-16 bg-neutral-900/40 rounded-lg"
@@ -149,7 +146,6 @@ export default function UploadModal({
                   />
                 </Pressable>
 
-                {/* Recent Gallery Items */}
                 {recentPhotos.map((asset) => (
                   <Pressable
                     key={asset.id}
@@ -165,7 +161,6 @@ export default function UploadModal({
                 ))}
               </ScrollView>
 
-              {/* Action List */}
               <View className="p-4 gap-2 mt-2">
                 <Pressable
                   onPress={() => setShowCamera(true)}

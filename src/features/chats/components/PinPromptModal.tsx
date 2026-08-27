@@ -1,4 +1,3 @@
-// PinPromptModal.tsx
 import ThemedButton from "@/shared/components/ThemedButton";
 import ThemedText from "@/shared/components/ThemedText";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
@@ -27,11 +26,10 @@ export default function PinPromptModal({
   modalVisible,
   onDismiss,
 }: ModalProps) {
-  // Controls whether the RN <Modal> is actually mounted, so the
-  // close animation can finish before it unmounts.
   const [isRendered, setIsRendered] = useState(modalVisible);
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
+  const router = useRouter();
 
   useEffect(() => {
     if (modalVisible) {
@@ -67,7 +65,6 @@ export default function PinPromptModal({
   }, [modalVisible, backdropOpacity, translateY]);
 
   const handleClose = () => onDismiss();
-  const router = useRouter();
 
   const handleYesPress = () => {
     handleClose();

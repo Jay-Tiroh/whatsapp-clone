@@ -1,7 +1,7 @@
 // hooks/useAppReady.ts
 import { api } from "@/core/lib/api";
 import { tokenStorage } from "@/core/lib/tokenStorage";
-import { useAuthStore } from "@/core/store/authStore";
+import { useAuthStore } from "@/features/auth";
 import { getAuthDestination } from "@/features/auth/utils/getAuthDestination";
 import { useFonts } from "expo-font";
 import { useEffect, useState } from "react";

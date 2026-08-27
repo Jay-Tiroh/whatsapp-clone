@@ -1,4 +1,4 @@
-import { useAuthStore } from "@/core/store/authStore";
+import { useAuthStore } from "@/features/auth";
 import AuthTemplate from "@/features/auth/components/Template";
 import {
   CompleteProfileFormValues,
@@ -22,6 +22,8 @@ const Icon = withUniwind(FontAwesome6);
 export default function NameScreen() {
   const router = useRouter();
   const [isFocused, setIsFocused] = useState(false);
+  const updateUser = useAuthStore((state) => state.updateUser);
+  const updateProfile = useUpdateProfile();
 
   const {
     control,
@@ -33,18 +35,12 @@ export default function NameScreen() {
     mode: "onChange",
   });
 
-  const updateProfile = useUpdateProfile();
-
   const onSubmit = (values: CompleteProfileFormValues) => {
     updateProfile.mutate(
       { displayName: values.displayName },
       {
         onSuccess: (updatedUser) => {
-          // Keep the store in sync with the backend
-          useAuthStore.getState().updateUser(updatedUser);
-
-          // Proceed to the next step in onboarding
-          // router.push("/upload");
+          updateUser(updatedUser);
           router.push("/chats");
         },
         onError: () => {
@@ -111,7 +107,7 @@ export default function NameScreen() {
                   onFocus={() => setIsFocused(true)}
                   onBlur={() => {
                     setIsFocused(false);
-                    onBlur(); // Ensure RHF gets the blur event too
+                    onBlur();
                   }}
                   placeholder="Name"
                   autoCapitalize="words"

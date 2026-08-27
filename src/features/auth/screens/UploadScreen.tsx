@@ -19,11 +19,13 @@ const StyledMaterialCommunityIcons = withUniwind(MaterialCommunityIcons);
 const StyledUploadIcon = withUniwind(UploadIcon);
 const StyledUploadBg = withUniwind(UploadBg);
 const StyledUploadBgDark = withUniwind(UploadBgDark);
+
 export default function UploadScreen() {
   const router = useRouter();
   const handleBack = () => router.back();
   const pushToHome = () => router.push("/chats");
   const [modalVisible, setModalVisible] = useState(false);
+
   return (
     <View className="p-safe-offset-6 gap-6 flex-1">
       <Pressable
@@ -45,15 +47,12 @@ export default function UploadScreen() {
       </View>
       <View className="flex-1 items-center pt-30">
         <Pressable onPress={() => setModalVisible(true)} className="relative">
-          <View className="size-41  rounded-[100px] flex items-center justify-center relative overflow-hidden">
+          <View className="size-41 rounded-[100px] flex items-center justify-center relative overflow-hidden">
             <StyledUploadBg className="dark:hidden" />
             <StyledUploadBgDark className="hidden dark:block" />
             <View className="absolute top-12 w-fit h-fit">
               <UploadRect />
-              {/*if not uploading show this*/}
               <StyledUploadIcon className="absolute top-4 left-[57] -translate-x-1/2" />
-
-              {/*else show this*/}
               <View className="justify-center items-center absolute top-6 left-[57] -translate-x-1/2 hidden">
                 <StyledMaterialCommunityIcons
                   name="upload-outline"
@@ -89,7 +88,6 @@ export default function UploadScreen() {
             />
           </View>
         </Pressable>
-        {/*if uploading show this*/}
         <ThemedText
           type="bodyLg"
           color="muted"

@@ -1,28 +1,46 @@
 import { api } from "@/core/lib/api";
 import type {
-  MatchContactsRequestDto,
+  ContactMatch,
+  DiscoveredUser,
+  MatchContactsPayload,
   MatchContactsResponseDto,
-  SearchUsersQueryDto,
+  SearchUsersQueryPayload,
   SearchUsersResponseDto,
 } from "../types/discovery.types";
 
+const mapDiscoveredUser = (dto: any): DiscoveredUser => ({
+  id: dto.id,
+  displayName: dto.displayName,
+  avatarUrl: dto.avatarUrl,
+});
+
+const mapContactMatch = (dto: any): ContactMatch => ({
+  matchedPhoneNumber: dto.matchedPhoneNumber,
+  user: mapDiscoveredUser(dto.user),
+});
+
 export const discoveryApi = {
   matchContacts: async (
-    data: MatchContactsRequestDto,
-  ): Promise<MatchContactsResponseDto> => {
-    const response = await api.post<MatchContactsResponseDto>(
+    payload: MatchContactsPayload,
+  ): Promise<{ matches: ContactMatch[] }> => {
+    const { data } = await api.post<MatchContactsResponseDto>(
       "/v1/contacts/match",
-      data,
+      payload,
     );
-    return response.data;
+    return {
+      matches: data.matches.map(mapContactMatch),
+    };
   },
 
   searchUsers: async (
-    params: SearchUsersQueryDto,
-  ): Promise<SearchUsersResponseDto> => {
-    const response = await api.get<SearchUsersResponseDto>("/v1/users/search", {
+    params: SearchUsersQueryPayload,
+  ): Promise<{ items: DiscoveredUser[]; nextCursor: string | null }> => {
+    const { data } = await api.get<SearchUsersResponseDto>("/v1/users/search", {
       params,
     });
-    return response.data;
+    return {
+      items: data.items.map(mapDiscoveredUser),
+      nextCursor: data.nextCursor,
+    };
   },
 };

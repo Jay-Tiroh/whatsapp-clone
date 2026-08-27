@@ -1,4 +1,4 @@
-// features/discovery/hooks/useDeviceContacts.ts
+import { logger } from "@/shared/utils/logger";
 import { toE164 } from "@/shared/utils/toE164";
 import { Contact, ContactField, requestPermissionsAsync } from "expo-contacts";
 import { useEffect, useState } from "react";
@@ -30,12 +30,11 @@ export function useDeviceContacts() {
         .filter((n): n is string => !!n);
 
       if (__DEV__) {
-        console.log(
+        logger.warn(
           `[useDeviceContacts] raw: ${rawNumbers.length}, valid E.164: ${normalized.length}, dropped: ${rawNumbers.length - normalized.length}`,
         );
-        // Uncomment to see exactly which raw numbers failed to parse:
         const dropped = rawNumbers.filter((n) => !toE164(n));
-        console.log("[useDeviceContacts] dropped numbers:", dropped);
+        logger.warn("[useDeviceContacts] dropped numbers:", dropped);
       }
 
       setPhoneNumbers(normalized);
