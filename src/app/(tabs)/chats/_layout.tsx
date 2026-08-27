@@ -14,6 +14,7 @@ export default function CallLayout() {
         }}
       >
         <Stack.Screen name="index" />
+        <Stack.Screen name="archived" />
       </Stack>
     </View>
   );

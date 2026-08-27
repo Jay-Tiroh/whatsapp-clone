@@ -7,6 +7,7 @@ export default function SettingsScreen() {
   const { mutate: logout, isPending } = useLogout();
 
   const handleLogoutPress = () => {
+    // const clearSession = useAuthStore((s) => s.clearSession);
     Alert.alert(
       "Log out",
       "Are you sure you want to log out?",
@@ -15,7 +16,10 @@ export default function SettingsScreen() {
         {
           text: "Log out",
           style: "destructive",
-          onPress: () => logout(),
+          onPress: () => {
+            logout();
+            // clearSession();
+          },
         },
       ],
       { cancelable: true },

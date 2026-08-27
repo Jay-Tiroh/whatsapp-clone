@@ -1,3 +1,4 @@
+import { usePinStore } from "@/core/store/pinStore";
 import Keypad from "@/features/settings/components/CustomKeypad";
 import PinInput from "@/features/settings/components/PinInput";
 import Feather from "@expo/vector-icons/Feather";
@@ -8,28 +9,60 @@ import { withUniwind } from "uniwind";
 
 const StyledFeather = withUniwind(Feather);
 
+type Stage = "enter" | "confirm";
+
 export default function SetupPin() {
   const router = useRouter();
-  const [pin, setPin] = useState("");
+  const setPin = usePinStore((s) => s.setPin);
+
+  const [stage, setStage] = useState<Stage>("enter");
+  const [firstPin, setFirstPin] = useState("");
+  const [pin, setPinInput] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const handleBack = () => {
+    if (stage === "confirm") {
+      // let them re-enter instead of leaving the flow
+      setStage("enter");
+      setFirstPin("");
+      setPinInput("");
+      setError(null);
+      return;
+    }
     router.back();
   };
 
   const handleKeyPress = (value: string) => {
-    if (pin.length < 4) {
-      const newPin = pin + value;
-      setPin(newPin);
+    if (pin.length >= 4) return;
+    setError(null);
 
-      // Optional: Trigger your submit logic when 4 digits are reached
-      if (newPin.length === 4) {
-        console.log(`Pin complete: ${newPin}`);
+    const newPin = pin + value;
+    setPinInput(newPin);
+
+    if (newPin.length === 4) {
+      if (stage === "enter") {
+        // move to confirm stage
+        setFirstPin(newPin);
+        setStage("confirm");
+        setPinInput("");
+        return;
+      }
+
+      // stage === "confirm"
+      if (newPin === firstPin) {
+        setPin(newPin); // persists to pinStore, sets hasSetupPin: true
+        router.back(); // or router.replace to wherever setup completion goes
+      } else {
+        setError("PINs don't match. Try again.");
+        setStage("enter");
+        setFirstPin("");
+        setPinInput("");
       }
     }
   };
 
   const handleDelete = () => {
-    setPin((prev) => prev.slice(0, -1));
+    setPinInput((prev) => prev.slice(0, -1));
   };
 
   return (
@@ -45,21 +78,21 @@ export default function SetupPin() {
           colorClassName="accent-neutral-900 dark:accent-white/90"
         />
       </Pressable>
-
       <View className="gap-2 max-w-70 mx-auto p-6">
         <Text className="text-h4 font-display-bold text-neutral-900 dark:text-white/90 text-center">
-          Setup pin code
+          {stage === "enter" ? "Setup pin code" : "Confirm pin code"}
         </Text>
         <Text className="text-body-md font-display-regular text-neutral-300 dark:text-neutral-200 text-center">
-          Make sure the code is safe and no one else knows.
+          {error
+            ? error
+            : stage === "enter"
+              ? "Make sure the code is safe and no one else knows."
+              : "Re-enter your pin to confirm."}
         </Text>
       </View>
-
       <View className="mt-4">
         <PinInput pin={pin} />
       </View>
-
-      {/* Push the keypad to the bottom */}
       <View className="mt-auto pb-6">
         <Keypad onPress={handleKeyPress} onDelete={handleDelete} />
       </View>
