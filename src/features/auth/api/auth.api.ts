@@ -26,6 +26,9 @@ const mapAuthResponse = (dto: AuthResponseDto): AuthSession => ({
     id: dto.user.id,
     displayName: dto.user.displayName,
     profileComplete: dto.user.profileComplete,
+    phoneNumber: dto.user.phoneNumber,
+    avatarUrl: dto.user.avatarUrl,
+    createdAt: dto.user.createdAt,
     // map other properties 1:1 without DTO structures
   },
 });

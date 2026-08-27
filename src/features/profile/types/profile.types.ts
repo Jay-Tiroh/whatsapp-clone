@@ -1,4 +1,11 @@
-// features/profile/types/profile.types.ts
+// ---- Request Payloads ----
+
+export interface UpdateProfilePayload {
+  displayName: string;
+  avatarUrl?: string;
+}
+
+// ---- Raw Backend DTOs ----
 
 export interface UserResponseDto {
   id: string;
@@ -9,7 +16,13 @@ export interface UserResponseDto {
   createdAt: string;
 }
 
-export interface UpdateProfileRequestDto {
-  displayName: string;
-  avatarUrl?: string;
+// ---- Application Domain Models ----
+
+export interface UserProfile {
+  id: string;
+  phoneNumber: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  profileComplete: boolean;
+  createdAt: string;
 }

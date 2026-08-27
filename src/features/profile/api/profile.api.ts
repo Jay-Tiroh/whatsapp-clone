@@ -1,20 +1,29 @@
-// features/profile/api/profile.api.ts
 import { api } from "@/core/lib/api";
 import type {
-  UpdateProfileRequestDto,
+  UpdateProfilePayload,
+  UserProfile,
   UserResponseDto,
 } from "../types/profile.types";
 
+const mapUserProfile = (dto: UserResponseDto): UserProfile => ({
+  id: dto.id,
+  phoneNumber: dto.phoneNumber,
+  displayName: dto.displayName,
+  avatarUrl: dto.avatarUrl,
+  profileComplete: dto.profileComplete,
+  createdAt: dto.createdAt,
+});
+
 export const profileApi = {
-  getMe: async (): Promise<UserResponseDto> => {
-    const response = await api.get<UserResponseDto>("/v1/me");
-    return response.data;
+  getMe: async (): Promise<UserProfile> => {
+    const { data } = await api.get<UserResponseDto>("/v1/me");
+    return mapUserProfile(data);
   },
 
   updateProfile: async (
-    data: UpdateProfileRequestDto,
-  ): Promise<UserResponseDto> => {
-    const response = await api.patch<UserResponseDto>("/v1/me", data);
-    return response.data;
+    payload: UpdateProfilePayload,
+  ): Promise<UserProfile> => {
+    const { data } = await api.patch<UserResponseDto>("/v1/me", payload);
+    return mapUserProfile(data);
   },
 };

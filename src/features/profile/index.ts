@@ -1,2 +1,2 @@
-export * from "./api/profile.api";
-export * from "./types/profile.types";
+export { useGetProfile, useUpdateProfile } from "./hooks/useProfile";
+export type { UpdateProfilePayload, UserProfile } from "./types/profile.types";
