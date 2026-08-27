@@ -1,4 +1,3 @@
-// core/store/pinStore.ts
 import { storage } from "@/core/lib/storage";
 import { create } from "zustand";
 import { createJSONStorage, persist, StateStorage } from "zustand/middleware";
@@ -38,9 +37,7 @@ export const usePinStore = create<PinState>()(
       hasHydrated: false,
 
       setPromptedPinSetup: () => set({ hasPromptedPinSetup: true }),
-
       setPin: (pin) => set({ pin, hasSetupPin: true }),
-
       verifyPin: (pin) => get().pin === pin,
 
       clearPin: () =>

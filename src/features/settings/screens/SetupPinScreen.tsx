@@ -1,6 +1,6 @@
 import { usePinStore } from "@/core/store/pinStore";
-import Keypad from "@/features/settings/components/CustomKeypad";
-import PinInput from "@/features/settings/components/PinInput";
+import Keypad from "@/shared/components/CustomKeypad";
+import PinInput from "@/shared/components/PinInput";
 import Feather from "@expo/vector-icons/Feather";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -11,7 +11,7 @@ const StyledFeather = withUniwind(Feather);
 
 type Stage = "enter" | "confirm";
 
-export default function SetupPin() {
+export default function SetupPinScreen() {
   const router = useRouter();
   const setPin = usePinStore((s) => s.setPin);
 
@@ -22,7 +22,6 @@ export default function SetupPin() {
 
   const handleBack = () => {
     if (stage === "confirm") {
-      // let them re-enter instead of leaving the flow
       setStage("enter");
       setFirstPin("");
       setPinInput("");
@@ -41,17 +40,15 @@ export default function SetupPin() {
 
     if (newPin.length === 4) {
       if (stage === "enter") {
-        // move to confirm stage
         setFirstPin(newPin);
         setStage("confirm");
         setPinInput("");
         return;
       }
 
-      // stage === "confirm"
       if (newPin === firstPin) {
-        setPin(newPin); // persists to pinStore, sets hasSetupPin: true
-        router.back(); // or router.replace to wherever setup completion goes
+        setPin(newPin);
+        router.back();
       } else {
         setError("PINs don't match. Try again.");
         setStage("enter");

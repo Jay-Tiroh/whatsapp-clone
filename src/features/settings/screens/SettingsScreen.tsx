@@ -1,5 +1,4 @@
-// app/(tabs)/settings.tsx (or wherever your logout trigger lives)
-import { useLogout } from "@/features/auth/hooks/useAuth";
+import { useLogout } from "@/features/auth";
 import ThemedButton from "@/shared/components/ThemedButton";
 import { Alert, View } from "react-native";
 
@@ -7,7 +6,6 @@ export default function SettingsScreen() {
   const { mutate: logout, isPending } = useLogout();
 
   const handleLogoutPress = () => {
-    // const clearSession = useAuthStore((s) => s.clearSession);
     Alert.alert(
       "Log out",
       "Are you sure you want to log out?",
@@ -16,10 +14,7 @@ export default function SettingsScreen() {
         {
           text: "Log out",
           style: "destructive",
-          onPress: () => {
-            logout();
-            // clearSession();
-          },
+          onPress: () => logout(),
         },
       ],
       { cancelable: true },

@@ -5,7 +5,6 @@ interface PinInputProps {
 }
 
 export default function PinInput({ pin }: PinInputProps) {
-  // Create an array of 4 slots to map over
   const pinSlots = [0, 1, 2, 3];
 
   return (
