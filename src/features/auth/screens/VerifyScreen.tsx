@@ -1,6 +1,6 @@
-import { useAuthStore } from "@/features/auth";
 import AuthTemplate from "@/features/auth/components/Template";
 import { useResendOtp, useVerifyOtp } from "@/features/auth/hooks/useAuth";
+import { useAuthStore } from "@/features/auth/store/authStore";
 import { getAuthDestination } from "@/features/auth/utils/getAuthDestination";
 import {
   VerifyOtpFormValues,
