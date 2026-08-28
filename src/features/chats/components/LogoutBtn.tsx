@@ -1,8 +1,8 @@
 import { useLogout } from "@/features/auth";
-import { LogoutButton } from "@/features/chats/components/LogoutBtn";
+import ThemedButton from "@/shared/components/ThemedButton";
 import { Alert, View } from "react-native";
 
-export default function SettingsScreen() {
+export function LogoutButton() {
   const { mutate: logout, isPending } = useLogout();
 
   const handleLogoutPress = () => {
@@ -23,7 +23,12 @@ export default function SettingsScreen() {
 
   return (
     <View className="flex-1 justify-center items-center">
-      <LogoutButton />
+      <ThemedButton
+        variant="secondary"
+        isLoading={isPending}
+        onPress={handleLogoutPress}
+        label="Log out"
+      />
     </View>
   );
 }

@@ -2,6 +2,7 @@ import { logger } from "@/shared/utils/logger";
 import { toE164 } from "@/shared/utils/toE164";
 import { Contact, ContactField, requestPermissionsAsync } from "expo-contacts";
 import { useEffect, useState } from "react";
+import { InteractionManager } from "react-native";
 
 type ContactsStatus = "idle" | "loading" | "granted" | "denied";
 
@@ -10,7 +11,9 @@ export function useDeviceContacts() {
   const [status, setStatus] = useState<ContactsStatus>("idle");
 
   useEffect(() => {
-    (async () => {
+    // Defer heavy processing until after navigation animations finish
+    // to prevent blocking the JS thread and causing UI stutter.
+    const task = InteractionManager.runAfterInteractions(async () => {
       setStatus("loading");
       const { status: permStatus } = await requestPermissionsAsync();
 
@@ -39,7 +42,9 @@ export function useDeviceContacts() {
 
       setPhoneNumbers(normalized);
       setStatus("granted");
-    })();
+    });
+
+    return () => task.cancel();
   }, []);
 
   return { phoneNumbers, status };

@@ -1,4 +1,5 @@
 import { storage } from "@/core/lib/storage";
+import { registerResettableStore } from "@/core/store/storeRegistry";
 import { create } from "zustand";
 import { createJSONStorage, persist, StateStorage } from "zustand/middleware";
 
@@ -13,47 +14,41 @@ interface PinState {
   hasSetupPin: boolean;
   pin: string | null;
   hasHydrated: boolean;
-
   setPromptedPinSetup: () => void;
   setPin: (pin: string) => void;
   verifyPin: (pin: string) => boolean;
   clearPin: () => void;
   setHasHydrated: (v: boolean) => void;
-
   isLocked: boolean;
   lastBackgroundedAt: number | null;
-
   lock: () => void;
   unlock: () => void;
   setLastBackgroundedAt: (ts: number | null) => void;
+  reset: () => void;
 }
+
+const initialState = {
+  hasPromptedPinSetup: false,
+  hasSetupPin: false,
+  pin: null as string | null,
+  isLocked: false,
+  lastBackgroundedAt: null as number | null,
+};
 
 export const usePinStore = create<PinState>()(
   persist(
     (set, get) => ({
-      hasPromptedPinSetup: false,
-      hasSetupPin: false,
-      pin: null,
+      ...initialState,
       hasHydrated: false,
-
       setPromptedPinSetup: () => set({ hasPromptedPinSetup: true }),
       setPin: (pin) => set({ pin, hasSetupPin: true }),
       verifyPin: (pin) => get().pin === pin,
-
-      clearPin: () =>
-        set({
-          hasPromptedPinSetup: false,
-          hasSetupPin: false,
-          pin: null,
-        }),
-
+      clearPin: () => set(initialState),
       setHasHydrated: (v) => set({ hasHydrated: v }),
-      isLocked: false,
-      lastBackgroundedAt: null,
-
       lock: () => set({ isLocked: true }),
       unlock: () => set({ isLocked: false }),
       setLastBackgroundedAt: (ts) => set({ lastBackgroundedAt: ts }),
+      reset: () => set(initialState),
     }),
     {
       name: "auth.pin",
@@ -69,3 +64,5 @@ export const usePinStore = create<PinState>()(
     },
   ),
 );
+
+registerResettableStore({ reset: () => usePinStore.getState().reset() });

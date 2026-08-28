@@ -1,21 +1,36 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { discoveryApi } from "../api/discovery.api";
-import type {
-  MatchContactsPayload,
-  SearchUsersQueryPayload,
-} from "../types/discovery.types";
+// hooks/useDiscovery.ts
+import { discoveryApi } from "@/features/chats/api/discovery.api";
+import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import type { MatchContactsPayload } from "../types/discovery.types";
 
-export const useMatchContacts = () => {
+export function useDebouncedValue<T>(value: T, delayMs = 300): T {
+  const [debounced, setDebounced] = useState(value);
+
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(value), delayMs);
+    return () => clearTimeout(id);
+  }, [value, delayMs]);
+
+  return debounced;
+}
+
+export function useSearchUsers(query: string, limit = 20) {
+  const debouncedQuery = useDebouncedValue(query.trim(), 300);
+
+  return useInfiniteQuery({
+    queryKey: ["discovery", "searchUsers", debouncedQuery],
+    queryFn: ({ pageParam }: { pageParam?: string }) =>
+      discoveryApi.searchUsers({ q: debouncedQuery, limit, cursor: pageParam }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    enabled: debouncedQuery.length > 0,
+  });
+}
+
+export function useMatchContacts() {
   return useMutation({
     mutationFn: (payload: MatchContactsPayload) =>
       discoveryApi.matchContacts(payload),
   });
-};
-
-export const useSearchUsers = (params: SearchUsersQueryPayload) => {
-  return useQuery({
-    queryKey: ["users", "search", params],
-    queryFn: () => discoveryApi.searchUsers(params),
-    enabled: !!params?.q,
-  });
-};
+}

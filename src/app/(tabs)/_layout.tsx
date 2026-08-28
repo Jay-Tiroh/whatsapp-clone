@@ -1,5 +1,7 @@
 // TabsLayout.tsx
 import { useAuthStore } from "@/features/auth";
+import PinPromptModal from "@/features/chats/components/PinPromptModal";
+import { usePinPromptModal } from "@/features/chats/hooks/usePinPromptModal";
 import {
   TABS,
   TabBarLabelSize,
@@ -33,64 +35,68 @@ export default function TabsLayout() {
   ]);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
+  const { modalVisible, handleDismiss } = usePinPromptModal();
   if (!isAuthenticated) {
     return <Redirect href="/(auth)/login" />;
   }
 
   return (
-    <Tabs
-      initialRouteName="chats"
-      backBehavior="initialRoute"
-      screenOptions={({ route }) => {
-        const focusedRoute = getFocusedRouteNameFromRoute(route) ?? "index";
-        const showTabBar = focusedRoute === "index";
-        return {
-          tabBarStyle: showTabBar
-            ? {
-                ...(TabBarLayout as ViewStyle),
-                backgroundColor: surface as string,
-                paddingBottom: insets.bottom + 10,
-              }
-            : { display: "none" },
-          tabBarActiveTintColor: primary400 as ColorValue,
-          tabBarInactiveTintColor: neutral300 as ColorValue,
-          tabBarBackground: () => null,
-        };
-      }}
-    >
-      {TABS.map((tab) => (
-        <Tabs.Screen
-          key={tab.name}
-          name={tab.name}
-          options={{
-            title: tab.label,
-            tabBarLabel: ({ focused, color }) => (
-              <Text
-                style={{
-                  fontSize: TabBarLabelSize,
-                  marginTop: 4,
-                  fontFamily:
-                    (focused ? (fontBold as string) : (fontMd as string)) ??
-                    "System",
-                  color,
-                }}
-              >
-                {tab.label}
-              </Text>
-            ),
-            tabBarIcon: ({ focused }) => renderIcon(tab.icon, focused),
-            headerShown: false,
-          }}
-          listeners={({ navigation }) => ({
-            tabPress: (e) => {
-              e.preventDefault();
-              navigation.navigate(tab.name, {
-                screen: tab.initialRoute ?? "index",
-              });
-            },
-          })}
-        />
-      ))}
-    </Tabs>
+    <>
+      <Tabs
+        initialRouteName="chats"
+        backBehavior="initialRoute"
+        screenOptions={({ route }) => {
+          const focusedRoute = getFocusedRouteNameFromRoute(route) ?? "index";
+          const showTabBar = focusedRoute === "index";
+          return {
+            tabBarStyle: showTabBar
+              ? {
+                  ...(TabBarLayout as ViewStyle),
+                  backgroundColor: surface as string,
+                  paddingBottom: insets.bottom + 10,
+                }
+              : { display: "none" },
+            tabBarActiveTintColor: primary400 as ColorValue,
+            tabBarInactiveTintColor: neutral300 as ColorValue,
+            tabBarBackground: () => null,
+          };
+        }}
+      >
+        {TABS.map((tab) => (
+          <Tabs.Screen
+            key={tab.name}
+            name={tab.name}
+            options={{
+              title: tab.label,
+              tabBarLabel: ({ focused, color }) => (
+                <Text
+                  style={{
+                    fontSize: TabBarLabelSize,
+                    marginTop: 4,
+                    fontFamily:
+                      (focused ? (fontBold as string) : (fontMd as string)) ??
+                      "System",
+                    color,
+                  }}
+                >
+                  {tab.label}
+                </Text>
+              ),
+              tabBarIcon: ({ focused }) => renderIcon(tab.icon, focused),
+              headerShown: false,
+            }}
+            listeners={({ navigation }) => ({
+              tabPress: (e) => {
+                e.preventDefault();
+                navigation.navigate(tab.name, {
+                  screen: tab.initialRoute ?? "index",
+                });
+              },
+            })}
+          />
+        ))}
+      </Tabs>
+      <PinPromptModal modalVisible={modalVisible} onDismiss={handleDismiss} />
+    </>
   );
 }

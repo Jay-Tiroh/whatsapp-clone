@@ -1,6 +1,6 @@
 import { storage } from "@/core/lib/storage";
 import { tokenStorage } from "@/core/lib/tokenStorage";
-import { usePinStore } from "@/core/store/pinStore";
+import { resetAllStores } from "@/core/store/storeRegistry";
 import type { AuthSession, User } from "@/features/auth/types/auth.types";
 import { create } from "zustand";
 import { createJSONStorage, persist, StateStorage } from "zustand/middleware";
@@ -33,18 +33,15 @@ export const useAuthStore = create<AuthState>()(
         tokenStorage.setTokens(auth.accessToken, auth.refreshToken);
         set({ isAuthenticated: true, user: auth.user });
       },
-
       updateUser: (partial) =>
         set((state) => ({
           user: state.user ? { ...state.user, ...partial } : state.user,
         })),
-
       clearSession: () => {
         tokenStorage.clearTokens();
-        usePinStore.getState().clearPin();
         set({ isAuthenticated: false, user: null });
+        resetAllStores();
       },
-
       setHasHydrated: (v) => set({ hasHydrated: v }),
     }),
     {
