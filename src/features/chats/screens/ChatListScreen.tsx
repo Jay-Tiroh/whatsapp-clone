@@ -64,9 +64,8 @@ export default function ChatListScreen() {
   const unarchive = useChatsStore((s) => s.unarchive);
 
   // Lists splitting
-  const pinnedConversations = data?.items.filter((c) =>
-    pinnedChats.includes(c.id),
-  );
+  const pinnedConversations =
+    data?.items.filter((c) => pinnedChats.includes(c.id)) ?? [];
   const unarchivedConversations =
     data?.items.filter(
       (c) => !archivedChats.includes(c.id) && !pinnedChats.includes(c.id),
