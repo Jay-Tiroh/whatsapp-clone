@@ -30,7 +30,6 @@ const LoginScreen = () => {
     resolver: zodResolver(loginSchema),
     defaultValues: {
       phone: "",
-      country: null,
     },
     mode: "onChange",
   });
@@ -101,7 +100,7 @@ const LoginScreen = () => {
               value={value}
               onChangeText={onChange}
               onCountryChange={(country) =>
-                setValue("country", country, { shouldValidate: true })
+                setValue("country", country, { shouldValidate: false })
               }
             />
           )}

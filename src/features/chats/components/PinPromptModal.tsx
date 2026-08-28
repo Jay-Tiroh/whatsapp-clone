@@ -6,8 +6,9 @@ import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Animated,
+  BackHandler,
   Dimensions,
-  Modal,
+  Platform,
   Pressable,
   StyleSheet,
   View,
@@ -30,6 +31,13 @@ export default function PinPromptModal({
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
   const router = useRouter();
+  console.log(
+    "PinPromptModal render — modalVisible:",
+    modalVisible,
+    "isRendered:",
+    isRendered,
+  );
+  const handleClose = () => onDismiss();
 
   useEffect(() => {
     if (modalVisible) {
@@ -64,24 +72,46 @@ export default function PinPromptModal({
     }
   }, [modalVisible, backdropOpacity, translateY]);
 
-  const handleClose = () => onDismiss();
+  // Replicates Modal's onRequestClose for Android hardware back button
+  useEffect(() => {
+    if (!isRendered || Platform.OS !== "android") return;
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      handleClose();
+      return true;
+    });
+    return () => sub.remove();
+  }, [isRendered]);
 
   const handleYesPress = () => {
     handleClose();
     router.push("/settings/setup-pin");
   };
 
-  return (
-    <Modal
-      visible={isRendered}
-      animationType="none"
-      transparent
-      onRequestClose={handleClose}
-      statusBarTranslucent
-    >
-      <Animated.View className="flex-1" style={{ opacity: backdropOpacity }}>
-        <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill} />
+  if (!isRendered) return null;
 
+  return (
+    <View
+      style={StyleSheet.absoluteFill}
+      className="z-50"
+      pointerEvents="box-none"
+    >
+      <Animated.View
+        style={[StyleSheet.absoluteFill, { opacity: backdropOpacity }]}
+      >
+        {Platform.OS === "ios" ? (
+          <BlurView
+            intensity={80}
+            tint="dark"
+            style={StyleSheet.absoluteFill}
+          />
+        ) : (
+          <View
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: "rgba(0,0,0,0.6)" },
+            ]}
+          />
+        )}
         <Pressable className="flex-1 justify-center p-6" onPress={handleClose}>
           <Animated.View
             style={{ transform: [{ translateY }] }}
@@ -95,7 +125,6 @@ export default function PinPromptModal({
                   colorClassName="accent-primary-400"
                 />
               </View>
-
               <View className="gap-2 max-w-70 mx-auto p-6">
                 <ThemedText type="h4" className="text-center">
                   Do you want to add a pin code?
@@ -104,7 +133,6 @@ export default function PinPromptModal({
                   Add a verification code to make it more secure.
                 </ThemedText>
               </View>
-
               <View className="gap-2 p-6">
                 <ThemedButton label="Yes" onPress={handleYesPress} />
                 <ThemedButton
@@ -118,6 +146,6 @@ export default function PinPromptModal({
           </Animated.View>
         </Pressable>
       </Animated.View>
-    </Modal>
+    </View>
   );
 }

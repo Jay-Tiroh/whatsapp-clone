@@ -1,6 +1,10 @@
 import ThemedText from "@/shared/components/ThemedText";
-import { Image, View } from "react-native";
+import { Image } from "expo-image";
+import { View } from "react-native";
+import { withUniwind } from "uniwind";
 import type { ContactMatch } from "../types/discovery.types";
+
+const StyledImage = withUniwind(Image);
 
 interface ChatListEmptyProps {
   matches: ContactMatch[];
@@ -28,6 +32,8 @@ export default function ChatListEmpty({ matches }: ChatListEmptyProps) {
                     : require("@/assets/images/avatar.png")
                 }
                 className="w-full h-full rounded-full"
+                cachePolicy="memory-disk"
+                transition={200}
               />
             </View>
           ))}

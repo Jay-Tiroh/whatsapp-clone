@@ -1,13 +1,13 @@
 import CameraCapture from "@/shared/components/CameraCapture";
 import { logger } from "@/shared/utils/logger";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import * as MediaLibrary from "expo-media-library/legacy";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
-  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -25,6 +25,7 @@ type ModalProps = {
   setModalVisible: (visible: boolean) => void;
   onImageSelected?: (uri: string) => void;
 };
+const StyledImage = withUniwind(Image);
 
 export default function UploadModal({
   modalVisible,
@@ -152,10 +153,12 @@ export default function UploadModal({
                     onPress={() => handleSelectRecent(asset)}
                     className="active:opacity-80 size-16 rounded-lg overflow-hidden bg-neutral-900/10"
                   >
-                    <Image
+                    <StyledImage
                       source={{ uri: asset.uri }}
                       className="size-16"
-                      resizeMode="cover"
+                      contentFit="cover"
+                      cachePolicy="memory-disk"
+                      transition={200}
                     />
                   </Pressable>
                 ))}

@@ -16,6 +16,7 @@ export const useGetConversations = (params?: ConversationListQueryPayload) => {
   return useQuery({
     queryKey: ["conversations", "list", params],
     queryFn: () => conversationApi.getList(params),
+    staleTime: 1000 * 60 * 2,
   });
 };
 

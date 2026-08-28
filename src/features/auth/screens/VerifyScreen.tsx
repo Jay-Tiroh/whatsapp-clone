@@ -15,20 +15,89 @@ import { logger } from "@/shared/utils/logger";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AxiosError } from "axios";
 import { Href, useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { View } from "react-native";
 import { OtpInputRef } from "react-native-otp-entry";
 
-const useResendTimer = (initialSeconds: number) => {
-  const [secondsLeft, setSecondsLeft] = useState(initialSeconds);
-  useEffect(() => {
-    if (secondsLeft <= 0) return;
-    const timer = setInterval(() => setSecondsLeft((s) => s - 1), 1000);
-    return () => clearInterval(timer);
-  }, [secondsLeft]);
-  return { secondsLeft, setSecondsLeft };
-};
+interface ResendActionProps {
+  initialChallengeId: string;
+  initialSeconds: number;
+  onChallengeUpdated: (newChallengeId: string) => void;
+}
+
+const ResendAction = memo(
+  ({
+    initialChallengeId,
+    initialSeconds,
+    onChallengeUpdated,
+  }: ResendActionProps) => {
+    const [challengeId, setChallengeId] = useState(initialChallengeId);
+    const [secondsLeft, setSecondsLeft] = useState(initialSeconds);
+    const resendOtp = useResendOtp();
+
+    useEffect(() => {
+      if (secondsLeft <= 0) return;
+      const timer = setInterval(() => setSecondsLeft((s) => s - 1), 1000);
+      return () => clearInterval(timer);
+    }, [secondsLeft]);
+
+    const handleResend = () => {
+      resendOtp.mutate(
+        { challengeId },
+        {
+          onSuccess: (data) => {
+            setChallengeId(data.challengeId);
+            setSecondsLeft(data.resendInSeconds);
+            onChallengeUpdated(data.challengeId);
+          },
+          onError: (error) => {
+            if (error instanceof AxiosError) {
+              logger.error("status:", error.response?.status);
+              logger.error("data:", error.response?.data);
+            } else {
+              logger.error("unexpected error:", error);
+            }
+            showErrorToast({
+              title: "Couldn't resend code",
+              message: "Check your number and try again.",
+            });
+          },
+        },
+      );
+    };
+
+    return (
+      <>
+        <ThemedText type="bodyMd" className="mt-2 text-center" color="muted">
+          {secondsLeft > 0 ? (
+            <>
+              If you don't get the code, resend it in{" "}
+              <ThemedText
+                type="bodyMd"
+                weight="medium"
+                className="mt-2"
+                color="label"
+              >
+                {secondsLeft}
+              </ThemedText>{" "}
+              seconds.
+            </>
+          ) : (
+            "Didn't get the code?"
+          )}
+        </ThemedText>
+
+        <ThemedButton
+          label="Resend code"
+          variant="tertiary"
+          disabled={secondsLeft > 0 || resendOtp.isPending}
+          onPress={handleResend}
+        />
+      </>
+    );
+  },
+);
 
 const VerifyScreen = () => {
   const router = useRouter();
@@ -54,12 +123,7 @@ const VerifyScreen = () => {
   });
 
   const verifyOtp = useVerifyOtp();
-  const resendOtp = useResendOtp();
-
   const [challengeId, setChallengeId] = useState(params.challengeId);
-  const { secondsLeft, setSecondsLeft } = useResendTimer(
-    Number(params.resendInSeconds) || 0,
-  );
 
   const onSubmit = (values: VerifyOtpFormValues) => {
     verifyOtp.mutate(
@@ -81,30 +145,6 @@ const VerifyScreen = () => {
             title: "Invalid or expired code",
             message:
               getErrorMessage(error) ?? "Please check the code and try again.",
-          });
-        },
-      },
-    );
-  };
-
-  const handleResend = () => {
-    resendOtp.mutate(
-      { challengeId },
-      {
-        onSuccess: (data) => {
-          setChallengeId(data.challengeId);
-          setSecondsLeft(data.resendInSeconds);
-        },
-        onError: (error) => {
-          if (error instanceof AxiosError) {
-            logger.error("status:", error.response?.status);
-            logger.error("data:", error.response?.data);
-          } else {
-            logger.error("unexpected error:", error);
-          }
-          showErrorToast({
-            title: "Couldn't resend code",
-            message: "Check your number and try again.",
           });
         },
       },
@@ -150,30 +190,10 @@ const VerifyScreen = () => {
           </ThemedText>
         )}
 
-        <ThemedText type="bodyMd" className="mt-2 text-center" color="muted">
-          {secondsLeft > 0 ? (
-            <>
-              If you don't get the code, resend it in{" "}
-              <ThemedText
-                type="bodyMd"
-                weight="medium"
-                className="mt-2"
-                color="label"
-              >
-                {secondsLeft}
-              </ThemedText>{" "}
-              seconds.
-            </>
-          ) : (
-            "Didn't get the code?"
-          )}
-        </ThemedText>
-
-        <ThemedButton
-          label="Resend code"
-          variant="tertiary"
-          disabled={secondsLeft > 0 || resendOtp.isPending}
-          onPress={handleResend}
+        <ResendAction
+          initialChallengeId={params.challengeId}
+          initialSeconds={Number(params.resendInSeconds) || 0}
+          onChallengeUpdated={setChallengeId}
         />
       </View>
     </AuthTemplate>

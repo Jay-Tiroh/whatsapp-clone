@@ -1,5 +1,6 @@
-// ---- Request Payloads ----
+// types/discovery.types.ts
 
+// ---- Request Payloads ----
 export interface MatchContactsPayload {
   phoneNumbers: string[];
 }
@@ -11,7 +12,6 @@ export interface SearchUsersQueryPayload {
 }
 
 // ---- Raw Backend DTOs ----
-
 export interface DiscoveredUserDto {
   id: string;
   displayName: string | null;
@@ -33,7 +33,6 @@ export interface SearchUsersResponseDto {
 }
 
 // ---- Application Domain Models ----
-
 export interface DiscoveredUser {
   id: string;
   displayName: string | null;

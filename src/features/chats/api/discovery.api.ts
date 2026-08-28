@@ -1,20 +1,23 @@
+// api/discoveryApi.ts
 import { api } from "@/core/lib/api";
 import type {
   ContactMatch,
+  ContactMatchDto,
   DiscoveredUser,
+  DiscoveredUserDto,
   MatchContactsPayload,
   MatchContactsResponseDto,
   SearchUsersQueryPayload,
   SearchUsersResponseDto,
 } from "../types/discovery.types";
 
-const mapDiscoveredUser = (dto: any): DiscoveredUser => ({
+const mapDiscoveredUser = (dto: DiscoveredUserDto): DiscoveredUser => ({
   id: dto.id,
   displayName: dto.displayName,
   avatarUrl: dto.avatarUrl,
 });
 
-const mapContactMatch = (dto: any): ContactMatch => ({
+const mapContactMatch = (dto: ContactMatchDto): ContactMatch => ({
   matchedPhoneNumber: dto.matchedPhoneNumber,
   user: mapDiscoveredUser(dto.user),
 });

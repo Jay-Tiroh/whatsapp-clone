@@ -1,11 +1,10 @@
 import MuteIcon from "@/assets/icons/mute.svg";
 import TrashIcon from "@/assets/icons/trash.svg";
 import ThemedText from "@/shared/components/ThemedText";
-import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Fontisto from "@expo/vector-icons/Fontisto";
+import Foundation from "@expo/vector-icons/Foundation";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { BlurView } from "expo-blur";
 import { useRouter } from "expo-router";
 import { Pressable, View } from "react-native";
 import { withUniwind } from "uniwind";
@@ -13,7 +12,7 @@ import { withUniwind } from "uniwind";
 const StyledFontisto = withUniwind(Fontisto);
 const StyledIonicons = withUniwind(Ionicons);
 const StyledMaterialIcons = withUniwind(MaterialIcons);
-const StyledFontAwesome6 = withUniwind(FontAwesome6);
+const StyledFoundation = withUniwind(Foundation);
 const StyledMuteIcon = withUniwind(MuteIcon);
 const StyledTrashIcon = withUniwind(TrashIcon);
 
@@ -22,9 +21,9 @@ interface SubListHeaderProps {
   goBack?: () => void;
   selectionMode?: boolean;
   selectedCount?: number;
+  isAllSelectedMuted?: boolean;
   onCancelSelection?: () => void;
-  onPin?: () => void;
-  onArchive?: () => void;
+  onUnarchive?: () => void;
   onMute?: () => void;
   onDelete?: () => void;
 }
@@ -34,9 +33,9 @@ export default function SubListHeader({
   goBack,
   selectionMode = false,
   selectedCount = 0,
+  isAllSelectedMuted = false,
   onCancelSelection,
-  onPin,
-  onArchive,
+  onUnarchive,
   onMute,
   onDelete,
 }: SubListHeaderProps) {
@@ -44,10 +43,7 @@ export default function SubListHeader({
   const handleGoBack = () => (goBack ? goBack() : router.back());
 
   return (
-    <BlurView
-      intensity={5}
-      className="w-full bg-primary-400 dark:bg-neutral-700 p-safe-offset-6 pb-6 gap-5"
-    >
+    <View className="w-full bg-primary-400 dark:bg-neutral-700 p-safe-offset-6 pb-6 gap-5">
       <View className="flex-row justify-center items-center">
         <View className="flex-row justify-center items-center">
           <Pressable className="active:opacity-70" onPress={handleGoBack}>
@@ -99,29 +95,33 @@ export default function SubListHeader({
                 className="text-white/90"
               />
             </Pressable>
-            <Pressable className="active:opacity-70" onPress={onPin}>
+
+            <Pressable className="active:opacity-70" onPress={onUnarchive}>
               <StyledMaterialIcons
-                name="push-pin"
+                name="unarchive"
                 size={24}
                 className="text-white/90"
               />
             </Pressable>
-            <Pressable className="active:opacity-70" onPress={onArchive}>
-              <StyledFontAwesome6
-                name="box-archive"
-                size={24}
-                className="text-white/90"
-              />
-            </Pressable>
+
             <Pressable className="active:opacity-70" onPress={onMute}>
-              <StyledMuteIcon className="text-white/90 size-6" />
+              {isAllSelectedMuted ? (
+                <StyledFoundation
+                  name="volume"
+                  size={24}
+                  className="text-white/90"
+                />
+              ) : (
+                <StyledMuteIcon className="text-white/90 size-6" />
+              )}
             </Pressable>
+
             <Pressable className="active:opacity-70" onPress={onDelete}>
               <StyledTrashIcon className="text-white/90 scale-120" />
             </Pressable>
           </View>
         </View>
       )}
-    </BlurView>
+    </View>
   );
 }
