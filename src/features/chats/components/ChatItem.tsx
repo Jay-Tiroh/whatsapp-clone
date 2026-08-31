@@ -199,7 +199,7 @@ const ChatItem = React.memo(
         {!isArchived && (
           <StyledTouchableOpacity
             activeOpacity={0.7}
-            className="chat-item-swipe-card bg-neutral-500"
+            className="chat-item-swipe-card bg-neutral-100 dark:bg-neutral-500"
             onPress={isPinned ? handleUnpinPress : handlePinPress}
           >
             {isPinned ? (
@@ -238,7 +238,7 @@ const ChatItem = React.memo(
         {isArchived ? (
           <StyledTouchableOpacity
             activeOpacity={0.7}
-            className="chat-item-swipe-card bg-neutral-500"
+            className="chat-item-swipe-card bg-neutral-100 dark:bg-neutral-500"
             onPress={handleUnarchivePress}
           >
             <StyledMaterialIcons
@@ -253,7 +253,7 @@ const ChatItem = React.memo(
         ) : (
           <StyledTouchableOpacity
             activeOpacity={0.7}
-            className="chat-item-swipe-card bg-neutral-500"
+            className="chat-item-swipe-card bg-neutral-100 dark:bg-neutral-500"
             onPress={handleArchivePress}
           >
             <StyledFontAwesome6
@@ -359,7 +359,9 @@ const ChatItem = React.memo(
                 </View>
                 {hasUnread && (
                   <View className="size-6 rounded-full items-center justify-center bg-primary-400">
-                    <ThemedText weight="bold">{unreadCount}</ThemedText>
+                    <ThemedText weight="bold" className="text-white/90">
+                      {unreadCount}
+                    </ThemedText>
                   </View>
                 )}
                 {isPinned && (

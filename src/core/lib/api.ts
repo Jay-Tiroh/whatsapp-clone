@@ -81,7 +81,18 @@ api.interceptors.response.use(
       return api(originalRequest);
     } catch (refreshError) {
       onRefreshed(null);
-      useAuthStore.getState().clearSession();
+
+      const status = axios.isAxiosError(refreshError)
+        ? refreshError.response?.status
+        : undefined;
+
+      // Only a definitive rejection from the auth server means the refresh
+      // token itself is dead. Network errors, timeouts, and 5xxs are transient —
+      // don't log the user out for those.
+      if (status === 401 || status === 400) {
+        useAuthStore.getState().clearSession();
+      }
+
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;

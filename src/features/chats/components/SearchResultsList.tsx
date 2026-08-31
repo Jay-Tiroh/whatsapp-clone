@@ -7,7 +7,7 @@ import {
   Pressable,
   View,
 } from "react-native";
-import type { DiscoveredUser } from "../types/discovery.types";
+import type { DiscoveredUser } from "../../contacts/types/discovery.types";
 
 interface SearchResultsListProps {
   users: DiscoveredUser[];
