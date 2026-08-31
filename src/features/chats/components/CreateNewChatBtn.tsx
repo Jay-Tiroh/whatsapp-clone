@@ -1,4 +1,7 @@
+import { useSheetStore } from "@/core/store/sheetStore";
+import { ContactList } from "@/features/contacts";
 import ThemedText from "@/shared/components/ThemedText";
+import { logger } from "@/shared/utils/logger";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -80,6 +83,19 @@ const CreateNewChatButton = () => {
 
   const close = () => setIsOpen(false);
 
+  const openSheet = useSheetStore((state) => state.openSheet);
+  const handlePress = (key: string) => {
+    if (key === "contact") {
+      logger.log("Opening contacts");
+      openSheet(<ContactList />, {
+        snapPoints: ["70%", "95%"],
+        index: 0,
+      });
+    }
+
+    close();
+  };
+
   return (
     <>
       {isOpen && (
@@ -111,8 +127,7 @@ const CreateNewChatButton = () => {
                 <Pressable
                   className="gap-4 flex-row items-center active:opacity-70 bg-white/90 dark:bg-neutral-700 rounded-full w-45 h-14 px-5"
                   onPress={() => {
-                    // handle item.key press
-                    close();
+                    handlePress(item.key);
                   }}
                 >
                   {item.render()}

@@ -80,7 +80,9 @@ export default function ArchivedButton({ conversations }: ArchivedButtonProps) {
           </View>
           {hasUnread && (
             <View className="size-6 rounded-full items-center justify-center bg-primary-400">
-              <ThemedText weight="bold">{totalUnread}</ThemedText>
+              <ThemedText weight="bold" className="text-white/90">
+                {totalUnread}
+              </ThemedText>
             </View>
           )}
         </View>

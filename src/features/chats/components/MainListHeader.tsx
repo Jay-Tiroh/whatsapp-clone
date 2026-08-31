@@ -1,7 +1,7 @@
 // MainListHeader.tsx
 import MuteIcon from "@/assets/icons/mute.svg";
 import TrashIcon from "@/assets/icons/trash.svg";
-import SearchBar from "@/features/chats/components/Searchbar";
+import SearchBar from "@/shared/components/Searchbar";
 import ThemedText from "@/shared/components/ThemedText";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Fontisto from "@expo/vector-icons/Fontisto";

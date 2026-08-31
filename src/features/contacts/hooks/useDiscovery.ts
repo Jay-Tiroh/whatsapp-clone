@@ -1,5 +1,5 @@
 // hooks/useDiscovery.ts
-import { discoveryApi } from "@/features/chats/api/discovery.api";
+import { discoveryApi } from "@/features/contacts/api/discovery.api";
 import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import type { MatchContactsPayload } from "../types/discovery.types";

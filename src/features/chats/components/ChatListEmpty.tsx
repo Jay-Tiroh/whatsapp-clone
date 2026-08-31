@@ -2,7 +2,7 @@ import ThemedText from "@/shared/components/ThemedText";
 import { Image } from "expo-image";
 import { View } from "react-native";
 import { withUniwind } from "uniwind";
-import type { ContactMatch } from "../types/discovery.types";
+import type { ContactMatch } from "../../contacts/types/discovery.types";
 
 const StyledImage = withUniwind(Image);
 
