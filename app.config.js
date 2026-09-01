@@ -75,6 +75,7 @@ module.exports = {
     "expo-secure-store",
     "@config-plugins/react-native-webrtc",
     "expo-audio",
+    "expo-video",
     "expo-sharing",
     [
       "expo-camera",

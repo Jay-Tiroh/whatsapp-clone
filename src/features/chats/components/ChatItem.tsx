@@ -9,6 +9,7 @@ import Foundation from "@expo/vector-icons/Foundation";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Octicons from "@expo/vector-icons/Octicons";
 import { Image } from "expo-image";
+import { Href, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { LayoutChangeEvent, Pressable, View } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
@@ -52,6 +53,7 @@ const ChatItem = React.memo(
     onToggleSelect,
     isArchived = false,
   }: ChatItemProps) => {
+    const router = useRouter();
     const [isPinned, setIsPinned] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
 
@@ -172,7 +174,7 @@ const ChatItem = React.memo(
       if (isSelecting && onToggleSelect) {
         onToggleSelect(conversation.id);
       } else {
-        // router.push(`/chats/${conversation.id}`)
+        router.push(`/chats/${conversation.id}` as Href);
       }
     };
 
