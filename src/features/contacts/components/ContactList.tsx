@@ -3,10 +3,9 @@ import { ContactMatchDto } from "@/features/contacts/types/discovery.types";
 import SearchBar from "@/shared/components/Searchbar";
 import ThemedText from "@/shared/components/ThemedText";
 import Feather from "@expo/vector-icons/Feather";
-import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
 import { useMemo, useState } from "react";
-import { View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
 const StyledImage = withUniwind(Image);
@@ -14,18 +13,14 @@ const StyledFeather = withUniwind(Feather);
 const alphabets = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
 export default function ContactList() {
-  // const { matches, isLoading: matchesLoading } = useMatchedContacts();
-
   const matches = mockContactMatches;
   const [query, setQuery] = useState("");
 
   const filteredMatches = useMemo(() => {
     const q = query.trim().toLowerCase();
-
     if (!q) {
       return matches;
     }
-
     return matches.filter((match) =>
       match?.user?.displayName?.toLowerCase().includes(q),
     );
@@ -51,17 +46,14 @@ export default function ContactList() {
         <ThemedText type="h4" className="text-center mb-4">
           Contact
         </ThemedText>
-
         <SearchBar
           placeholder="Search contacts"
           value={query}
           onChangeText={setQuery}
         />
       </View>
-
-      {/* Contacts */}
-      <BottomSheetScrollView
-        style={{ flex: 1 }}
+      {/* Contacts — plain ScrollView; TrueSheet's `scrollable` prop auto-detects it */}
+      <ScrollView
         contentContainerStyle={{
           paddingBottom: 24,
         }}
@@ -73,15 +65,12 @@ export default function ContactList() {
             <ThemedText color="muted">No contacts found</ThemedText>
           </View>
         ) : isSearching ? (
-          /* Flat list during search */
           filteredMatches.map((contact) => (
             <ContactListItem key={contact.user.id} contact={contact} />
           ))
         ) : (
-          /* Grouped alphabetical list when not searching */
           sortedMatches.map((group) => (
             <View key={group.letter}>
-              {/* Alphabet header */}
               <View className="h-8 justify-center bg-divider dark:bg-neutral-500">
                 <ThemedText
                   color="muted"
@@ -92,15 +81,13 @@ export default function ContactList() {
                   {group.letter}
                 </ThemedText>
               </View>
-
-              {/* Contacts in group */}
               {group.contacts.map((contact) => (
                 <ContactListItem key={contact.user.id} contact={contact} />
               ))}
             </View>
           ))
         )}
-      </BottomSheetScrollView>
+      </ScrollView>
     </View>
   );
 }
@@ -118,12 +105,10 @@ const ContactListItem = ({ contact }: { contact: ContactMatchDto }) => {
         contentFit="cover"
         cachePolicy="memory-disk"
       />
-
       <View className="flex-1 gap-2">
         <ThemedText>{contact.user.displayName}</ThemedText>
         <ThemedText color="muted">{contact.matchedPhoneNumber}</ThemedText>
       </View>
-
       <StyledFeather name="chevron-right" size={24} className="text-muted" />
     </View>
   );

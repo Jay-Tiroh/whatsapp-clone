@@ -46,7 +46,7 @@ export default function ChatHeader({
   const handleGoBack = () => (goBack ? goBack() : router.back());
 
   return (
-    <View className="w-full bg-primary-400 dark:bg-neutral-700 p-safe-offset-6 pb-6 gap-5">
+    <View className="w-full bg-primary-400 dark:bg-neutral-700 p-safe-offset-6 pb-6 gap-5 z-99">
       <View className="flex-row justify-center items-center">
         <View className="flex-row items-center gap-6">
           <Pressable className="active:opacity-70" onPress={handleGoBack}>

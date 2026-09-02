@@ -1,8 +1,15 @@
 // @/shared/components/ChatLayoutWrapper.tsx
 import { ReactNode } from "react";
-import { Keyboard, Pressable, StyleProp, View, ViewStyle } from "react-native";
 import {
-  KeyboardAwareScrollView,
+  Keyboard,
+  Platform,
+  Pressable,
+  StyleProp,
+  View,
+  ViewStyle,
+} from "react-native";
+import {
+  KeyboardAvoidingView,
   KeyboardStickyView,
 } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,12 +23,15 @@ type ChatLayoutWrapperProps = {
   containerStyle?: StyleProp<ViewStyle>;
   /** Disable tap-outside-to-dismiss behavior if needed */
   dismissOnTap?: boolean;
+  bottomInputClassName?: string;
 };
+
 const ChatLayoutWrapper = ({
   children,
   bottomInput,
   containerStyle,
   dismissOnTap = true,
+  bottomInputClassName,
 }: ChatLayoutWrapperProps) => {
   const insets = useSafeAreaInsets();
 
@@ -32,35 +42,25 @@ const ChatLayoutWrapper = ({
   };
 
   return (
-    <View className="flex-1 bg-background" style={containerStyle}>
-      <KeyboardAwareScrollView
-        className="flex-1 bg-background"
-        contentContainerClassName="grow bg-background"
-        keyboardDismissMode="interactive"
-        bottomOffset={16}
-      >
-        <Pressable
-          className="flex-1 bg-background"
-          onPress={handleDismissKeyboard}
-        >
-          {children}
-        </Pressable>
-      </KeyboardAwareScrollView>
+    <KeyboardAvoidingView
+      className="flex-1 w-full"
+      style={containerStyle}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <Pressable className="flex-1" onPress={handleDismissKeyboard}>
+        {children}
+      </Pressable>
 
-      <KeyboardStickyView
-        offset={{ closed: 0, opened: 0 }}
-        className="bg-background"
-      >
+      <KeyboardStickyView offset={{ closed: 0, opened: -insets.bottom }}>
         <View
-          className="bg-background"
-          style={{
-            paddingBottom: insets.bottom,
-          }}
+          className={bottomInputClassName}
+          style={{ paddingBottom: insets.bottom }}
         >
           {bottomInput}
         </View>
       </KeyboardStickyView>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
+
 export default ChatLayoutWrapper;

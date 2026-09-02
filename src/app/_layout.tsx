@@ -11,7 +11,6 @@ import { View } from "react-native";
 import Toast from "react-native-toast-message";
 import { useCSSVariable } from "uniwind";
 import "../global.css";
-
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {

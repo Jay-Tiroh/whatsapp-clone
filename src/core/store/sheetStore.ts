@@ -1,19 +1,20 @@
-// core/store/sheetStore.ts
 import { ReactNode } from "react";
 import { create } from "zustand";
+
+type SheetDetent = number | "auto" | "peek";
 
 interface SheetState {
   isOpen: boolean;
   sheetContent: ReactNode | null;
-  snapPoints: (string | number)[];
-  index: number;
-  enablePanDownToClose: boolean;
+  detents: SheetDetent[];
+  dismissible: boolean;
+  scrollable: boolean;
   openSheet: (
     content: ReactNode,
     opts?: {
-      snapPoints?: (string | number)[];
-      index?: number;
-      enablePanDownToClose?: boolean;
+      detents?: SheetDetent[];
+      dismissible?: boolean;
+      scrollable?: boolean;
     },
   ) => void;
   closeSheet: () => void;
@@ -23,16 +24,16 @@ interface SheetState {
 export const useSheetStore = create<SheetState>((set) => ({
   isOpen: false,
   sheetContent: null,
-  snapPoints: ["50%"],
-  index: 0,
-  enablePanDownToClose: true,
+  detents: [0.5],
+  dismissible: true,
+  scrollable: false,
   openSheet: (content, opts) =>
     set({
       isOpen: true,
       sheetContent: content,
-      snapPoints: opts?.snapPoints ?? ["50%"],
-      index: opts?.index ?? 0,
-      enablePanDownToClose: opts?.enablePanDownToClose ?? true,
+      detents: opts?.detents ?? [0.5],
+      dismissible: opts?.dismissible ?? true,
+      scrollable: opts?.scrollable ?? false,
     }),
   closeSheet: () => set({ isOpen: false }),
   clearSheet: () => set({ sheetContent: null }),
