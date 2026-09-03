@@ -1,3 +1,4 @@
+import { reconnectSocketWithNewToken } from "@/core/lib/socket";
 import { storage } from "@/core/lib/storage";
 import { tokenStorage } from "@/core/lib/tokenStorage";
 import { resetAllStores } from "@/core/store/storeRegistry";
@@ -32,6 +33,7 @@ export const useAuthStore = create<AuthState>()(
       setSession: (auth) => {
         tokenStorage.setTokens(auth.accessToken, auth.refreshToken);
         set({ isAuthenticated: true, user: auth.user });
+        reconnectSocketWithNewToken();
       },
       updateUser: (partial) =>
         set((state) => ({

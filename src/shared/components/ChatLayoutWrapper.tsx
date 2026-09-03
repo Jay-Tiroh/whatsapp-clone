@@ -1,27 +1,17 @@
 // @/shared/components/ChatLayoutWrapper.tsx
 import { ReactNode } from "react";
+import { Keyboard, Pressable, StyleProp, View, ViewStyle } from "react-native";
 import {
-  Keyboard,
-  Platform,
-  Pressable,
-  StyleProp,
-  View,
-  ViewStyle,
-} from "react-native";
-import {
-  KeyboardAvoidingView,
   KeyboardStickyView,
+  useReanimatedKeyboardAnimation,
 } from "react-native-keyboard-controller";
+import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type ChatLayoutWrapperProps = {
-  /** The scrollable body content (e.g., chat messages list or form content) */
   children: ReactNode;
-  /** The footer that stays pinned above the keyboard (e.g., input bar) */
   bottomInput: ReactNode;
-  /** Optional custom container styling for edge cases className can't cover */
   containerStyle?: StyleProp<ViewStyle>;
-  /** Disable tap-outside-to-dismiss behavior if needed */
   dismissOnTap?: boolean;
   bottomInputClassName?: string;
 };
@@ -34,32 +24,31 @@ const ChatLayoutWrapper = ({
   bottomInputClassName,
 }: ChatLayoutWrapperProps) => {
   const insets = useSafeAreaInsets();
+  const { height } = useReanimatedKeyboardAnimation();
+
+  // `height` runs from 0 (keyboard closed) to a negative value equal to
+  // -keyboardHeight (keyboard fully open) — same value KeyboardStickyView
+  // uses under the hood, so this stays perfectly in sync with the input bar.
+  const listAnimatedStyle = useAnimatedStyle(() => ({
+    paddingBottom: -height.value,
+  }));
 
   const handleDismissKeyboard = () => {
-    if (dismissOnTap) {
-      Keyboard.dismiss();
-    }
+    if (dismissOnTap) Keyboard.dismiss();
   };
 
   return (
-    <KeyboardAvoidingView
-      className="flex-1 w-full"
-      style={containerStyle}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <Pressable className="flex-1" onPress={handleDismissKeyboard}>
-        {children}
-      </Pressable>
+    <View className="flex-1 w-full" style={containerStyle}>
+      <Animated.View style={[{ flex: 1 }, listAnimatedStyle]}>
+        <Pressable className="flex-1" onPress={handleDismissKeyboard}>
+          {children}
+        </Pressable>
+      </Animated.View>
 
-      <KeyboardStickyView offset={{ closed: 0, opened: -insets.bottom }}>
-        <View
-          className={bottomInputClassName}
-          style={{ paddingBottom: insets.bottom }}
-        >
-          {bottomInput}
-        </View>
+      <KeyboardStickyView offset={{ closed: -insets.bottom, opened: 0 }}>
+        <View className={bottomInputClassName}>{bottomInput}</View>
       </KeyboardStickyView>
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 

@@ -1,16 +1,26 @@
-// components/MessageList.tsx
+import { useAuthStore } from "@/features/auth";
+import type { ReceiptPayload } from "@/features/conversation/screens/ConversationScreen";
+import type { Message } from "@/features/conversation/types/message.types";
 import ThemedText from "@/shared/components/ThemedText";
 import { FlashList } from "@shopify/flash-list";
-import MessageBubble, { Message } from "./MessageBubble";
+import { getMessageStatus } from "../utils/messageStatus";
+import MessageBubble from "./MessageBubble";
 
 type Props = {
-  conversationId: string | string[];
+  conversationId: string;
   messages: Message[];
+  otherUserReceipt: ReceiptPayload | null;
 };
 
-export default function MessageList({ conversationId, messages }: Props) {
+export default function MessageList({ messages, otherUserReceipt }: Props) {
+  const myId = useAuthStore((state) => state.user?.id);
+
   if (messages.length === 0) {
-    return <ThemedText>ConversationScreen for {conversationId}</ThemedText>;
+    return (
+      <ThemedText className="text-center text-neutral-500">
+        No messages yet
+      </ThemedText>
+    );
   }
 
   return (
@@ -21,7 +31,16 @@ export default function MessageList({ conversationId, messages }: Props) {
         startRenderingFromBottom: true,
         autoscrollToBottomThreshold: 0.2,
       }}
-      renderItem={({ item }) => <MessageBubble item={item} />}
+      renderItem={({ item }) => (
+        <MessageBubble
+          item={item}
+          status={
+            item.senderId === myId
+              ? getMessageStatus(item, otherUserReceipt)
+              : undefined
+          }
+        />
+      )}
     />
   );
 }
