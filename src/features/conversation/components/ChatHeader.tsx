@@ -73,7 +73,7 @@ export default function ChatHeader({
             />*/}
             <StyledImage
               source={require("@/assets/images/avatar.png")}
-              className="size-12 border-.5 border-white rounded-full"
+              className="size-12 border-.5 border-white rounded-full bg-white"
               contentFit="cover"
               cachePolicy="memory-disk"
               style={{ borderWidth: 2, borderColor: "hsla(0, 0%, 100%, 0.9)" }}

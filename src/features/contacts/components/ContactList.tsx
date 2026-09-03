@@ -10,10 +10,12 @@ import { withUniwind } from "uniwind";
 
 const StyledImage = withUniwind(Image);
 const StyledFeather = withUniwind(Feather);
+const StyledScrollView = withUniwind(ScrollView);
 const alphabets = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-
 export default function ContactList() {
   const matches = mockContactMatches;
+  // const { matches, isLoading: matchesLoading } = useMatchedContacts();
+  // console.log("matches", matches);
   const [query, setQuery] = useState("");
 
   const filteredMatches = useMemo(() => {
@@ -40,9 +42,9 @@ export default function ContactList() {
   const isSearching = query.trim().length > 0;
 
   return (
-    <View className="flex-1">
+    <>
       {/* Header */}
-      <View className="px-6 pt-2 pb-8">
+      <View className="px-6 pt-6 pb-8">
         <ThemedText type="h4" className="text-center mb-4">
           Contact
         </ThemedText>
@@ -50,13 +52,13 @@ export default function ContactList() {
           placeholder="Search contacts"
           value={query}
           onChangeText={setQuery}
+          variant="sheet"
         />
       </View>
       {/* Contacts — plain ScrollView; TrueSheet's `scrollable` prop auto-detects it */}
-      <ScrollView
-        contentContainerStyle={{
-          paddingBottom: 24,
-        }}
+      <StyledScrollView
+        nestedScrollEnabled
+        contentContainerClassName="pb-safe-offset-100"
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
@@ -87,8 +89,8 @@ export default function ContactList() {
             </View>
           ))
         )}
-      </ScrollView>
-    </View>
+      </StyledScrollView>
+    </>
   );
 }
 
