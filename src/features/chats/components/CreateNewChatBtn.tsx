@@ -88,8 +88,7 @@ const CreateNewChatButton = () => {
     if (key === "contact") {
       logger.log("Opening contacts");
       openSheet(<ContactList />, {
-        snapPoints: ["70%", "95%"],
-        index: 0,
+        detents: [0.7, 0.95],
       });
     }
 

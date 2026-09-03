@@ -1,0 +1,14 @@
+name: ChatMe Socket.IO
+values:
+  - key: apiBaseUrl
+    value: 'http://localhost:3000/v1'
+  - key: socketUrl
+    value: 'ws://localhost:3000/chat'
+  - key: accessTokenA
+    secret: true
+  - key: accessTokenB
+    secret: true
+  - key: conversationId
+    value: ''
+  - key: throughMessageId
+    value: ''

@@ -1,6 +1,5 @@
 import { clientStoragePersister } from "@/core/lib/persister";
 import { queryClient } from "@/core/lib/queryClient";
-import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { ReactNode } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -10,6 +9,7 @@ import {
   SafeAreaProvider,
 } from "react-native-safe-area-context";
 import { Uniwind } from "uniwind";
+
 const AppProviders = ({ children }: { children: ReactNode }) => {
   return (
     <PersistQueryClientProvider
@@ -27,9 +27,7 @@ const AppProviders = ({ children }: { children: ReactNode }) => {
           <SafeAreaListener
             onChange={({ insets }) => Uniwind.updateInsets(insets)}
           >
-            <KeyboardProvider>
-              <BottomSheetModalProvider>{children}</BottomSheetModalProvider>
-            </KeyboardProvider>
+            <KeyboardProvider>{children}</KeyboardProvider>
           </SafeAreaListener>
         </SafeAreaProvider>
       </GestureHandlerRootView>

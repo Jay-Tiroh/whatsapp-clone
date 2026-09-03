@@ -1,6 +1,8 @@
 import MuteIcon from "@/assets/icons/mute.svg";
 import TrashIcon from "@/assets/icons/trash.svg";
+import { Conversation } from "@/features/chats/types/conversation.types";
 import ThemedText from "@/shared/components/ThemedText";
+import { formatTime } from "@/shared/utils/date";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Fontisto from "@expo/vector-icons/Fontisto";
 import Foundation from "@expo/vector-icons/Foundation";
@@ -29,6 +31,7 @@ interface ChatHeaderProps {
   onUnarchive?: () => void;
   onMute?: () => void;
   onDelete?: () => void;
+  conversation?: Conversation;
 }
 
 export default function ChatHeader({
@@ -41,12 +44,13 @@ export default function ChatHeader({
   onUnarchive,
   onMute,
   onDelete,
+  conversation,
 }: ChatHeaderProps) {
   const router = useRouter();
   const handleGoBack = () => (goBack ? goBack() : router.back());
-
+  console.log(conversation?.lastActivityAt);
   return (
-    <View className="w-full bg-primary-400 dark:bg-neutral-700 p-safe-offset-6 pb-6 gap-5">
+    <View className="w-full bg-primary-400 dark:bg-neutral-700 p-safe-offset-6 pb-6 gap-5 z-99">
       <View className="flex-row justify-center items-center">
         <View className="flex-row items-center gap-6">
           <Pressable className="active:opacity-70" onPress={handleGoBack}>
@@ -76,10 +80,10 @@ export default function ChatHeader({
             />
             <View className="gap-1">
               <ThemedText type="bodyXl" weight="bold" className="text-white/90">
-                {title}
+                {conversation?.otherParticipant?.displayName ?? "Unknown user"}
               </ThemedText>
               <ThemedText className="text-white/90">
-                Active a while ago
+                last seen {formatTime(conversation?.lastActivityAt ?? "")}
               </ThemedText>
             </View>
           </View>

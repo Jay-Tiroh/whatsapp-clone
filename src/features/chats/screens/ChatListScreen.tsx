@@ -1,9 +1,11 @@
+import { useAuthStore } from "@/features/auth";
 import ChatList from "@/features/chats/components/ChatList";
 import ChatListEmpty from "@/features/chats/components/ChatListEmpty";
 import CreateNewChatButton from "@/features/chats/components/CreateNewChatBtn";
 import MainListHeader from "@/features/chats/components/MainListHeader";
 import SearchResultsList from "@/features/chats/components/SearchResultsList";
-import { mockConversationListResponse } from "@/features/chats/mocks/conversation.mocks";
+import { useConversationListRealtime } from "@/features/chats/hooks/useConversationListRealtime";
+import { useGetConversations } from "@/features/chats/hooks/useConversations";
 import { mockContactMatches } from "@/features/chats/mocks/discovery.mocks";
 import { useChatsStore } from "@/features/chats/store/chatsStore";
 import { useSearchUsers } from "@/features/contacts";
@@ -26,16 +28,25 @@ export default function ChatListScreen() {
   useExitOnDoubleBack("Press back again to exit");
 
   // TODO: Replace with real query hooks
-  // const { data, isLoading, isError, refetch, isRefetching } = useGetConversations({ limit: 20 });
+  const { data, isLoading, isError, refetch, isRefetching } =
+    useGetConversations({ limit: 20 });
+  const currentUserId = useAuthStore((s) => s.user?.id);
+
+  useConversationListRealtime(
+    data?.items.map((c) => c.id) ?? [],
+    currentUserId,
+    // pass the currently-focused conversationId here if you track one,
+    // e.g. from a navigation state / route param at this level
+  );
   // const { matches, isLoading: matchesLoading } = useMatchedContacts();
 
-  const data = mockConversationListResponse;
-  const { isLoading, isError, refetch, isRefetching } = {
-    isLoading: false,
-    isError: false,
-    refetch: () => {},
-    isRefetching: false,
-  };
+  // const data = mockConversationListResponse;
+  // const { isLoading, isError, refetch, isRefetching } = {
+  //   isLoading: false,
+  //   isError: false,
+  //   refetch: () => {},
+  //   isRefetching: false,
+  // };
   const matches = mockContactMatches;
   const isEmpty = !isLoading && (data?.items.length ?? 0) === 0;
 
@@ -148,6 +159,7 @@ export default function ChatListScreen() {
           isLoading={isSearchFetching && searchResults.length === 0}
           hasNextPage={!!hasNextPage}
           onEndReached={fetchNextPage}
+          onPressUser={() => setSearch("")}
         />
       );
     }
