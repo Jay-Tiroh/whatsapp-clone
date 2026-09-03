@@ -52,7 +52,7 @@ export default function ChatHeader({
   return (
     <View className="w-full bg-primary-400 dark:bg-neutral-700 p-safe-offset-6 pb-6 gap-5 z-99">
       <View className="flex-row justify-center items-center">
-        <View className="flex-row items-center gap-6">
+        <View className="flex-row items-center gap-3">
           <Pressable className="active:opacity-70" onPress={handleGoBack}>
             <StyledIonicons
               name="chevron-back"
@@ -61,18 +61,12 @@ export default function ChatHeader({
             />
           </Pressable>
           <View className="flex-row gap-4 items-center flex-1">
-            {/*<StyledImage
+            <StyledImage
               source={
-                otherParticipant.avatarUrl
-                  ? { uri: otherParticipant.avatarUrl }
+                conversation?.otherParticipant.avatarUrl
+                  ? { uri: conversation?.otherParticipant.avatarUrl }
                   : require("@/assets/images/avatar.png")
               }
-              className="w-full h-full rounded-full"
-              contentFit="cover"
-              cachePolicy="memory-disk"
-            />*/}
-            <StyledImage
-              source={require("@/assets/images/avatar.png")}
               className="size-12 border-.5 border-white rounded-full bg-white"
               contentFit="cover"
               cachePolicy="memory-disk"
@@ -82,7 +76,7 @@ export default function ChatHeader({
               <ThemedText type="bodyXl" weight="bold" className="text-white/90">
                 {conversation?.otherParticipant?.displayName ?? "Unknown user"}
               </ThemedText>
-              <ThemedText className="text-white/90">
+              <ThemedText type="bodySm" className="text-white/90">
                 last seen {formatTime(conversation?.lastActivityAt ?? "")}
               </ThemedText>
             </View>
@@ -103,27 +97,6 @@ export default function ChatHeader({
               />
             </Pressable>
           </View>
-        </View>
-        <View className="absolute right-6">
-          {selectionMode && (
-            <View className="flex-row gap-2 items-center">
-              <ThemedText
-                type="bodyLg"
-                weight="medium"
-                className="text-white/90"
-              >
-                Selected
-              </ThemedText>
-              <View className="bg-white/90 rounded-full size-1.5" />
-              <ThemedText
-                type="bodyLg"
-                weight="medium"
-                className="text-white/90"
-              >
-                {selectedCount}
-              </ThemedText>
-            </View>
-          )}
         </View>
       </View>
 
