@@ -25,6 +25,7 @@ export default function MessageList({ messages, otherUserReceipt }: Props) {
 
   return (
     <FlashList
+      showsVerticalScrollIndicator={false}
       data={messages}
       keyExtractor={(item) => item.id}
       maintainVisibleContentPosition={{

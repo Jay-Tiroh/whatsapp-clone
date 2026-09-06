@@ -122,7 +122,7 @@ export const CountryPicker = ({
           "flex-row items-center justify-between bg-surface rounded-xl px-4 py-2 min-h-13 border",
           isFocused
             ? "border-primary ring-1 ring-primary bg-primary-50 dark:bg-neutral-800"
-            : "border-border",
+            : "border-divider dark:border-neutral-300",
         )}
       >
         <TouchableOpacity
@@ -157,7 +157,7 @@ export const CountryPicker = ({
         {showPhoneInput && (
           <TextInput
             className="flex-1 ml-3 font-display-medium text-foreground text-body-md h-full"
-            placeholderTextColorClassName="accent-muted"
+            placeholderTextColorClassName="accent-neutral-300 dark:accent-neutral-200"
             keyboardType="phone-pad"
             value={value}
             onChangeText={handlePhoneChange}

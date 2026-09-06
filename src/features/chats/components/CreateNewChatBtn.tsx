@@ -7,6 +7,7 @@ import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { BlurView } from "expo-blur";
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import Animated, {
@@ -64,7 +65,7 @@ const CreateNewChatButton = () => {
 
   const backdropOpacity = useSharedValue(0);
   const rotation = useSharedValue(0);
-
+  const router = useRouter();
   useEffect(() => {
     backdropOpacity.value = withTiming(isOpen ? 1 : 0, { duration: 200 });
     rotation.value = withSpring(isOpen ? 45 : 0, {
@@ -85,13 +86,16 @@ const CreateNewChatButton = () => {
 
   const openSheet = useSheetStore((state) => state.openSheet);
   const handlePress = (key: string) => {
-    if (key === "contact") {
+    if (key === "chat") {
       logger.log("Opening contacts");
       openSheet(<ContactList />, {
         detents: [0.7, 0.95],
       });
     }
 
+    if (key === "contact") {
+      router.push("/chats/new-contact");
+    }
     close();
   };
 
