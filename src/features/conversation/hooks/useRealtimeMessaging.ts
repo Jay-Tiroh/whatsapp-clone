@@ -1,68 +1,14 @@
 import { getSocket } from "@/core/lib/socket";
 import { useCallback, useEffect, useRef } from "react";
 
-import type { MessageDto } from "../types/message.types";
-
-type ReceiptPayload = {
-  conversationId: string;
-  userId: string;
-  throughMessageId: string;
-  at: string;
-  version: number;
-
-  delivered: {
-    messageId: string;
-    at: string;
-  } | null;
-
-  read: {
-    messageId: string;
-    at: string;
-  } | null;
-};
-
-type PresencePayload = {
-  conversationId: string;
-  userId: string;
-  status: "online" | "offline";
-  occurredAt: string;
-};
-
-type TypingPayload = {
-  conversationId: string;
-  userId: string;
-  expiresAt?: string;
-  occurredAt?: string;
-};
-
-type AckResponse<T = unknown> =
-  | {
-      ok: true;
-      data: T;
-    }
-  | {
-      ok: false;
-      error: {
-        code: string;
-        message: string;
-      };
-    };
-
-type Options = {
-  conversationId: string;
-
-  onMessageCreated?: (message: MessageDto) => void;
-
-  onReceiptDelivered?: (receipt: ReceiptPayload) => void;
-
-  onReceiptRead?: (receipt: ReceiptPayload) => void;
-
-  onPresenceChanged?: (presence: PresencePayload) => void;
-
-  onTypingStarted?: (typing: TypingPayload) => void;
-
-  onTypingStopped?: (typing: TypingPayload) => void;
-};
+import type {
+  AckResponse,
+  MessageDto,
+  Options,
+  PresencePayload,
+  ReceiptPayload,
+  TypingPayload,
+} from "../types/message.types";
 
 export function useRealtimeMessaging({
   conversationId,

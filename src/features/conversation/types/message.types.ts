@@ -60,3 +60,64 @@ export interface ConversationReadStatus {
   lastReadAt: string;
   unreadCount: number;
 }
+
+export type ReceiptPayload = {
+  conversationId: string;
+  userId: string;
+  throughMessageId: string;
+  at: string;
+  version: number;
+
+  delivered: {
+    messageId: string;
+    at: string;
+  } | null;
+
+  read: {
+    messageId: string;
+    at: string;
+  } | null;
+};
+
+export type PresencePayload = {
+  conversationId: string;
+  userId: string;
+  status: "online" | "offline";
+  occurredAt: string;
+};
+
+export type TypingPayload = {
+  conversationId: string;
+  userId: string;
+  expiresAt?: string;
+  occurredAt?: string;
+};
+
+export type AckResponse<T = unknown> =
+  | {
+      ok: true;
+      data: T;
+    }
+  | {
+      ok: false;
+      error: {
+        code: string;
+        message: string;
+      };
+    };
+
+export type Options = {
+  conversationId: string;
+
+  onMessageCreated?: (message: MessageDto) => void;
+
+  onReceiptDelivered?: (receipt: ReceiptPayload) => void;
+
+  onReceiptRead?: (receipt: ReceiptPayload) => void;
+
+  onPresenceChanged?: (presence: PresencePayload) => void;
+
+  onTypingStarted?: (typing: TypingPayload) => void;
+
+  onTypingStopped?: (typing: TypingPayload) => void;
+};
