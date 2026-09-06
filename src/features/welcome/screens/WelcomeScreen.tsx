@@ -18,13 +18,23 @@ export default function WelcomeScreen() {
           <IllDark />
         </View>
         <View className="items-center w-full pb-safe-offset-5">
-          <ThemedText type="h3" className="mb-4 text-center max-w-82">
+          <ThemedText
+            type="h3"
+            className="mb-4 text-center max-w-82"
+            animated
+            animationType="slideUp"
+            duration={800}
+          >
             Stay connected with your friends and family
           </ThemedText>
           <ThemedText
             type="bodyMd"
             color="muted"
             className="text-center dark:text-neutral-300 max-w-82"
+            animated
+            animationType="zoom"
+            delay={250}
+            duration={800}
           >
             ChatMe is messaging app that will help you to connect with everyone.
           </ThemedText>

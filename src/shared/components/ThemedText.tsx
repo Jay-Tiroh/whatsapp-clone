@@ -1,4 +1,5 @@
 import { Text, type TextProps } from "react-native";
+import { EaseView, type EaseViewProps } from "react-native-ease/uniwind";
 import { tv, type VariantProps } from "tailwind-variants";
 
 // 1. Text Variants
@@ -44,8 +45,6 @@ const textVariants = tv(
     },
   },
   {
-    // Tell tailwind-merge these are font-size tokens, not colors,
-    // so they don't get deduped against the `color` variant's classes.
     twMergeConfig: {
       extend: {
         classGroups: {
@@ -75,26 +74,79 @@ const textVariants = tv(
   },
 );
 
-// 2. Types
-interface ThemedTextProps
-  extends TextProps, VariantProps<typeof textVariants> {}
+// 2. Animation presets
+type AnimationType = "fade" | "slideUp" | "slideDown" | "zoom";
 
-// 3. Component
+const ANIMATION_PRESETS: Record<
+  AnimationType,
+  { initial: EaseViewProps["animate"]; animate: EaseViewProps["animate"] }
+> = {
+  fade: {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+  },
+  slideUp: {
+    initial: { opacity: 0, translateY: 12 },
+    animate: { opacity: 1, translateY: 0 },
+  },
+  slideDown: {
+    initial: { opacity: 0, translateY: -12 },
+    animate: { opacity: 1, translateY: 0 },
+  },
+  zoom: {
+    initial: { opacity: 0, scale: 0.9 },
+    animate: { opacity: 1, scale: 1 },
+  },
+};
+
+// 3. Types
+interface ThemedTextProps extends TextProps, VariantProps<typeof textVariants> {
+  /** Turn the entrance animation on/off. Defaults to false so existing usages don't change behavior. */
+  animated?: boolean;
+  /** Which preset to use when `animated` is true. */
+  animationType?: AnimationType;
+  /** Animation duration in ms. */
+  duration?: number;
+  /** Delay before the animation starts, in ms. */
+  delay?: number;
+}
+
+// 4. Component
 const ThemedText = ({
   type,
   weight,
   color,
   className,
   children,
+  animated = false,
+  animationType = "fade",
+  duration = 300,
+  delay = 0,
   ...props
 }: ThemedTextProps) => {
-  return (
+  const textNode = (
     <Text
       className={textVariants({ type, weight, color, className })}
       {...props}
     >
       {children}
     </Text>
+  );
+
+  if (!animated) {
+    return textNode;
+  }
+
+  const { initial, animate } = ANIMATION_PRESETS[animationType];
+
+  return (
+    <EaseView
+      initialAnimate={initial}
+      animate={animate}
+      transition={{ type: "timing", duration, delay, easing: "easeOut" }}
+    >
+      {textNode}
+    </EaseView>
   );
 };
 
