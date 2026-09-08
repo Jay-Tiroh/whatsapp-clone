@@ -1,3 +1,4 @@
+import ThemedText from "@/shared/components/ThemedText";
 import { useCountries, type Country } from "@/shared/hooks/useCountries";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -18,6 +19,7 @@ type CountryPickerProps = {
   onCountryChange?: (country: Country) => void;
   showDialCode?: boolean;
   showPhoneInput?: boolean;
+  error?: string;
 };
 
 const DEFAULT_COUNTRY_CODE = "NG";
@@ -74,6 +76,7 @@ export const CountryPicker = ({
   onCountryChange,
   showDialCode = true,
   showPhoneInput = true,
+  error,
 }: CountryPickerProps) => {
   const { data: countries = [], isLoading } = useCountries();
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
@@ -171,9 +174,11 @@ export const CountryPicker = ({
       <View
         className={cn(
           "flex-row items-center justify-between bg-surface rounded-xl px-4 py-2 min-h-13 border",
-          isFocused
-            ? "border-primary ring-1 ring-primary bg-primary-50 dark:bg-neutral-800"
-            : "border-divider dark:border-neutral-300",
+          error
+            ? "border-red-500"
+            : isFocused
+              ? "border-primary ring-1 ring-primary bg-primary-50 dark:bg-neutral-800"
+              : "border-divider dark:border-neutral-300",
         )}
       >
         <TouchableOpacity
@@ -218,6 +223,12 @@ export const CountryPicker = ({
           />
         )}
       </View>
+
+      {error && (
+        <ThemedText className="text-red-500 font-display-regular text-body-sm mt-2">
+          {error}
+        </ThemedText>
+      )}
       <Modal visible={modalVisible} animationType="slide" transparent={true}>
         <View className="flex-1 bg-black/30 justify-end">
           <View

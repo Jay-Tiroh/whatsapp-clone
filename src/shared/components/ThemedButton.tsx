@@ -18,6 +18,10 @@ const buttonVariants = tv({
       tertiary: "bg-transparent px-0 py-0",
       outline: "bg-transparent border border-primary",
       elevated: "bg-surface shadow-sm shadow-neutral-900/10",
+      danger: "bg-danger",
+      info: "bg-blue-400",
+      warning: "bg-warning",
+      success: "bg-primary",
     },
     isDisabled: {
       true: "opacity-50",
@@ -28,6 +32,12 @@ const buttonVariants = tv({
       // Primary's disabled state has a fixed color in Figma (#ABDBBE),
       // not an opacity effect — so override with the light token directly.
       variant: "primary",
+      isDisabled: true,
+      className: "bg-primary-light opacity-100",
+    },
+    {
+      // Inherit the same disabled logic for success since it shares the primary color
+      variant: "success",
       isDisabled: true,
       className: "bg-primary-light opacity-100",
     },
@@ -48,6 +58,10 @@ const textVariants = tv({
       tertiary: "text-primary",
       outline: "text-primary",
       elevated: "text-foreground",
+      danger: "text-white",
+      info: "text-white",
+      warning: "text-white",
+      success: "text-white",
     },
   },
   defaultVariants: {
@@ -84,7 +98,7 @@ interface ThemedButtonProps
 
 const ThemedButton = ({
   label,
-  variant,
+  variant = "primary",
   disabled,
   isLoading = false,
   iconLeft,
@@ -96,6 +110,15 @@ const ThemedButton = ({
 }: ThemedButtonProps) => {
   const [pressed, setPressed] = useState(false);
   const isButtonDisabled = !!disabled || isLoading;
+
+  // Determine if the variant uses white text so the ActivityIndicator contrasts properly against solid backgrounds
+  const hasWhiteIndicator = [
+    "primary",
+    "danger",
+    "info",
+    "warning",
+    "success",
+  ].includes(variant as string);
 
   return (
     <Pressable
@@ -123,9 +146,7 @@ const ThemedButton = ({
         transition={pressed ? PRESS_IN_TRANSITION : BOUNCE_RELEASE_TRANSITION}
       >
         {isLoading ? (
-          <ActivityIndicator
-            color={variant === "primary" ? "#fff" : undefined}
-          />
+          <ActivityIndicator color={hasWhiteIndicator ? "#fff" : undefined} />
         ) : (
           <>
             {iconLeft}
