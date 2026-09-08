@@ -36,6 +36,7 @@ const DUMMY_DATA: ListItem[] = [
   {
     type: "link",
     id: "l4",
+    title: "Invester Mobile App",
     imageUrl: "https://picsum.photos/100/100?random=4",
     url: "https://dribbble.com/shots/16963068-Invester-Mobil...",
   },

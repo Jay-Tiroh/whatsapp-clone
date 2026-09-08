@@ -22,6 +22,16 @@ type CountryPickerProps = {
 
 const DEFAULT_COUNTRY_CODE = "NG";
 
+// Hardcoded fallback so the dial code can be prewritten immediately,
+// without waiting on the countries list to finish fetching.
+// Adjust the fields here if your `Country` type has more required props.
+const FALLBACK_DEFAULT_COUNTRY: Country = {
+  code: DEFAULT_COUNTRY_CODE,
+  name: "Nigeria",
+  dialCode: "+234",
+  flag: "🇳🇬",
+} as Country;
+
 const onlyDigits = (s: string) => s.replace(/[^\d]/g, "");
 const dialDigits = (c: Country) => onlyDigits(c.dialCode);
 
@@ -40,8 +50,23 @@ const matchCountryByDigits = (digits: string, countries: Country[]) => {
   return best;
 };
 
+// Groups local digits the same way as the placeholder, e.g. 8012345678 -> "801 234 5678"
+const formatLocalDigits = (digits: string) => {
+  if (!digits) return "";
+  const groups: string[] = [];
+  let i = 0;
+  while (digits.length - i > 4) {
+    groups.push(digits.slice(i, i + 3));
+    i += 3;
+  }
+  groups.push(digits.slice(i));
+  return groups.join(" ");
+};
+
 const buildValue = (country: Country, localDigits: string) =>
-  `+${dialDigits(country)}${localDigits ? " " + localDigits : " "}`;
+  `+${dialDigits(country)}${
+    localDigits ? " " + formatLocalDigits(localDigits) : " "
+  }`;
 
 export const CountryPicker = ({
   value = "",
@@ -63,15 +88,29 @@ export const CountryPicker = ({
     [countries],
   );
 
-  const displayCountry = selectedCountry || defaultCountry;
+  const displayCountry = selectedCountry;
 
+  // Seed immediately on mount — don't wait for the countries fetch to resolve.
   useEffect(() => {
-    if (hasSyncedDefault.current || !displayCountry) return;
+    if (hasSyncedDefault.current) return;
     hasSyncedDefault.current = true;
-    setSelectedCountry(displayCountry);
-    onCountryChange?.(displayCountry);
-    if (!value) onChangeText?.(buildValue(displayCountry, ""));
-  }, [displayCountry, onCountryChange, onChangeText, value]);
+    const initial = defaultCountry ?? FALLBACK_DEFAULT_COUNTRY;
+    setSelectedCountry(initial);
+    onCountryChange?.(initial);
+    if (!value) onChangeText?.(buildValue(initial, ""));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Once the real list loads, swap the fallback object for the proper one
+  // (better flag/name data) — but only if the user hasn't picked anything else.
+  useEffect(() => {
+    if (!defaultCountry) return;
+    setSelectedCountry((prev) =>
+      prev && prev.code === DEFAULT_COUNTRY_CODE && prev !== defaultCountry
+        ? defaultCountry
+        : prev,
+    );
+  }, [defaultCountry]);
 
   const filteredCountries = useMemo(() => {
     if (!searchQuery) return countries;
@@ -81,18 +120,30 @@ export const CountryPicker = ({
   }, [countries, searchQuery]);
 
   const handlePhoneChange = (text: string) => {
-    const digits = onlyDigits(text);
+    const isDeleting = text.length < value.length;
+    const hasPlus = text.trim().startsWith("+");
 
-    if (text.trim().startsWith("+") && digits.length > 0) {
-      const match = matchCountryByDigits(digits, countries);
-      if (match) {
-        if (!selectedCountry || match.code !== selectedCountry.code) {
-          setSelectedCountry(match);
-          onCountryChange?.(match);
+    if (hasPlus) {
+      let digits = onlyDigits(text);
+
+      // Deleting a separating space doesn't remove a digit, so the string
+      // gets rebuilt identical to what it was — backspace looks "stuck".
+      // Treat that as deleting the digit before the space too.
+      if (isDeleting && digits.length === onlyDigits(value).length) {
+        digits = digits.slice(0, -1);
+      }
+
+      if (digits.length > 0) {
+        const match = matchCountryByDigits(digits, countries);
+        if (match) {
+          if (!selectedCountry || match.code !== selectedCountry.code) {
+            setSelectedCountry(match);
+            onCountryChange?.(match);
+          }
+          const local = digits.slice(dialDigits(match).length);
+          onChangeText?.(buildValue(match, local));
+          return;
         }
-        const local = digits.slice(dialDigits(match).length);
-        onChangeText?.(buildValue(match, local));
-        return;
       }
     }
 
@@ -132,9 +183,9 @@ export const CountryPicker = ({
               : "flex-row items-center h-full flex-1 justify-between"
           }
           onPress={() => setModalVisible(true)}
-          disabled={isLoading}
+          disabled={isLoading && !displayCountry}
         >
-          {isLoading ? (
+          {isLoading && !displayCountry ? (
             <ActivityIndicator size="small" colorClassName="accent-primary" />
           ) : (
             <>

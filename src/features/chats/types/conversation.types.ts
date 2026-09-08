@@ -27,7 +27,7 @@ export interface ConversationLatestMessageDto {
 
 export interface ConversationResponseDto {
   id: string;
-  type: "direct";
+  type: "direct" | "group";
   otherParticipant: ConversationParticipantDto;
   latestMessage: ConversationLatestMessageDto | null;
   unreadCount: number;
@@ -64,7 +64,7 @@ export interface Message {
 
 export interface Conversation {
   id: string;
-  type: "direct";
+  type: "direct" | "group";
   otherParticipant: Participant;
   latestMessage: Message | null;
   unreadCount: number;

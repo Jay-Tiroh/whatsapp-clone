@@ -3,6 +3,7 @@ import { api } from "@/core/lib/api";
 import { tokenStorage } from "@/core/lib/tokenStorage";
 import { useAuthStore } from "@/features/auth";
 import { getAuthDestination } from "@/features/auth/utils/getAuthDestination";
+import axios from "axios";
 import { useFonts } from "expo-font";
 import { useEffect, useState } from "react";
 
@@ -39,9 +40,16 @@ export const useAppReady = () => {
         const { data } = await api.get("/v1/me", { timeout: 5000 });
         if (mounted) useAuthStore.getState().hydrateUser(data);
       } catch (error) {
-        // Covers both "refresh interceptor also failed" and a hard 401 —
-        // either way the session isn't valid, so drop it.
-        if (mounted) useAuthStore.getState().clearSession();
+        const status = axios.isAxiosError(error)
+          ? error.response?.status
+          : undefined;
+        // Only a definitive 401/400 from /v1/me (after the refresh interceptor already
+        // tried and failed) means the session is actually invalid. Timeouts, network
+        // errors, and 5xxs are transient — keep the existing session and let the user
+        // retry, rather than logging them out.
+        if (status === 401 || status === 400) {
+          if (mounted) useAuthStore.getState().clearSession();
+        }
       } finally {
         if (mounted) setIsValidated(true);
       }
