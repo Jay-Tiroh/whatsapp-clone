@@ -2,6 +2,8 @@
 import { useAuthStore } from "@/features/auth";
 import PinPromptModal from "@/features/chats/components/PinPromptModal";
 import { usePinPromptModal } from "@/features/chats/hooks/usePinPromptModal";
+import QRCodeModal from "@/features/conversation/components/QRCodeModal";
+import ActionModal from "@/shared/components/ActionModal";
 import GlobalBottomSheet from "@/shared/components/BaseBottomSheet";
 import {
   TABS,
@@ -158,6 +160,8 @@ export default function TabsLayout() {
           ))}
         </Tabs>
       </Animated.View>
+      <QRCodeModal />
+      <ActionModal />
       <PinPromptModal modalVisible={modalVisible} onDismiss={handleDismiss} />
       <GlobalBottomSheet />
     </View>

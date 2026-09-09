@@ -1,6 +1,6 @@
+import { useQrModalStore } from "@/core/store/modalStore";
 import { useGetConversationById } from "@/features/chats/hooks/useConversations";
 import MembersList from "@/features/conversation/components/MembersList";
-import QRCodeModal from "@/features/conversation/components/QRCodeModal";
 import ThemedText from "@/shared/components/ThemedText";
 import { showErrorToast } from "@/shared/hooks/showToast";
 import { formatTime } from "@/shared/utils/date";
@@ -55,9 +55,16 @@ const ProfileDetail = () => {
     setIsReadMore((prev) => !prev);
   };
 
-  const [modalVisible, setModalVisible] = useState(false);
-  const handleDismiss = () => setModalVisible(false);
-  const handleShowModal = () => setModalVisible(true);
+  const { onOpen: openQrModal, update: updateQrModal } = useQrModalStore();
+
+  const handleQrModalOpen = () => {
+    updateQrModal({
+      name: conversation?.otherParticipant.displayName as string,
+      avatarUrl: conversation?.otherParticipant.avatarUrl as string,
+      isGroup: isGroup,
+    });
+    openQrModal();
+  };
 
   return (
     <>
@@ -110,7 +117,7 @@ const ProfileDetail = () => {
                 />
               </View>
               <Pressable
-                onPress={handleShowModal}
+                onPress={handleQrModalOpen}
                 className="w-10 h-10 rounded-full overflow-hidden items-center justify-center"
               >
                 <StyledBlurView
@@ -378,13 +385,6 @@ const ProfileDetail = () => {
           </View>
         )}
       </ScrollView>
-      <QRCodeModal
-        modalVisible={modalVisible}
-        onDismiss={handleDismiss}
-        isGroup={isGroup}
-        name={conversation?.otherParticipant.displayName as string}
-        avatarUrl={conversation?.otherParticipant.avatarUrl as string}
-      />
     </>
   );
 };

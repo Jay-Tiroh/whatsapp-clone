@@ -1,3 +1,4 @@
+import { useQrModalStore } from "@/core/store/modalStore";
 import ThemedText from "@/shared/components/ThemedText";
 import Feather from "@expo/vector-icons/Feather";
 import { BlurView } from "expo-blur";
@@ -18,25 +19,17 @@ const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const StyledBlurView = withUniwind(BlurView);
 
-type ModalProps = {
-  modalVisible: boolean;
-  onDismiss: () => void;
-  name: string | undefined;
-  phoneNumber?: string | undefined;
-  avatarUrl: string | undefined;
-  qrPayload?: string;
-  isGroup?: boolean;
-};
+export default function QRCodeModal() {
+  const {
+    modalVisible,
+    onDismiss,
+    phoneNumber,
+    avatarUrl,
+    name,
+    qrPayload,
+    isGroup,
+  } = useQrModalStore();
 
-export default function QRCodeModal({
-  modalVisible,
-  onDismiss,
-  phoneNumber,
-  avatarUrl,
-  name,
-  qrPayload,
-  isGroup,
-}: ModalProps) {
   const [isRendered, setIsRendered] = useState(modalVisible);
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
@@ -134,32 +127,27 @@ export default function QRCodeModal({
               </View>
 
               {/* Top Section: Info */}
-              <View className="bg-off-white rounded-t-2xl pt-14 pb-6 px-6 items-center gap-1">
-                <ThemedText
-                  type="h4"
-                  className="text-neutral-900 dark:text-neutral-900 w-full text-center"
-                >
+              <View className="bg-off-white dark:bg-neutral-800 rounded-t-2xl pt-14 pb-6 px-6 items-center gap-1">
+                <ThemedText type="h4" className=" w-full text-center">
                   {name ?? "Unknown User"}
                 </ThemedText>
                 {!isGroup && (
-                  <ThemedText
-                    type="bodyLg"
-                    weight="medium"
-                    className="text-neutral-300 dark:text-neutral-300"
-                  >
+                  <ThemedText type="bodyLg" weight="medium" color="muted">
                     {phoneNumber ?? "+61-123-753-555"}
                   </ThemedText>
                 )}
               </View>
 
               {/* Bottom Section: QR Code */}
-              <View className="bg-white rounded-b-2xl items-center justify-center min-h-[310px]">
-                <QRCode
-                  value={qrPayload ?? "hello world"}
-                  size={232}
-                  color="black"
-                  backgroundColor="white"
-                />
+              <View className="bg-white dark:bg-neutral-900 rounded-b-2xl items-center justify-center min-h-[310px]">
+                <View className="p-2 bg-white">
+                  <QRCode
+                    value={qrPayload ?? "hello world"}
+                    size={232}
+                    color="black"
+                    backgroundColor="white"
+                  />
+                </View>
               </View>
             </Pressable>
           </Animated.View>

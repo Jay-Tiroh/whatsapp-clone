@@ -1,6 +1,6 @@
+import { useActionModalStore, useQrModalStore } from "@/core/store/modalStore";
 import { useLogout } from "@/features/auth";
 import { useGetProfile } from "@/features/profile";
-import ActionModal from "@/shared/components/ActionModal";
 import ThemedText from "@/shared/components/ThemedText";
 import { showErrorToast } from "@/shared/hooks/showToast";
 import { getErrorMessage } from "@/shared/utils/errors";
@@ -142,21 +142,27 @@ export default function SettingsScreen() {
   ];
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-
-  const [actionModalVisible, setActionModalVisible] = useState(false);
   const [actionConfig, setActionConfig] = useState<ActionConfigType | null>(
     null,
   );
+  const { onOpen: openActionModal, update: updateActionModal } =
+    useActionModalStore();
   const handleLogoutPress = () => {
     setActionConfig(
       ActionConfig.find((config) => config.for === "logout") || null,
     );
-    setActionModalVisible(true);
-  };
-
-  const handleActionModalDismiss = () => {
-    setActionModalVisible(false);
-    setActionConfig(null);
+    updateActionModal({
+      title: actionConfig?.title as string,
+      message: actionConfig?.message as string,
+      primaryBtnText: actionConfig?.primaryBtnText as string,
+      primaryBtnVariant: actionConfig?.primaryBtnVariant,
+      onPrimaryPress: actionConfig?.onPrimaryPress as () => void,
+      onSecondaryPress: actionConfig?.onSecondaryPress,
+      iconName: "exclamation",
+      iconColorClassName: "accent-red-500",
+      iconBgClassName: "bg-red-500/20",
+    });
+    openActionModal();
   };
 
   const router = useRouter();
@@ -166,6 +172,17 @@ export default function SettingsScreen() {
   };
 
   const profile = useGetProfile();
+
+  const { onOpen: openQrModal, update: updateQrModal } = useQrModalStore();
+
+  const handleQrModalOpen = () => {
+    updateQrModal({
+      name: profile?.data?.displayName as string,
+      phoneNumber: profile?.data?.phoneNumber,
+      avatarUrl: profile?.data?.avatarUrl as string,
+    });
+    openQrModal();
+  };
 
   return (
     <>
@@ -226,7 +243,10 @@ export default function SettingsScreen() {
               {profile?.data?.phoneNumber || "Phone Number"}
             </ThemedText>
           </Pressable>
-          <Pressable className="active:opacity-70 p-2 ">
+          <Pressable
+            className="active:opacity-70 p-2 "
+            onPress={handleQrModalOpen}
+          >
             <StyledMaterial name="qrcode" size={32} className="text-primary" />
           </Pressable>
         </View>
@@ -234,10 +254,22 @@ export default function SettingsScreen() {
         <View className="h-px dark:bg-neutral-600 bg-divider w-full mb-6" />
 
         {/* Group 1 */}
-        <SettingsItem icon="star" label="Star messages" />
+        <SettingsItem
+          icon="star"
+          label="Star messages"
+          onPress={() => {
+            router.push("/settings/starred");
+          }}
+        />
         <SettingsItem iconType="feather" icon="phone" label="Last call" />
         <SettingsItem icon="folder" label="My folder" />
-        <SettingsItem icon="circle-half-stroke" label="Appearance" />
+        <SettingsItem
+          icon="circle-half-stroke"
+          label="Appearance"
+          onPress={() => {
+            router.push("/settings/appearance");
+          }}
+        />
         <SettingsItem
           icon="bell"
           label="Notification"
@@ -274,17 +306,6 @@ export default function SettingsScreen() {
           </ThemedText>
         </View>
       </ScrollView>
-
-      <ActionModal
-        modalVisible={actionModalVisible}
-        onDismiss={handleActionModalDismiss}
-        title={actionConfig?.title as string}
-        message={actionConfig?.message as string}
-        primaryBtnText={actionConfig?.primaryBtnText as string}
-        primaryBtnVariant={actionConfig?.primaryBtnVariant}
-        onPrimaryPress={actionConfig?.onPrimaryPress as () => void}
-        onSecondaryPress={handleActionModalDismiss}
-      />
     </>
   );
 }

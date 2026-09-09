@@ -23,7 +23,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { ActivityIndicator, Pressable, View } from "react-native";
 import { withUniwind } from "uniwind";
 
@@ -35,7 +35,12 @@ const StyledMaterialCommunityIcons = withUniwind(MaterialCommunityIcons);
 export default function EditScreen() {
   const router = useRouter();
   const profile = useGetProfile();
-  const { mutate: updateProfile, isSuccess } = useUpdateProfile();
+  const {
+    mutate: updateProfile,
+    isSuccess,
+    isError,
+    isPending,
+  } = useUpdateProfile();
 
   const [avatarUrl, setAvatarUrl] = useState(profile?.data?.avatarUrl || "");
   const [modalVisible, setModalVisible] = useState(false);
@@ -57,7 +62,6 @@ export default function EditScreen() {
     if (profile?.data) {
       reset({
         name: profile.data.displayName || "",
-        phone: profile.data.phoneNumber || "",
       });
       setAvatarUrl(profile.data.avatarUrl || "");
     }
@@ -90,6 +94,14 @@ export default function EditScreen() {
     showSuccessToast({
       title: "Profile updated",
       message: "Your profile has been updated successfully.",
+    });
+  }
+
+  if (isError) {
+    showWarningToast({
+      title: "Profile update failed",
+      message:
+        "An error occurred while updating your profile. Please try again.",
     });
   }
 
@@ -158,29 +170,25 @@ export default function EditScreen() {
             placeholder="Name"
           />
 
-          <View className="gap-3">
+          <View className="gap-3 opacity-50 pointer-events-none">
             <ThemedText weight="medium">Phone Number</ThemedText>
-            <Controller
-              control={control}
-              name="phone"
-              render={({ field: { onChange, value } }) => (
-                <CountryPicker
-                  showDialCode={true}
-                  showPhoneInput={true}
-                  value={value}
-                  onChangeText={onChange}
-                  error={errors.phone?.message}
-                />
-              )}
+
+            <CountryPicker
+              showDialCode={true}
+              showPhoneInput={true}
+              value={profile?.data?.phoneNumber || ""}
+              // onChangeText={onChange}
+              error={errors.phone?.message}
+              disabled={true}
             />
           </View>
         </View>
       </View>
       <View className="px-6">
         <ThemedButton
-          label={isSubmitting ? "Saving..." : "Save"}
+          label={isPending ? "Saving..." : "Save"}
           onPress={handleSubmit(onSubmit)}
-          disabled={isSubmitting}
+          disabled={isPending}
         />
       </View>
 

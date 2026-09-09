@@ -47,6 +47,56 @@ const DUMMY_DATA: StarredMessage[] = [
     date: "19/07/2021",
     avatarUrl: "https://i.pravatar.cc/100?img=3",
   },
+  {
+    id: "4",
+    name: "John Doe",
+    message: "Orci maecenas hendrerit mattis consectetur. Mauris.",
+    time: "15:46",
+    date: "21/07/2021",
+    avatarUrl: "https://i.pravatar.cc/100?img=1",
+  },
+  {
+    id: "5",
+    name: "Jane Smith",
+    message:
+      "Let's schedule a meeting for tomorrow to discuss the new features.",
+    time: "14:22",
+    date: "20/07/2021",
+    avatarUrl: "https://i.pravatar.cc/100?img=2",
+  },
+  {
+    id: "6",
+    name: "Alice Johnson",
+    message: "Can you send me the latest design assets?",
+    time: "09:15",
+    date: "19/07/2021",
+    avatarUrl: "https://i.pravatar.cc/100?img=3",
+  },
+  {
+    id: "7",
+    name: "John Doe",
+    message: "Orci maecenas hendrerit mattis consectetur. Mauris.",
+    time: "15:46",
+    date: "21/07/2021",
+    avatarUrl: "https://i.pravatar.cc/100?img=1",
+  },
+  {
+    id: "8",
+    name: "Jane Smith",
+    message:
+      "Let's schedule a meeting for tomorrow to discuss the new features.",
+    time: "14:22",
+    date: "20/07/2021",
+    avatarUrl: "https://i.pravatar.cc/100?img=2",
+  },
+  {
+    id: "9",
+    name: "Alice Johnson",
+    message: "Can you send me the latest design assets?",
+    time: "09:15",
+    date: "19/07/2021",
+    avatarUrl: "https://i.pravatar.cc/100?img=3",
+  },
 ];
 
 const StarredMessageItem = ({ item }: { item: StarredMessage }) => (

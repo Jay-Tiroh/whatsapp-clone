@@ -1,3 +1,4 @@
+import { useActionModalStore } from "@/core/store/modalStore";
 import ThemedButton from "@/shared/components/ThemedButton";
 import ThemedText from "@/shared/components/ThemedText";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
@@ -42,23 +43,24 @@ export type ActionModalProps = {
   iconBgClassName?: string;
 };
 
-export default function ActionModal({
-  modalVisible,
-  onDismiss,
-  title,
-  message,
-  primaryBtnText,
-  secondaryBtnText = "Cancel",
-  primaryBtnVariant = "primary",
-  onPrimaryPress,
-  onSecondaryPress,
-  iconName,
-  iconColorClassName = "accent-primary-500",
-  iconBgClassName = "bg-primary-100",
-}: ActionModalProps) {
+export default function ActionModal() {
+  const {
+    modalVisible,
+    onDismiss,
+    title,
+    message,
+    primaryBtnText,
+    secondaryBtnText,
+    primaryBtnVariant,
+    onPrimaryPress,
+    onSecondaryPress,
+    iconName,
+    iconColorClassName,
+    iconBgClassName,
+  } = useActionModalStore();
+
   const [isRendered, setIsRendered] = useState(modalVisible);
-  const translateY = useRef(new Animated.Value(24)).current;
-  const scale = useRef(new Animated.Value(0.92)).current;
+  const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
   const handleClose = () => onDismiss();
@@ -66,44 +68,35 @@ export default function ActionModal({
   useEffect(() => {
     if (modalVisible) {
       setIsRendered(true);
-      translateY.setValue(24);
-      scale.setValue(0.92);
       Animated.parallel([
         Animated.timing(backdropOpacity, {
           toValue: 1,
-          duration: 200,
+          duration: 220,
           useNativeDriver: true,
         }),
         Animated.spring(translateY, {
           toValue: 0,
           useNativeDriver: true,
-          damping: 20,
-          stiffness: 220,
-          mass: 0.8,
-        }),
-        Animated.spring(scale, {
-          toValue: 1,
-          useNativeDriver: true,
-          damping: 20,
-          stiffness: 220,
-          mass: 0.8,
+          damping: 18,
+          stiffness: 180,
+          mass: 0.9,
         }),
       ]).start();
     } else {
       Animated.parallel([
         Animated.timing(backdropOpacity, {
           toValue: 0,
-          duration: 160,
+          duration: 180,
           useNativeDriver: true,
         }),
-        Animated.timing(scale, {
-          toValue: 0.94,
-          duration: 160,
+        Animated.timing(translateY, {
+          toValue: SCREEN_HEIGHT,
+          duration: 220,
           useNativeDriver: true,
         }),
       ]).start(() => setIsRendered(false));
     }
-  }, [modalVisible, backdropOpacity, translateY, scale]);
+  }, [modalVisible, backdropOpacity, translateY]);
 
   // Replicates Modal's onRequestClose for Android hardware back button
   useEffect(() => {
@@ -157,7 +150,7 @@ export default function ActionModal({
           onPress={handleClose}
         >
           <Animated.View
-            style={{ transform: [{ translateY }, { scale }] }}
+            style={{ transform: [{ translateY }] }}
             className="w-full max-w-80"
           >
             <Pressable className="w-full bg-surface rounded-[28px] overflow-hidden shadow-lg">
@@ -197,9 +190,9 @@ export default function ActionModal({
                 {secondaryBtnText && (
                   <ThemedButton
                     label={secondaryBtnText}
-                    variant="tertiary"
+                    variant="primary"
                     onPress={handleSecondary}
-                    className="w-full"
+                    className="w-full bg-neutral-300 dark:bg-neutral-300"
                   />
                 )}
               </View>

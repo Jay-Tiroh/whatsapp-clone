@@ -20,6 +20,7 @@ type CountryPickerProps = {
   showDialCode?: boolean;
   showPhoneInput?: boolean;
   error?: string;
+  disabled?: boolean;
 };
 
 const DEFAULT_COUNTRY_CODE = "NG";
@@ -77,6 +78,7 @@ export const CountryPicker = ({
   showDialCode = true,
   showPhoneInput = true,
   error,
+  disabled = false,
 }: CountryPickerProps) => {
   const { data: countries = [], isLoading } = useCountries();
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
@@ -187,7 +189,7 @@ export const CountryPicker = ({
               ? "flex-row items-center pr-3 border-r border-border h-full"
               : "flex-row items-center h-full flex-1 justify-between"
           }
-          onPress={() => setModalVisible(true)}
+          onPress={disabled ? undefined : () => setModalVisible(true)}
           disabled={isLoading && !displayCountry}
         >
           {isLoading && !displayCountry ? (
@@ -216,7 +218,7 @@ export const CountryPicker = ({
             placeholderTextColorClassName="accent-neutral-300 dark:accent-neutral-200"
             keyboardType="phone-pad"
             value={value}
-            onChangeText={handlePhoneChange}
+            onChangeText={disabled ? undefined : handlePhoneChange}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             placeholder="+234 801 234 5678"
