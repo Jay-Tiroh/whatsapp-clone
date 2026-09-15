@@ -1,24 +1,26 @@
+import { UserResponseDto } from "@/features/profile"; // Assuming this is updated in the profile/user batch
+
 export type AuthPlatform = "ios" | "android" | "web" | "unknown";
 
-export interface AuthDevice {
+export interface AuthDeviceDto {
   name?: string;
-  platform?: AuthPlatform;
+  platform: AuthPlatform;
 }
 
 // ---- Request Payloads ----
 
-export interface RequestOtpPayload {
-  phoneNumber: string; // E.164, e.g. +2348012345678
+export interface RequestOtpDto {
+  phoneNumber: string;
 }
 
-export interface ResendOtpPayload {
-  challengeId: string; // uuid
+export interface ResendOtpDto {
+  challengeId: string;
 }
 
-export interface VerifyOtpPayload {
+export interface VerifyOtpDto {
   challengeId: string;
   code: string;
-  device?: AuthDevice;
+  device?: AuthDeviceDto;
 }
 
 export interface RefreshTokenDto {
@@ -33,15 +35,6 @@ export interface OtpChallengeResponseDto {
   expiresInSeconds: number;
   resendInSeconds: number;
   codeLength: number;
-}
-
-export interface UserResponseDto {
-  id: string;
-  phoneNumber: string;
-  displayName: string | null;
-  avatarUrl: string | null;
-  profileComplete: boolean;
-  createdAt: string; // ISO date-time
 }
 
 export interface AuthResponseDto {

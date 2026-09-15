@@ -3,26 +3,26 @@ import { useAuthStore } from "@/features/auth/store/authStore";
 import { useMutation } from "@tanstack/react-query";
 import { authApi } from "../api/auth.api";
 import type {
-  RequestOtpPayload,
-  ResendOtpPayload,
-  VerifyOtpPayload,
+  RequestOtpDto,
+  ResendOtpDto,
+  VerifyOtpDto,
 } from "../types/auth.types";
 
 export function useRequestOtp() {
   return useMutation({
-    mutationFn: (payload: RequestOtpPayload) => authApi.requestOtp(payload),
+    mutationFn: (payload: RequestOtpDto) => authApi.requestOtp(payload),
   });
 }
 
 export function useResendOtp() {
   return useMutation({
-    mutationFn: (payload: ResendOtpPayload) => authApi.resendOtp(payload),
+    mutationFn: (payload: ResendOtpDto) => authApi.resendOtp(payload),
   });
 }
 
 export function useVerifyOtp() {
   return useMutation({
-    mutationFn: (payload: VerifyOtpPayload) => authApi.verifyOtp(payload),
+    mutationFn: (payload: VerifyOtpDto) => authApi.verifyOtp(payload),
   });
 }
 

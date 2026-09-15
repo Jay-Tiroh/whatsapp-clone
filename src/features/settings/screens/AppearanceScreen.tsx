@@ -3,7 +3,14 @@ import ThemedText from "@/shared/components/ThemedText";
 import { useAppearance } from "@/shared/hooks/useAppearance";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
+import {
+  Appearance,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  View,
+} from "react-native";
 import { withUniwind } from "uniwind";
 
 const StyledBg = withUniwind(Bg);
@@ -11,10 +18,30 @@ const StyledIcon = withUniwind(FontAwesome6);
 type ThemeColors = "green" | "blue" | "red" | "orange";
 
 const THEMES = [
-  { id: "green", name: "Green", colorClass: "bg-primary" },
-  { id: "blue", name: "Blue", colorClass: "bg-blue-400" },
-  { id: "red", name: "Red", colorClass: "bg-red-400" },
-  { id: "orange", name: "Orange", colorClass: "bg-orange-400" },
+  {
+    id: "green",
+    name: "Green",
+    colorClass: "bg-primary",
+    textClass: "text-primary",
+  },
+  {
+    id: "blue",
+    name: "Blue",
+    colorClass: "bg-blue-400",
+    textClass: "text-blue-400",
+  },
+  {
+    id: "red",
+    name: "Red",
+    colorClass: "bg-red-400",
+    textClass: "text-red-400",
+  },
+  {
+    id: "orange",
+    name: "Orange",
+    colorClass: "bg-orange-400",
+    textClass: "text-orange-400",
+  },
 ];
 
 export default function AppearanceScreen() {
@@ -27,6 +54,11 @@ export default function AppearanceScreen() {
     setAccentColor(themeId as ThemeColors);
   };
 
+  const handleNightModeToggle = () => {
+    const next = !isNightMode;
+    setIsNightMode(next);
+    Appearance.setColorScheme(next ? "dark" : "unspecified");
+  };
   return (
     <View className="flex-1 bg-background">
       {/* Header */}
@@ -111,9 +143,7 @@ export default function AppearanceScreen() {
                       >
                         <ThemedText
                           type="bodySm"
-                          className={
-                            isActive ? "text-white" : `text-${theme.id}-400`
-                          }
+                          className={isActive ? "text-white" : theme.textClass}
                         >
                           {theme.name}
                         </ThemedText>
@@ -147,7 +177,7 @@ export default function AppearanceScreen() {
               </View>
               <Switch
                 value={isNightMode}
-                onValueChange={setIsNightMode}
+                onValueChange={handleNightModeToggle}
                 trackColor={{ false: "#eaeef2", true: "#1f3c51" }}
                 thumbColor={"#b3c2ce"}
               />
@@ -186,10 +216,10 @@ export default function AppearanceScreen() {
                       name="message"
                       solid
                       size={36}
-                      className={`text-${theme.id}-400`}
+                      className={theme.textClass}
                     />
                   </View>
-                  <ThemedText type="bodySm" className={`text-${theme.id}-400`}>
+                  <ThemedText type="bodySm" className={theme.textClass}>
                     {theme.name}
                   </ThemedText>
                 </View>

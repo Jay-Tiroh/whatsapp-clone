@@ -2,8 +2,12 @@
 import { z } from "zod";
 
 export const editProfileSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  phone: z.string().min(8, "Enter a valid phone number"),
+  // Renamed from 'name' to 'displayName' to match UpdateProfilePayload
+  displayName: z
+    .string()
+    .min(2, "Name must be at least 2 characters")
+    .optional(),
+  // Removed 'phone' field entirely, as it's not updatable in the new API spec
 });
 
 export type EditProfileFormValues = z.infer<typeof editProfileSchema>;

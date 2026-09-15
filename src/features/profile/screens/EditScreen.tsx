@@ -1,5 +1,5 @@
-import { uploadToCloudinary } from "@/core/lib/cloudinary";
 import UploadModal from "@/features/auth/components/UploadModal";
+import { useUpload } from "@/features/media/hooks/useUpload"; // adjust to wherever you put it
 import {
   useGetProfile,
   useUpdateProfile,
@@ -44,7 +44,12 @@ export default function EditScreen() {
 
   const [avatarUrl, setAvatarUrl] = useState(profile?.data?.avatarUrl || "");
   const [modalVisible, setModalVisible] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const { upload, status } = useUpload();
+  const uploading =
+    status === "preparing" ||
+    status === "requesting" ||
+    status === "uploading" ||
+    status === "completing";
 
   const {
     control,
@@ -68,18 +73,15 @@ export default function EditScreen() {
   }, [profile?.data, reset]);
 
   const handleImageSelected = async (localUri: string) => {
-    setUploading(true);
     try {
-      const { secure_url } = await uploadToCloudinary(localUri, "image");
-      setAvatarUrl(secure_url);
+      const media = await upload({ uri: localUri, purpose: "profile_avatar" });
+      if (media.secureUrl) setAvatarUrl(media.secureUrl);
     } catch (err) {
       logger.warn("Image upload failed", getErrorMessage(err));
       showWarningToast({
         title: "Image upload failed",
         message: "Please try again.",
       });
-    } finally {
-      setUploading(false);
     }
   };
 
@@ -177,7 +179,6 @@ export default function EditScreen() {
               showDialCode={true}
               showPhoneInput={true}
               value={profile?.data?.phoneNumber || ""}
-              // onChangeText={onChange}
               error={errors.phone?.message}
               disabled={true}
             />
