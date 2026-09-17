@@ -2,7 +2,13 @@ import { create } from "zustand";
 
 type SheetDetent = number | "auto" | "peek";
 
-type modalType = "action" | "qr";
+type modalType = "action" | "qr" | "folder";
+
+interface FolderModalState {
+  modalVisible: boolean;
+  onDismiss: () => void;
+  onOpen: () => void;
+}
 
 interface ActionModalState {
   modalVisible: boolean;
@@ -117,3 +123,9 @@ useQrModalStore.subscribe((state, prevState) => {
     }, 300);
   }
 });
+
+export const useFolderModalStore = create<FolderModalState>((set) => ({
+  modalVisible: false,
+  onDismiss: () => set({ modalVisible: false }),
+  onOpen: () => set({ modalVisible: true }),
+}));

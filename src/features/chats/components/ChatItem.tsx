@@ -1,9 +1,11 @@
 import MuteIcon from "@/assets/icons/mute.svg";
 import TrashIcon from "@/assets/icons/trash.svg";
+import { useFolderModalStore } from "@/core/store/modalStore";
 import { useChatsStore } from "@/features/chats/store/chatsStore";
 import ThemedText from "@/shared/components/ThemedText";
 import { showWarningToast } from "@/shared/hooks/showToast";
 import { formatTime } from "@/shared/utils/date";
+import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Foundation from "@expo/vector-icons/Foundation";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -28,6 +30,7 @@ import type { Conversation } from "../types/conversation.types";
 
 const StyledImage = withUniwind(Image);
 const StyledMaterialIcons = withUniwind(MaterialIcons);
+const StyledEntypo = withUniwind(Entypo);
 const StyledFontAwesome6 = withUniwind(FontAwesome6);
 const StyledMuteIcon = withUniwind(MuteIcon);
 const StyledTrashIcon = withUniwind(TrashIcon);
@@ -76,9 +79,18 @@ const ChatItem = React.memo(
         : setIsPinned(false);
     }, [setIsMuted, setIsPinned, mutedChats, pinnedChats, conversation.id]);
 
-    const { otherParticipant, latestMessage, unreadCount, lastActivityAt } =
-      conversation;
-    const isGroup = conversation.type !== "direct";
+    const { latestMessage, unreadCount, lastActivityAt } = conversation;
+    const isGroup = conversation.type === "group";
+
+    // Compute display-name/avatar for either type, once, outside the branch
+    const displayName = isGroup
+      ? conversation.name
+      : (conversation.otherParticipant.displayName ?? "Unknown");
+
+    const avatarUrl = isGroup
+      ? conversation.avatarUrl
+      : conversation.otherParticipant.avatarUrl;
+
     const isYou = !!latestMessage && latestMessage.senderId === currentUserId;
     const hasUnread = unreadCount > 0;
 
@@ -178,6 +190,10 @@ const ChatItem = React.memo(
       }
     };
 
+    const { onOpen } = useFolderModalStore();
+    const handleMorePress = () => {
+      onOpen();
+    };
     const renderLeftActions = () => (
       <View className="flex-row gap-2 items-center h-20 pl-safe-offset-6 pr-2">
         <StyledTouchableOpacity
@@ -268,6 +284,21 @@ const ChatItem = React.memo(
             </ThemedText>
           </StyledTouchableOpacity>
         )}
+
+        <StyledTouchableOpacity
+          activeOpacity={0.7}
+          className="chat-item-swipe-card bg-neutral-100"
+          onPress={handleMorePress}
+        >
+          <StyledEntypo
+            name="dots-three-horizontal"
+            size={24}
+            className="text-white/90"
+          />
+          <ThemedText type="bodyMd" weight="medium" className="text-white/90">
+            More
+          </ThemedText>
+        </StyledTouchableOpacity>
       </View>
     );
 
@@ -301,8 +332,8 @@ const ChatItem = React.memo(
             <View className=" size-14 rounded-full relative">
               <StyledImage
                 source={
-                  otherParticipant.avatarUrl
-                    ? { uri: otherParticipant.avatarUrl }
+                  avatarUrl
+                    ? { uri: avatarUrl }
                     : require("@/assets/images/avatar.png")
                 }
                 className="w-full h-full rounded-full"
@@ -327,7 +358,7 @@ const ChatItem = React.memo(
                     ellipsizeMode="tail"
                     numberOfLines={1}
                   >
-                    {otherParticipant.displayName ?? "Unknown"}
+                    {displayName}
                   </ThemedText>
                   {isMuted && (
                     <StyledMuteIcon className="size-5 text-neutral-300 dark:text-neutral-200" />

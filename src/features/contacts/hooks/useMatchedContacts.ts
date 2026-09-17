@@ -5,7 +5,6 @@ import { useMatchContacts } from "./useDiscovery";
 export function useMatchedContacts() {
   const { phoneNumbers, status } = useDeviceContacts();
   const matchMutation = useMatchContacts();
-
   useEffect(() => {
     if (status === "granted" && phoneNumbers.length > 0) {
       matchMutation.mutate({ phoneNumbers });

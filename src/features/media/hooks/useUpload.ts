@@ -153,9 +153,15 @@ export function useUpload(options: UseUploadOptions = {}) {
 
           if (cancelledRef.current) throw new Error("Upload cancelled");
           if (!result || result.status < 200 || result.status >= 300) {
-            throw new Error(
-              `Cloudinary upload failed with status ${result?.status}`,
-            );
+            console.log(authorization);
+            let message = `Cloudinary upload failed with status ${result?.status}`;
+            try {
+              const parsed = result?.body ? JSON.parse(result.body) : null;
+              if (parsed?.error?.message) message = parsed.error.message;
+            } catch {
+              // body wasn't JSON — fall back to the generic message
+            }
+            throw new Error(message);
           }
         }
 

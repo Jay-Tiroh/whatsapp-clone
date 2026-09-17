@@ -18,31 +18,6 @@ import { withUniwind } from "uniwind";
 const StyledFontAwesome6 = withUniwind(FontAwesome6);
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-export type ActionModalProps = {
-  modalVisible: boolean;
-  onDismiss: () => void;
-  title: string;
-  message: string;
-  primaryBtnText: string;
-  secondaryBtnText?: string;
-  primaryBtnVariant?:
-    | "primary"
-    | "secondary"
-    | "danger"
-    | "info"
-    | "warning"
-    | "success"
-    | "outline"
-    | "elevated"
-    | "tertiary";
-  onPrimaryPress: () => void;
-  onSecondaryPress?: () => void;
-  iconName?: string;
-  iconColorClassName?: string;
-  /** Background tint behind the icon. Defaults to a soft version of the icon color. */
-  iconBgClassName?: string;
-};
-
 export default function ActionModal() {
   const {
     modalVisible,

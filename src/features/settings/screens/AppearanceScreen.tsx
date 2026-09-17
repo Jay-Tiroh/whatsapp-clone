@@ -1,6 +1,8 @@
+import AppIcon from "@/assets/icons/logo-icon.svg";
 import Bg from "@/assets/images/bg.svg";
+import { useAppearance } from "@/core/store/appearanceStore";
 import ThemedText from "@/shared/components/ThemedText";
-import { useAppearance } from "@/shared/hooks/useAppearance";
+import { AccentColor, THEMES } from "@/shared/constants/accentThemes";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useState } from "react";
 import {
@@ -15,63 +17,62 @@ import { withUniwind } from "uniwind";
 
 const StyledBg = withUniwind(Bg);
 const StyledIcon = withUniwind(FontAwesome6);
+const StyledAppIcon = withUniwind(AppIcon);
 type ThemeColors = "green" | "blue" | "red" | "orange";
 
-const THEMES = [
-  {
-    id: "green",
-    name: "Green",
-    colorClass: "bg-primary",
-    textClass: "text-primary",
-  },
-  {
-    id: "blue",
-    name: "Blue",
-    colorClass: "bg-blue-400",
-    textClass: "text-blue-400",
-  },
-  {
-    id: "red",
-    name: "Red",
-    colorClass: "bg-red-400",
-    textClass: "text-red-400",
-  },
-  {
-    id: "orange",
-    name: "Orange",
-    colorClass: "bg-orange-400",
-    textClass: "text-orange-400",
-  },
-];
+// const THEMES = [
+//   {
+//     id: "green",
+//     name: "Green",
+//     colorClass: "bg-green-400",
+//     textClass: "text-green-400",
+//   },
+//   {
+//     id: "blue",
+//     name: "Blue",
+//     colorClass: "bg-blue-400",
+//     textClass: "text-blue-400",
+//   },
+//   {
+//     id: "red",
+//     name: "Red",
+//     colorClass: "bg-red-400",
+//     textClass: "text-red-400",
+//   },
+//   {
+//     id: "orange",
+//     name: "Orange",
+//     colorClass: "bg-orange-400",
+//     textClass: "text-orange-400",
+//   },
+// ];
 
 export default function AppearanceScreen() {
-  const [activeTheme, setActiveTheme] = useState("green");
   const [isNightMode, setIsNightMode] = useState(true);
   const [isLargeEmoji, setIsLargeEmoji] = useState(false);
-  const { accentColor, setAccentColor } = useAppearance();
-  const handleThemeChange = (themeId: string) => {
-    setActiveTheme(themeId);
-    setAccentColor(themeId as ThemeColors);
-  };
 
   const handleNightModeToggle = () => {
     const next = !isNightMode;
     setIsNightMode(next);
     Appearance.setColorScheme(next ? "dark" : "unspecified");
   };
+
+  const { accentColor, setAccentColor } = useAppearance();
+
+  const handleThemeChange = (themeId: AccentColor) => {
+    setAccentColor(themeId);
+  };
   return (
     <View className="flex-1 bg-background">
       {/* Header */}
-      <View className="flex-row items-center px-4 pt-safe-offset-4 pb-4 bg-background z-10">
+      <View className="flex-row items-center px-4 pt-safe-offset-4 pb-4 bg-primary-400 dark:bg-background z-10">
         <Pressable className="p-2 active:opacity-80">
-          <StyledIcon
-            name="chevron-left"
-            size={20}
-            className="text-foreground"
-          />
+          <StyledIcon name="chevron-left" size={20} className="text-white/90" />
         </Pressable>
         <View className="flex-1 items-center pr-8">
-          <ThemedText type="h4">Appearance</ThemedText>
+          <ThemedText type="h4" className="text-white/90">
+            Appearance
+          </ThemedText>
         </View>
       </View>
 
@@ -109,28 +110,32 @@ export default function AppearanceScreen() {
         </View>
 
         {/* Settings Container */}
-        <View className="px-4 py-6 gap-8">
+        <View className="px-6 py-6 gap-8">
           {/* Theme Selector */}
           <View className="gap-4">
             <ThemedText type="h5" color="muted">
               Select a Theme
             </ThemedText>
-            <View className="flex-row gap-4">
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerClassName="flex-row gap-4 pr-2"
+            >
               {THEMES.map((theme) => {
-                const isActive = activeTheme === theme.id;
+                const isActive = accentColor === theme.id;
                 return (
                   <Pressable
                     key={theme.id}
-                    onPress={() => handleThemeChange(theme.id)}
-                    className="items-center gap-2 active:opacity-80"
+                    onPress={() => handleThemeChange(theme.id as ThemeColors)}
+                    className="items-center gap-2 active:opacity-80 relative"
                   >
                     <View
-                      className={`relative w-[72px] h-[88px] rounded-2xl bg-surface items-center justify-center p-2 border-2 ${
+                      className={`relative w-[72px] h-[88px] rounded-2xl bg-surface items-center justify-center pt-2 border-2 overflow-hidden ${
                         isActive ? "border-primary" : "border-transparent"
                       }`}
                     >
                       {/* Mini chat bubbles illustration */}
-                      <View className="w-full gap-2">
+                      <View className="w-full gap-2 p-2">
                         <View
                           className={`w-10 h-3 rounded-full self-end ${theme.colorClass}`}
                         />
@@ -139,7 +144,7 @@ export default function AppearanceScreen() {
 
                       {/* Theme Label */}
                       <View
-                        className={`absolute bottom-0 w-full rounded-b-xl py-1.5 items-center ${isActive ? theme.colorClass : "bg-transparent"}`}
+                        className={` w-full rounded-b-xl py-1.5 items-center ${isActive ? theme.colorClass : "bg-transparent"}`}
                       >
                         <ThemedText
                           type="bodySm"
@@ -148,29 +153,28 @@ export default function AppearanceScreen() {
                           {theme.name}
                         </ThemedText>
                       </View>
-
-                      {/* Check badge */}
-                      {isActive && (
-                        <View className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-primary border-2 border-background items-center justify-center">
-                          <StyledIcon
-                            name="check"
-                            size={10}
-                            className="text-white"
-                          />
-                        </View>
-                      )}
                     </View>
+                    {/* Check badge */}
+                    {isActive && (
+                      <View className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-primary border-2 border-background items-center justify-center z-10">
+                        <StyledIcon
+                          name="check"
+                          size={10}
+                          className="text-white"
+                        />
+                      </View>
+                    )}
                   </Pressable>
                 );
               })}
-            </View>
+            </ScrollView>
           </View>
 
           {/* Toggles */}
-          <View className="gap-6 rounded-2xl p-4">
+          <View className="gap-6 rounded-2xl py-4">
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center gap-4">
-                <View className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-neutral-800 items-center justify-center">
+                <View className="w-10 h-10 rounded-full bg-primary-50 dark:bg-neutral-800 items-center justify-center">
                   <StyledIcon name="moon" size={18} className="text-primary" />
                 </View>
                 <ThemedText type="bodyLg">Night Mode</ThemedText>
@@ -185,7 +189,7 @@ export default function AppearanceScreen() {
 
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center gap-4">
-                <View className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-neutral-800 items-center justify-center">
+                <View className="w-10 h-10 rounded-full bg-primary-50 dark:bg-neutral-800 items-center justify-center">
                   <StyledIcon
                     name="face-smile"
                     size={18}
@@ -208,23 +212,25 @@ export default function AppearanceScreen() {
             <ThemedText type="h5" color="muted">
               App Icon
             </ThemedText>
-            <View className="flex-row gap-4">
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerClassName="flex-row gap-4"
+            >
               {THEMES.map((theme) => (
                 <View key={`icon-${theme.id}`} className="items-center gap-2">
                   <View className="w-[72px] h-[72px] rounded-2xl bg-surface items-center justify-center border border-border">
-                    <StyledIcon
-                      name="message"
-                      solid
-                      size={36}
-                      className={theme.textClass}
-                    />
+                    <StyledAppIcon className={theme.textClass} />
                   </View>
-                  <ThemedText type="bodySm" className={theme.textClass}>
+                  <ThemedText
+                    type="bodySm"
+                    className={`${theme.textClass} dark:${theme.textClass}`}
+                  >
                     {theme.name}
                   </ThemedText>
                 </View>
               ))}
-            </View>
+            </ScrollView>
           </View>
         </View>
       </ScrollView>

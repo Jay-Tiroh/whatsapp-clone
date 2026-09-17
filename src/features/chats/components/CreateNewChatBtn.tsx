@@ -1,5 +1,6 @@
 import { useSheetStore } from "@/core/store/sheetStore";
 import { ContactList } from "@/features/contacts";
+import New from "@/shared/components/New";
 import ThemedText from "@/shared/components/ThemedText";
 import { logger } from "@/shared/utils/logger";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
@@ -83,6 +84,11 @@ const CreateNewChatButton = () => {
   }));
 
   const close = () => setIsOpen(false);
+  const openNewGroup = () => {
+    openSheet(<New category={"group"} />, {
+      detents: [0.7, 0.8],
+    });
+  };
 
   const openSheet = useSheetStore((state) => state.openSheet);
   const handlePress = (key: string) => {
@@ -95,6 +101,10 @@ const CreateNewChatButton = () => {
 
     if (key === "contact") {
       router.push("/chats/new-contact");
+    }
+
+    if (key === "group") {
+      openNewGroup();
     }
     close();
   };
