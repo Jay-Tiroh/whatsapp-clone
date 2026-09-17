@@ -1,5 +1,6 @@
 import { mockContactMatches } from "@/features/chats/mocks/discovery.mocks";
-import { ContactMatchDto } from "@/features/contacts/types/discovery.types";
+import { ContactMatchDto } from "@/features/profile";
+
 import SearchBar from "@/shared/components/Searchbar";
 import ThemedText from "@/shared/components/ThemedText";
 import Feather from "@expo/vector-icons/Feather";
@@ -108,7 +109,7 @@ const ContactListItem = ({ contact }: { contact: ContactMatchDto }) => {
         cachePolicy="memory-disk"
       />
       <View className="flex-1 gap-2">
-        <ThemedText>{contact.user.displayName}</ThemedText>
+        <ThemedText>{`${contact.user.displayName}`}</ThemedText>
         <ThemedText color="muted">{contact.matchedPhoneNumber}</ThemedText>
       </View>
       <StyledFeather name="chevron-right" size={24} className="text-muted" />

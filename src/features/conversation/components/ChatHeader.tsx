@@ -48,7 +48,19 @@ export default function ChatHeader({
 }: ChatHeaderProps) {
   const router = useRouter();
   const handleGoBack = () => (goBack ? goBack() : router.back());
-  console.log(conversation?.lastActivityAt);
+  console.log(conversation?.id);
+  const goToProfile = () => {
+    router.push(`/chats/${conversation?.id}/profile`);
+  };
+
+  const isDirect = conversation?.type === "direct";
+  const headerAvatarUrl = isDirect
+    ? conversation.otherParticipant.avatarUrl
+    : (conversation?.avatarUrl ?? null);
+  const headerDisplayName = isDirect
+    ? conversation.otherParticipant.displayName
+    : (conversation?.name ?? "Unknown user");
+
   return (
     <View className="w-full bg-primary-400 dark:bg-neutral-700 p-safe-offset-6 pb-6 gap-5 z-99">
       <View className="flex-row justify-center items-center">
@@ -60,11 +72,14 @@ export default function ChatHeader({
               className="text-white/90"
             />
           </Pressable>
-          <View className="flex-row gap-4 items-center flex-1">
+          <Pressable
+            onPress={goToProfile}
+            className="flex-row gap-4 items-center flex-1"
+          >
             <StyledImage
               source={
-                conversation?.otherParticipant.avatarUrl
-                  ? { uri: conversation?.otherParticipant.avatarUrl }
+                headerAvatarUrl
+                  ? { uri: headerAvatarUrl }
                   : require("@/assets/images/avatar.png")
               }
               className="size-12 border-.5 border-white rounded-full bg-white"
@@ -74,13 +89,13 @@ export default function ChatHeader({
             />
             <View className="gap-1">
               <ThemedText type="bodyXl" weight="bold" className="text-white/90">
-                {conversation?.otherParticipant?.displayName ?? "Unknown user"}
+                {headerDisplayName ?? "Unknown user"}
               </ThemedText>
               <ThemedText type="bodySm" className="text-white/90">
                 last seen {formatTime(conversation?.lastActivityAt ?? "")}
               </ThemedText>
             </View>
-          </View>
+          </Pressable>
           <View className="flex-row gap-5 items-center">
             <Pressable className="active:opacity-70">
               <StyledFontAwesome6

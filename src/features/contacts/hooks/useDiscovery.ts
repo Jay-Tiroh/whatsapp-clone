@@ -1,8 +1,8 @@
 // hooks/useDiscovery.ts
 import { discoveryApi } from "@/features/contacts/api/discovery.api";
+import type { MatchContactsDto } from "@/features/profile";
 import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import type { MatchContactsPayload } from "../types/discovery.types";
 
 export function useDebouncedValue<T>(value: T, delayMs = 300): T {
   const [debounced, setDebounced] = useState(value);
@@ -30,7 +30,7 @@ export function useSearchUsers(query: string, limit = 20) {
 
 export function useMatchContacts() {
   return useMutation({
-    mutationFn: (payload: MatchContactsPayload) =>
+    mutationFn: (payload: MatchContactsDto) =>
       discoveryApi.matchContacts(payload),
   });
 }

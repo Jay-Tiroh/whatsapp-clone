@@ -1,8 +1,10 @@
+import { usePinStore } from "@/core/store/pinStore";
 import { useAuthStore } from "@/features/auth";
 import ChatList from "@/features/chats/components/ChatList";
 import ChatListEmpty from "@/features/chats/components/ChatListEmpty";
 import CreateNewChatButton from "@/features/chats/components/CreateNewChatBtn";
 import MainListHeader from "@/features/chats/components/MainListHeader";
+import PinPromptModal from "@/features/chats/components/PinPromptModal";
 import SearchResultsList from "@/features/chats/components/SearchResultsList";
 import { useConversationListRealtime } from "@/features/chats/hooks/useConversationListRealtime";
 import { useGetConversations } from "@/features/chats/hooks/useConversations";
@@ -16,7 +18,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { withUniwind } from "uniwind";
 
@@ -150,7 +152,21 @@ export default function ChatListScreen() {
     // wire to your delete action once confirmed
     endSelection();
   };
+  const [modalVisible, setModalVisible] = useState(false);
+  const hasSetupPin = usePinStore((s) => s.hasSetupPin);
+  const hasPromptedPinSetup = usePinStore((s) => s.hasPromptedPinSetup);
+  const setPromptedPinSetup = usePinStore((s) => s.setPromptedPinSetup);
 
+  useEffect(() => {
+    if (!hasSetupPin && !hasPromptedPinSetup) {
+      setModalVisible(true);
+    }
+  }, [hasSetupPin, hasPromptedPinSetup]);
+
+  const handleDismiss = () => {
+    setPromptedPinSetup();
+    setModalVisible(false);
+  };
   const renderContent = () => {
     if (isSearching) {
       return (
@@ -216,6 +232,7 @@ export default function ChatListScreen() {
 
         <CreateNewChatButton />
       </View>
+      <PinPromptModal modalVisible={modalVisible} onDismiss={handleDismiss} />
     </>
   );
 }

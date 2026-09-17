@@ -1,19 +1,22 @@
 // api/discoveryApi.ts
 import { api } from "@/core/lib/api";
 import type {
-  ContactMatch,
   ContactMatchDto,
+  ContactMatchesResponseDto,
+  MatchContactsDto,
+  PublicDiscoveryUserDto,
+  UserSearchResponseDto,
+} from "@/features/profile"; // Assuming this is where you saved the generated types
+import type {
+  ContactMatch,
   DiscoveredUser,
-  DiscoveredUserDto,
-  MatchContactsPayload,
-  MatchContactsResponseDto,
   SearchUsersQueryPayload,
-  SearchUsersResponseDto,
 } from "../types/discovery.types";
 
-const mapDiscoveredUser = (dto: DiscoveredUserDto): DiscoveredUser => ({
+const mapDiscoveredUser = (dto: PublicDiscoveryUserDto): DiscoveredUser => ({
   id: dto.id,
-  displayName: dto.displayName,
+  // Type assertion remains to handle the OpenAPI generator `Record<string, never>` quirk
+  displayName: dto.displayName as unknown as string | null,
   avatarUrl: dto.avatarUrl,
 });
 
@@ -24,9 +27,9 @@ const mapContactMatch = (dto: ContactMatchDto): ContactMatch => ({
 
 export const discoveryApi = {
   matchContacts: async (
-    payload: MatchContactsPayload,
+    payload: MatchContactsDto,
   ): Promise<{ matches: ContactMatch[] }> => {
-    const { data } = await api.post<MatchContactsResponseDto>(
+    const { data } = await api.post<ContactMatchesResponseDto>(
       "/v1/contacts/match",
       payload,
     );
@@ -38,7 +41,7 @@ export const discoveryApi = {
   searchUsers: async (
     params: SearchUsersQueryPayload,
   ): Promise<{ items: DiscoveredUser[]; nextCursor: string | null }> => {
-    const { data } = await api.get<SearchUsersResponseDto>("/v1/users/search", {
+    const { data } = await api.get<UserSearchResponseDto>("/v1/users/search", {
       params,
     });
     return {

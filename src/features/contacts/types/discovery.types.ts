@@ -1,35 +1,11 @@
 // types/discovery.types.ts
 
 // ---- Request Payloads ----
-export interface MatchContactsPayload {
-  phoneNumbers: string[];
-}
-
+// Note: We keep this locally because it represents query params, not a JSON body DTO.
 export interface SearchUsersQueryPayload {
   q: string;
   limit?: number;
   cursor?: string;
-}
-
-// ---- Raw Backend DTOs ----
-export interface DiscoveredUserDto {
-  id: string;
-  displayName: string | null;
-  avatarUrl: string | null;
-}
-
-export interface ContactMatchDto {
-  matchedPhoneNumber: string;
-  user: DiscoveredUserDto;
-}
-
-export interface MatchContactsResponseDto {
-  matches: ContactMatchDto[];
-}
-
-export interface SearchUsersResponseDto {
-  items: DiscoveredUserDto[];
-  nextCursor: string | null;
 }
 
 // ---- Application Domain Models ----

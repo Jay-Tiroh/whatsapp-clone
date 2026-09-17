@@ -1,6 +1,8 @@
 import { useAuthStore } from "@/features/auth";
-import type { ReceiptPayload } from "@/features/conversation/screens/ConversationScreen";
-import type { Message } from "@/features/conversation/types/message.types";
+import type {
+  Message,
+  ReceiptPayload,
+} from "@/features/conversation/types/message.types";
 import ThemedText from "@/shared/components/ThemedText";
 import { FlashList } from "@shopify/flash-list";
 import { getMessageStatus } from "../utils/messageStatus";
@@ -10,9 +12,18 @@ type Props = {
   conversationId: string;
   messages: Message[];
   otherUserReceipt: ReceiptPayload | null;
+  refreshing?: boolean;
+  onRefresh?: () => void;
+  onEndReached?: () => void;
 };
 
-export default function MessageList({ messages, otherUserReceipt }: Props) {
+export default function MessageList({
+  messages,
+  otherUserReceipt,
+  refreshing,
+  onRefresh,
+  onEndReached,
+}: Props) {
   const myId = useAuthStore((state) => state.user?.id);
 
   if (messages.length === 0) {
@@ -32,6 +43,10 @@ export default function MessageList({ messages, otherUserReceipt }: Props) {
         startRenderingFromBottom: true,
         autoscrollToBottomThreshold: 0.2,
       }}
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      onEndReached={onEndReached}
+      onEndReachedThreshold={0.3}
       renderItem={({ item }) => (
         <MessageBubble
           item={item}

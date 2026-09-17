@@ -6,9 +6,9 @@ import type {
   OtpChallenge,
   OtpChallengeResponseDto,
   RefreshTokenDto,
-  RequestOtpPayload,
-  ResendOtpPayload,
-  VerifyOtpPayload,
+  RequestOtpDto,
+  ResendOtpDto,
+  VerifyOtpDto,
 } from "../types/auth.types";
 
 // --- DTO Mappers ---
@@ -24,17 +24,20 @@ const mapAuthResponse = (dto: AuthResponseDto): AuthSession => ({
   refreshToken: dto.refreshToken,
   user: {
     id: dto.user.id,
-    displayName: dto.user.displayName,
+    // Safely parse DTO shape mismatch (Record<string, never> | null vs string | null)
+    displayName:
+      typeof dto.user.displayName === "string" ? dto.user.displayName : null,
     profileComplete: dto.user.profileComplete,
     phoneNumber: dto.user.phoneNumber,
-    avatarUrl: dto.user.avatarUrl,
+    // Safely parse DTO shape mismatch
+    avatarUrl:
+      typeof dto.user.avatarUrl === "string" ? dto.user.avatarUrl : null,
     createdAt: dto.user.createdAt,
-    // map other properties 1:1 without DTO structures
   },
 });
 
 export const authApi = {
-  requestOtp: async (payload: RequestOtpPayload): Promise<OtpChallenge> => {
+  requestOtp: async (payload: RequestOtpDto): Promise<OtpChallenge> => {
     const { data } = await api.post<OtpChallengeResponseDto>(
       AUTH_ENDPOINTS.REQUEST_OTP,
       payload,
@@ -42,7 +45,7 @@ export const authApi = {
     return mapOtpChallenge(data);
   },
 
-  resendOtp: async (payload: ResendOtpPayload): Promise<OtpChallenge> => {
+  resendOtp: async (payload: ResendOtpDto): Promise<OtpChallenge> => {
     const { data } = await api.post<OtpChallengeResponseDto>(
       AUTH_ENDPOINTS.RESEND_OTP,
       payload,
@@ -50,7 +53,7 @@ export const authApi = {
     return mapOtpChallenge(data);
   },
 
-  verifyOtp: async (payload: VerifyOtpPayload): Promise<AuthSession> => {
+  verifyOtp: async (payload: VerifyOtpDto): Promise<AuthSession> => {
     const { data } = await api.post<AuthResponseDto>(
       AUTH_ENDPOINTS.VERIFY_OTP,
       payload,

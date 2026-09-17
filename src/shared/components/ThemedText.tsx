@@ -37,6 +37,7 @@ const textVariants = tv(
         inverse: "text-white dark:text-neutral-900",
         danger: "text-red-400",
         label: "text-neutral-600 dark:text-neutral-50",
+        option: "text-neutral-600 dark:text-neutral-100",
       },
     },
     defaultVariants: {
