@@ -2,13 +2,19 @@ import { api } from "@/core/lib/api";
 import type {
   AddGroupMembersDto,
   ClearConversationMessagesResponseDto,
+  Conversation,
   ConversationListResponseDto,
+  ConversationReadStateResponseDto,
   ConversationSettingsResponseDto,
   CreateDirectConversationDto,
   CreateGroupConversationDto,
+  DeleteDirectChatResponseDto,
+  DirectConversation,
   DirectConversationResponseDto,
+  GroupConversation,
   GroupConversationResponseDto,
   MuteConversationDto,
+  PaginatedConversations,
   SetGroupAvatarDto,
   TransferGroupOwnershipDto,
   UpdateConversationSettingsDto,
@@ -16,58 +22,12 @@ import type {
   UpdateGroupMemberRoleDto,
 } from "../types/conversation.types";
 
-// ---- Application Domain Models ----
-// (Assuming these are defined in your conversation.types.ts but updated here for clarity on the expected mapped output)
-export interface Participant {
-  id: string;
-  displayName: string | null;
-  avatarUrl: string | null;
-}
-export interface GroupParticipant extends Participant {
-  role: "owner" | "admin" | "member";
-}
-export interface Message {
-  id: string;
-  senderId: string;
-  kind: "text" | "image" | "audio" | "video" | "document";
-  preview: string;
-  createdAt: string;
-}
-export interface BaseConversation {
-  id: string;
-  latestMessage: Message | null;
-  unreadCount: number;
-  lastActivityAt: string;
-  createdAt: string;
-  updatedAt: string;
-  settings: any; // Mapped settings
-}
-export interface DirectConversation extends BaseConversation {
-  type: "direct";
-  otherParticipant: Participant;
-}
-export interface GroupConversation extends BaseConversation {
-  type: "group";
-  name: string;
-  avatarUrl: string | null;
-  participants: GroupParticipant[];
-  role: "owner" | "admin" | "member";
-}
-export type Conversation = DirectConversation | GroupConversation;
-export interface PaginatedConversations {
-  items: Conversation[];
-  pageInfo: {
-    nextCursor: string | null;
-    hasNextPage: boolean;
-  };
-}
-
 // ---- Mappers ----
 
 const mapConversation = (
   dto: DirectConversationResponseDto | GroupConversationResponseDto,
 ): Conversation => {
-  const base: BaseConversation = {
+  const base = {
     id: dto.id,
     latestMessage: dto.latestMessage
       ? {
@@ -91,8 +51,10 @@ const mapConversation = (
       type: "direct",
       otherParticipant: {
         id: dto.otherParticipant.id,
-        displayName: dto.otherParticipant.displayName as unknown as
-          string | null,
+        displayName:
+          typeof dto.otherParticipant.displayName === "string"
+            ? dto.otherParticipant.displayName
+            : null,
         avatarUrl: dto.otherParticipant.avatarUrl,
       },
     } as DirectConversation;
@@ -106,7 +68,7 @@ const mapConversation = (
     role: dto.role,
     participants: dto.participants.map((p) => ({
       id: p.id,
-      displayName: p.displayName as unknown as string | null,
+      displayName: typeof p.displayName === "string" ? p.displayName : null,
       avatarUrl: p.avatarUrl,
       role: p.role,
     })),
@@ -118,7 +80,10 @@ const mapPaginatedConversations = (
 ): PaginatedConversations => ({
   items: dto.items.map(mapConversation),
   pageInfo: {
-    nextCursor: (dto.pageInfo.nextCursor as unknown as string) || null,
+    nextCursor:
+      typeof dto.pageInfo.nextCursor === "string"
+        ? dto.pageInfo.nextCursor
+        : null,
     hasNextPage: dto.pageInfo.hasNextPage,
   },
 });
@@ -136,7 +101,6 @@ export const conversationApi = {
     return mapConversation(data);
   },
 
-  // NEW
   createGroup: async (
     payload: CreateGroupConversationDto,
   ): Promise<Conversation> => {
@@ -159,7 +123,6 @@ export const conversationApi = {
     return mapPaginatedConversations(data);
   },
 
-  // NEW
   getListArchived: async (params?: {
     limit?: number;
     cursor?: string;
@@ -171,7 +134,6 @@ export const conversationApi = {
     return mapPaginatedConversations(data);
   },
 
-  // NEW
   getListFavorites: async (params?: {
     limit?: number;
     cursor?: string;
@@ -191,12 +153,10 @@ export const conversationApi = {
     return mapConversation(data);
   },
 
-  // NEW
   deleteGroup: async (conversationId: string): Promise<void> => {
     await api.delete(`/v1/conversations/${conversationId}`);
   },
 
-  // NEW
   updateGroup: async (
     conversationId: string,
     payload: UpdateGroupConversationDto,
@@ -208,7 +168,6 @@ export const conversationApi = {
     return mapConversation(data);
   },
 
-  // NEW
   setGroupAvatar: async (
     conversationId: string,
     payload: SetGroupAvatarDto,
@@ -220,7 +179,6 @@ export const conversationApi = {
     return mapConversation(data);
   },
 
-  // NEW
   clearGroupAvatar: async (conversationId: string): Promise<Conversation> => {
     const { data } = await api.delete<GroupConversationResponseDto>(
       `/v1/conversations/${conversationId}/avatar`,
@@ -228,7 +186,6 @@ export const conversationApi = {
     return mapConversation(data);
   },
 
-  // NEW
   addGroupMembers: async (
     conversationId: string,
     payload: AddGroupMembersDto,
@@ -240,7 +197,6 @@ export const conversationApi = {
     return mapConversation(data);
   },
 
-  // NEW
   removeGroupMember: async (
     conversationId: string,
     memberId: string,
@@ -248,7 +204,6 @@ export const conversationApi = {
     await api.delete(`/v1/conversations/${conversationId}/members/${memberId}`);
   },
 
-  // NEW
   updateGroupMemberRole: async (
     conversationId: string,
     memberId: string,
@@ -261,7 +216,6 @@ export const conversationApi = {
     return mapConversation(data);
   },
 
-  // NEW
   transferGroupOwnership: async (
     conversationId: string,
     payload: TransferGroupOwnershipDto,
@@ -273,12 +227,19 @@ export const conversationApi = {
     return mapConversation(data);
   },
 
-  // NEW
   leaveGroup: async (conversationId: string): Promise<void> => {
     await api.post(`/v1/conversations/${conversationId}/leave`);
   },
 
-  // NEW
+  deleteForMe: async (
+    conversationId: string,
+  ): Promise<DeleteDirectChatResponseDto> => {
+    const { data } = await api.delete<DeleteDirectChatResponseDto>(
+      `/v1/conversations/${conversationId}/for-me`,
+    );
+    return data;
+  },
+
   updateSettings: async (
     conversationId: string,
     payload: UpdateConversationSettingsDto,
@@ -290,7 +251,6 @@ export const conversationApi = {
     return data;
   },
 
-  // NEW
   archive: async (
     conversationId: string,
   ): Promise<ConversationSettingsResponseDto> => {
@@ -300,7 +260,6 @@ export const conversationApi = {
     return data;
   },
 
-  // NEW
   unarchive: async (
     conversationId: string,
   ): Promise<ConversationSettingsResponseDto> => {
@@ -310,7 +269,6 @@ export const conversationApi = {
     return data;
   },
 
-  // NEW
   mute: async (
     conversationId: string,
     payload: MuteConversationDto,
@@ -322,7 +280,6 @@ export const conversationApi = {
     return data;
   },
 
-  // NEW
   unmute: async (
     conversationId: string,
   ): Promise<ConversationSettingsResponseDto> => {
@@ -332,7 +289,6 @@ export const conversationApi = {
     return data;
   },
 
-  // NEW
   favorite: async (
     conversationId: string,
   ): Promise<ConversationSettingsResponseDto> => {
@@ -342,7 +298,6 @@ export const conversationApi = {
     return data;
   },
 
-  // NEW
   unfavorite: async (
     conversationId: string,
   ): Promise<ConversationSettingsResponseDto> => {
@@ -352,7 +307,6 @@ export const conversationApi = {
     return data;
   },
 
-  // NEW
   pin: async (
     conversationId: string,
   ): Promise<ConversationSettingsResponseDto> => {
@@ -362,7 +316,6 @@ export const conversationApi = {
     return data;
   },
 
-  // NEW
   unpin: async (
     conversationId: string,
   ): Promise<ConversationSettingsResponseDto> => {
@@ -372,12 +325,20 @@ export const conversationApi = {
     return data;
   },
 
-  // NEW
   clearMessages: async (
     conversationId: string,
   ): Promise<ClearConversationMessagesResponseDto> => {
     const { data } = await api.delete<ClearConversationMessagesResponseDto>(
       `/v1/conversations/${conversationId}/messages`,
+    );
+    return data;
+  },
+
+  markRead: async (
+    conversationId: string,
+  ): Promise<ConversationReadStateResponseDto> => {
+    const { data } = await api.post<ConversationReadStateResponseDto>(
+      `/v1/conversations/${conversationId}/read`,
     );
     return data;
   },

@@ -1,4 +1,3 @@
-// features/chats/hooks/useConversationListRealtime.ts
 import { getSocket } from "@/core/lib/socket";
 import { usePresenceStore } from "@/core/store/presenceStore";
 import type {

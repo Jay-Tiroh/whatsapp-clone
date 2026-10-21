@@ -5,13 +5,14 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
-import { messageApi } from "../api/message.api";
+import { messageApi, receiptApi } from "../api/message.api";
 
 import type {
   EditMessagePayload,
   MessageListQueryPayload,
   SendMessagePayload,
   SetMessageReactionPayload,
+  UpdateReceiptPayload,
 } from "../types/message.types";
 
 export const useSendMessage = (conversationId: string) => {
@@ -61,7 +62,6 @@ export const useGetMessages = (
   });
 };
 
-// NEW: useSearchMessages
 export const useSearchMessages = (
   conversationId: string,
   q: string,
@@ -92,7 +92,6 @@ export const useSearchMessages = (
   });
 };
 
-// NEW: useGetMessage
 export const useGetMessage = (conversationId: string, messageId: string) => {
   return useQuery({
     queryKey: ["messages", conversationId, "detail", messageId],
@@ -101,7 +100,6 @@ export const useGetMessage = (conversationId: string, messageId: string) => {
   });
 };
 
-// NEW: useDeleteMessage
 export const useDeleteMessage = (conversationId: string) => {
   const queryClient = useQueryClient();
 
@@ -117,7 +115,6 @@ export const useDeleteMessage = (conversationId: string) => {
   });
 };
 
-// NEW: useEditMessage
 export const useEditMessage = (conversationId: string) => {
   const queryClient = useQueryClient();
 
@@ -134,7 +131,6 @@ export const useEditMessage = (conversationId: string) => {
       queryClient.invalidateQueries({
         queryKey: ["messages", conversationId],
       });
-      // Optionally invalidate specific detail query
       queryClient.invalidateQueries({
         queryKey: ["messages", conversationId, "detail", updatedMessage.id],
       });
@@ -142,7 +138,6 @@ export const useEditMessage = (conversationId: string) => {
   });
 };
 
-// NEW: useReactToMessage
 export const useReactToMessage = (conversationId: string) => {
   const queryClient = useQueryClient();
 
@@ -163,7 +158,6 @@ export const useReactToMessage = (conversationId: string) => {
   });
 };
 
-// NEW: useUnreactToMessage
 export const useUnreactToMessage = (conversationId: string) => {
   const queryClient = useQueryClient();
 
@@ -179,7 +173,6 @@ export const useUnreactToMessage = (conversationId: string) => {
   });
 };
 
-// NEW: useClearMessages
 export const useClearMessages = () => {
   const queryClient = useQueryClient();
 
@@ -212,5 +205,27 @@ export const useMarkConversationRead = () => {
         queryKey: ["conversations", "list"],
       });
     },
+  });
+};
+
+export const useMarkReceiptDelivered = (conversationId: string) => {
+  return useMutation({
+    mutationFn: (payload: UpdateReceiptPayload) =>
+      receiptApi.markDelivered(conversationId, payload),
+  });
+};
+
+export const useMarkReceiptRead = (conversationId: string) => {
+  return useMutation({
+    mutationFn: (payload: UpdateReceiptPayload) =>
+      receiptApi.markRead(conversationId, payload),
+  });
+};
+
+export const useGetReceiptFrontiers = (conversationId: string) => {
+  return useQuery({
+    queryKey: ["receipts", conversationId, "frontiers"],
+    queryFn: () => receiptApi.getFrontiers(conversationId),
+    enabled: Boolean(conversationId),
   });
 };

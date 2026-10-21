@@ -20,7 +20,6 @@ export const useCreateDirectConversation = () => {
   });
 };
 
-// NEW
 export const useCreateGroupConversation = () => {
   return useMutation({
     mutationFn: (payload: CreateGroupConversationDto) =>
@@ -40,7 +39,6 @@ export const useGetConversations = (params?: {
   });
 };
 
-// NEW
 export const useGetArchivedConversations = (params?: {
   limit?: number;
   cursor?: string;
@@ -52,7 +50,6 @@ export const useGetArchivedConversations = (params?: {
   });
 };
 
-// NEW
 export const useGetFavoriteConversations = (params?: {
   limit?: number;
   cursor?: string;
@@ -73,7 +70,6 @@ export const useGetConversationById = (conversationId: string) => {
   });
 };
 
-// NEW
 export const useDeleteGroupConversation = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -85,7 +81,6 @@ export const useDeleteGroupConversation = () => {
   });
 };
 
-// NEW
 export const useUpdateGroupConversation = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -102,7 +97,6 @@ export const useUpdateGroupConversation = () => {
   });
 };
 
-// NEW
 export const useSetGroupAvatar = () => {
   return useMutation({
     mutationFn: ({
@@ -115,7 +109,6 @@ export const useSetGroupAvatar = () => {
   });
 };
 
-// NEW
 export const useClearGroupAvatar = () => {
   return useMutation({
     mutationFn: (conversationId: string) =>
@@ -123,7 +116,6 @@ export const useClearGroupAvatar = () => {
   });
 };
 
-// NEW
 export const useAddGroupMembers = () => {
   return useMutation({
     mutationFn: ({
@@ -136,7 +128,6 @@ export const useAddGroupMembers = () => {
   });
 };
 
-// NEW
 export const useRemoveGroupMember = () => {
   return useMutation({
     mutationFn: ({
@@ -149,7 +140,6 @@ export const useRemoveGroupMember = () => {
   });
 };
 
-// NEW
 export const useUpdateGroupMemberRole = () => {
   return useMutation({
     mutationFn: ({
@@ -165,7 +155,6 @@ export const useUpdateGroupMemberRole = () => {
   });
 };
 
-// NEW
 export const useTransferGroupOwnership = () => {
   return useMutation({
     mutationFn: ({
@@ -178,7 +167,6 @@ export const useTransferGroupOwnership = () => {
   });
 };
 
-// NEW
 export const useLeaveGroup = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -190,7 +178,17 @@ export const useLeaveGroup = () => {
   });
 };
 
-// NEW
+export const useDeleteForMe = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (conversationId: string) =>
+      conversationApi.deleteForMe(conversationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    },
+  });
+};
+
 export const useUpdateConversationSettings = () => {
   return useMutation({
     mutationFn: ({
@@ -203,7 +201,6 @@ export const useUpdateConversationSettings = () => {
   });
 };
 
-// NEW
 export const useArchiveConversation = () => {
   return useMutation({
     mutationFn: (conversationId: string) =>
@@ -211,7 +208,6 @@ export const useArchiveConversation = () => {
   });
 };
 
-// NEW
 export const useUnarchiveConversation = () => {
   return useMutation({
     mutationFn: (conversationId: string) =>
@@ -219,7 +215,6 @@ export const useUnarchiveConversation = () => {
   });
 };
 
-// NEW
 export const useFavoriteConversation = () => {
   return useMutation({
     mutationFn: (conversationId: string) =>
@@ -227,7 +222,6 @@ export const useFavoriteConversation = () => {
   });
 };
 
-// NEW
 export const useUnfavoriteConversation = () => {
   return useMutation({
     mutationFn: (conversationId: string) =>
@@ -237,9 +231,6 @@ export const useUnfavoriteConversation = () => {
 
 type ConversationSettings = Conversation["settings"];
 
-// The ONE place that knows the cache shape. Handles a plain array,
-// a paginated { items } object, and the single-conversation detail cache.
-// If getList returns something else (e.g. { data, nextCursor }), edit here only.
 function patchConversation(
   old: unknown,
   id: string,
@@ -320,11 +311,22 @@ export const useUnmuteConversation = () =>
     (id) => id,
     { muted: false },
   );
-// NEW
+
 export const useClearConversationMessages = () => {
   return useMutation({
     mutationFn: (conversationId: string) =>
       conversationApi.clearMessages(conversationId),
+  });
+};
+
+export const useMarkConversationRead = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (conversationId: string) =>
+      conversationApi.markRead(conversationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    },
   });
 };
 

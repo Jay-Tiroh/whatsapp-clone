@@ -12,26 +12,28 @@ import type {
 } from "../types/auth.types";
 
 // --- DTO Mappers ---
+
 const mapOtpChallenge = (dto: OtpChallengeResponseDto): OtpChallenge => ({
   challengeId: dto.challengeId,
   phoneNumberMasked: dto.phoneNumberMasked,
   codeLength: dto.codeLength,
   resendInSeconds: dto.resendInSeconds,
+  expiresInSeconds: dto.expiresInSeconds,
 });
 
 const mapAuthResponse = (dto: AuthResponseDto): AuthSession => ({
   accessToken: dto.accessToken,
+  accessTokenExpiresInSeconds: dto.accessTokenExpiresInSeconds,
   refreshToken: dto.refreshToken,
+  refreshTokenExpiresInSeconds: dto.refreshTokenExpiresInSeconds,
   user: {
     id: dto.user.id,
-    // Safely parse DTO shape mismatch (Record<string, never> | null vs string | null)
+    phoneNumber: dto.user.phoneNumber,
     displayName:
       typeof dto.user.displayName === "string" ? dto.user.displayName : null,
-    profileComplete: dto.user.profileComplete,
-    phoneNumber: dto.user.phoneNumber,
-    // Safely parse DTO shape mismatch
     avatarUrl:
       typeof dto.user.avatarUrl === "string" ? dto.user.avatarUrl : null,
+    profileComplete: dto.user.profileComplete,
     createdAt: dto.user.createdAt,
   },
 });

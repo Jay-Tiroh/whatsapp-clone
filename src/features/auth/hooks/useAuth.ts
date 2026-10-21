@@ -3,6 +3,7 @@ import { useAuthStore } from "@/features/auth/store/authStore";
 import { useMutation } from "@tanstack/react-query";
 import { authApi } from "../api/auth.api";
 import type {
+  RefreshTokenDto,
   RequestOtpDto,
   ResendOtpDto,
   VerifyOtpDto,
@@ -26,13 +27,19 @@ export function useVerifyOtp() {
   });
 }
 
+export function useRefreshToken() {
+  return useMutation({
+    mutationFn: (payload: RefreshTokenDto) => authApi.refresh(payload),
+  });
+}
+
 export function useLogout() {
   const clearSession = useAuthStore((s) => s.clearSession);
 
   return useMutation({
     mutationFn: () => {
       const refreshToken = tokenStorage.getRefreshToken();
-      return authApi.logout({ refreshToken: refreshToken! });
+      return authApi.logout({ refreshToken: refreshToken || "" });
     },
     onSettled: () => {
       tokenStorage.clearTokens();

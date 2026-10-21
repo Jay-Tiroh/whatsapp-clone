@@ -1,5 +1,6 @@
 import { isAxiosError } from "axios";
 import { useEffect, useRef, useState } from "react";
+import type { ContactMatch } from "../types/discovery.types";
 import { useDeviceContacts } from "./useDeviceContacts";
 import { useMatchContacts } from "./useDiscovery";
 
@@ -34,7 +35,7 @@ export function useMatchedContacts() {
   const { phoneNumbers, status } = useDeviceContacts();
   const { mutateAsync, isError, error } = useMatchContacts();
   const hasFiredRef = useRef(false);
-  const [matches, setMatches] = useState<any[]>([]);
+  const [matches, setMatches] = useState<ContactMatch[]>([]);
   const [isMatching, setIsMatching] = useState(false);
 
   useEffect(() => {
@@ -50,7 +51,7 @@ export function useMatchedContacts() {
     const runBatches = async () => {
       setIsMatching(true);
       const batches = chunk(phoneNumbers, BATCH_SIZE);
-      const allMatches: any[] = [];
+      const allMatches: ContactMatch[] = [];
 
       for (let i = 0; i < batches.length; i++) {
         const batch = batches[i];
@@ -60,14 +61,14 @@ export function useMatchedContacts() {
           try {
             const result = await mutateAsync({ phoneNumbers: batch });
             allMatches.push(...(result.matches ?? []));
-            break; // success, move to next batch
+            break;
           } catch (err) {
             const retryAfterMs = getRetryAfterMs(err);
             const isRateLimited =
               isAxiosError(err) && err.response?.status === 429;
 
             if (isRateLimited && attempt < MAX_RETRIES) {
-              const backoffMs = retryAfterMs ?? 2 ** attempt * 1000; // exponential fallback
+              const backoffMs = retryAfterMs ?? 2 ** attempt * 1000;
               if (__DEV__) {
                 console.warn(
                   `[useMatchedContacts] batch ${i} rate-limited, retrying in ${backoffMs}ms (attempt ${attempt + 1})`,
@@ -84,11 +85,10 @@ export function useMatchedContacts() {
                 err,
               );
             }
-            break; // give up on this batch, move to next
+            break;
           }
         }
 
-        // Space out requests even on success, to stay under the rate limit
         if (i < batches.length - 1) {
           await sleep(DELAY_BETWEEN_BATCHES_MS);
         }

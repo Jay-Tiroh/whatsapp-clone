@@ -1,4 +1,3 @@
-// features/conversation/hooks/useRealtimeMessaging.ts
 import {
   subscribeToConversation,
   unsubscribeFromConversation,
@@ -85,8 +84,6 @@ export function useRealtimeMessaging({
     const onPresenceChangedEvent = (presence: PresencePayload) => {
       if (presence.conversationId !== conversationId) return;
 
-      // Centralize presence in the shared store so ChatItem and
-      // ChatHeader read the same source of truth.
       if (presence.status === "online") {
         setOnline(presence.userId);
       } else {

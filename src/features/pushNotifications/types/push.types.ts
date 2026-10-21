@@ -1,14 +1,12 @@
-// ---- Request Payloads ----
+import type { components } from "@/core/types/api";
 
-export interface RegisterPushDevicePayload {
-  platform: "ios" | "android";
-  token: string;
-}
+// ---- Raw DTO Types derived directly from OpenAPI schema ----
 
-// ---- Raw Backend DTOs ----
+export type RegisterPushDeviceDto =
+  components["schemas"]["RegisterPushDeviceDto"];
+export type PushDeviceResponseDto =
+  components["schemas"]["PushDeviceResponseDto"];
 
-export interface PushDeviceResponseDto {
-  installationId: string;
-  platform: "ios" | "android";
-  registeredAt: string;
-}
+// ---- Legacy Payload Aliases ----
+
+export type RegisterPushDevicePayload = RegisterPushDeviceDto;

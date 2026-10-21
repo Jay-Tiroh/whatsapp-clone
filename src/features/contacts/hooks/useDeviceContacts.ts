@@ -22,7 +22,6 @@ export function useDeviceContacts() {
         return;
       }
 
-      // getAllDetails paginates internally; loop until a short page tells us we're done
       const FIELDS = [ContactField.FULL_NAME, ContactField.PHONES] as const;
       const PAGE_SIZE = 500;
       let offset = 0;
@@ -73,6 +72,6 @@ export function useDeviceContacts() {
 
     return () => task.cancel();
   }, []);
-  // console.log(phoneNumbers.length);
+
   return { phoneNumbers, status, contacts };
 }

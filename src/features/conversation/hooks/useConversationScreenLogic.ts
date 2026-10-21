@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useSocket } from "@/core/hooks/useSocket";
+import { useIsUserOnline } from "@/core/store/presenceStore";
 import { useAuthStore } from "@/features/auth";
 import { useGetConversationById } from "@/features/chats/hooks/useConversations";
 import { mapMessage } from "@/features/conversation/api/message.api";
@@ -19,7 +20,6 @@ import type {
 import { logger } from "@/shared/utils/logger";
 import * as Crypto from "expo-crypto";
 
-import { useIsUserOnline } from "@/core/store/presenceStore";
 export function useConversationScreenLogic(conversationId: string) {
   const currentUserId = useAuthStore((state) => state.user?.id);
 
@@ -154,7 +154,7 @@ export function useConversationScreenLogic(conversationId: string) {
         clientMessageId,
         senderId: currentUserId,
         kind: "text",
-        text: trimmedText || null, // Updated: Reflects the nullable text type
+        text: trimmedText || null,
         createdAt: new Date().toISOString(),
         attachments: [],
         replyToMessageId: null,
@@ -170,9 +170,11 @@ export function useConversationScreenLogic(conversationId: string) {
     },
     [conversationId, currentUserId, sendMessage],
   );
+
   const isGroupConversation = useMemo(() => {
     return conversation?.type === "group";
   }, [conversation]);
+
   useEffect(() => {
     if (!conversationId) return;
     markConversationRead.mutate(conversationId);

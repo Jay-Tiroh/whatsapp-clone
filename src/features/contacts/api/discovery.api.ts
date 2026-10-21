@@ -1,22 +1,18 @@
-// api/discoveryApi.ts
 import { api } from "@/core/lib/api";
 import type {
+  ContactMatch,
   ContactMatchDto,
   ContactMatchesResponseDto,
+  DiscoveredUser,
   MatchContactsDto,
   PublicDiscoveryUserDto,
-  UserSearchResponseDto,
-} from "@/features/profile"; // Assuming this is where you saved the generated types
-import type {
-  ContactMatch,
-  DiscoveredUser,
   SearchUsersQueryPayload,
+  UserSearchResponseDto,
 } from "../types/discovery.types";
 
 const mapDiscoveredUser = (dto: PublicDiscoveryUserDto): DiscoveredUser => ({
   id: dto.id,
-  // Type assertion remains to handle the OpenAPI generator `Record<string, never>` quirk
-  displayName: dto.displayName as unknown as string | null,
+  displayName: typeof dto.displayName === "string" ? dto.displayName : null,
   avatarUrl: dto.avatarUrl,
 });
 

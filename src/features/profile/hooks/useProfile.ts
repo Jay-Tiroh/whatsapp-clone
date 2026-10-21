@@ -1,7 +1,7 @@
-// hooks/useProfile.ts
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { profileApi } from "../api/profile.api";
 import type {
+  RegisterPushDeviceDto,
   SetProfileAvatarDto,
   UpdateProfileDto,
 } from "../types/user.types";
@@ -20,7 +20,6 @@ export const useUpdateProfile = () => {
     mutationFn: (payload: UpdateProfileDto) =>
       profileApi.updateProfile(payload),
     onSuccess: (data) => {
-      // Optimistically update the cached profile
       queryClient.setQueryData(["profile", "me"], data);
     },
   });
@@ -70,5 +69,24 @@ export const useUnblockUser = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile", "blocks"] });
     },
+  });
+};
+
+export const useRegisterPushDevice = () => {
+  return useMutation({
+    mutationFn: ({
+      installationId,
+      payload,
+    }: {
+      installationId: string;
+      payload: RegisterPushDeviceDto;
+    }) => profileApi.registerPushDevice(installationId, payload),
+  });
+};
+
+export const useUnregisterPushDevice = () => {
+  return useMutation({
+    mutationFn: (installationId: string) =>
+      profileApi.unregisterPushDevice(installationId),
   });
 };
