@@ -21,6 +21,8 @@ const StyledFoundation = withUniwind(Foundation);
 const StyledMuteIcon = withUniwind(MuteIcon);
 const StyledTrashIcon = withUniwind(TrashIcon);
 const StyledImage = withUniwind(Image);
+// ...existing imports unchanged
+
 interface ChatHeaderProps {
   title?: string;
   goBack?: () => void;
@@ -32,6 +34,8 @@ interface ChatHeaderProps {
   onMute?: () => void;
   onDelete?: () => void;
   conversation?: Conversation;
+  isOnline?: boolean;
+  isTyping?: boolean;
 }
 
 export default function ChatHeader({
@@ -45,10 +49,12 @@ export default function ChatHeader({
   onMute,
   onDelete,
   conversation,
+  isOnline = false,
+  isTyping = false,
 }: ChatHeaderProps) {
   const router = useRouter();
   const handleGoBack = () => (goBack ? goBack() : router.back());
-  console.log(conversation?.id);
+
   const goToProfile = () => {
     router.push(`/chats/${conversation?.id}/profile`);
   };
@@ -60,6 +66,14 @@ export default function ChatHeader({
   const headerDisplayName = isDirect
     ? conversation.otherParticipant.displayName
     : (conversation?.name ?? "Unknown user");
+
+  const statusLine = !isDirect
+    ? null
+    : isTyping
+      ? "typing..."
+      : isOnline
+        ? "Online"
+        : `last seen ${formatTime(conversation?.lastActivityAt ?? "")}`;
 
   return (
     <View className="w-full bg-primary-400 dark:bg-neutral-700 p-safe-offset-6 pb-6 gap-5 z-99">
@@ -76,24 +90,34 @@ export default function ChatHeader({
             onPress={goToProfile}
             className="flex-row gap-4 items-center flex-1"
           >
-            <StyledImage
-              source={
-                headerAvatarUrl
-                  ? { uri: headerAvatarUrl }
-                  : require("@/assets/images/avatar.png")
-              }
-              className="size-12 border-.5 border-white rounded-full bg-white"
-              contentFit="cover"
-              cachePolicy="memory-disk"
-              style={{ borderWidth: 2, borderColor: "hsla(0, 0%, 100%, 0.9)" }}
-            />
+            <View className="relative">
+              <StyledImage
+                source={
+                  headerAvatarUrl
+                    ? { uri: headerAvatarUrl }
+                    : require("@/assets/images/avatar.png")
+                }
+                className="size-12 border-.5 border-white rounded-full bg-white"
+                contentFit="cover"
+                cachePolicy="memory-disk"
+                style={{
+                  borderWidth: 2,
+                  borderColor: "hsla(0, 0%, 100%, 0.9)",
+                }}
+              />
+              {isDirect && isOnline && (
+                <View className="border-2 border-primary-400 dark:border-neutral-700 bg-green-400 size-3.5 rounded-full absolute bottom-0 right-0" />
+              )}
+            </View>
             <View className="gap-1">
               <ThemedText type="bodyXl" weight="bold" className="text-white/90">
                 {headerDisplayName ?? "Unknown user"}
               </ThemedText>
-              <ThemedText type="bodySm" className="text-white/90">
-                last seen {formatTime(conversation?.lastActivityAt ?? "")}
-              </ThemedText>
+              {statusLine && (
+                <ThemedText type="bodySm" className="text-white/90">
+                  {statusLine}
+                </ThemedText>
+              )}
             </View>
           </Pressable>
           <View className="flex-row gap-5 items-center">
@@ -116,6 +140,7 @@ export default function ChatHeader({
       </View>
 
       {selectionMode && (
+        // ...unchanged
         <View className="flex-row justify-between items-center">
           <View className="flex-row gap-6 items-center justify-between flex-1">
             <Pressable
@@ -128,7 +153,6 @@ export default function ChatHeader({
                 className="text-white/90"
               />
             </Pressable>
-
             <Pressable className="active:opacity-70" onPress={onUnarchive}>
               <StyledMaterialIcons
                 name="unarchive"
@@ -136,7 +160,6 @@ export default function ChatHeader({
                 className="text-white/90"
               />
             </Pressable>
-
             <Pressable className="active:opacity-70" onPress={onMute}>
               {isAllSelectedMuted ? (
                 <StyledFoundation
@@ -148,7 +171,6 @@ export default function ChatHeader({
                 <StyledMuteIcon className="text-white/90 size-6" />
               )}
             </Pressable>
-
             <Pressable className="active:opacity-70" onPress={onDelete}>
               <StyledTrashIcon className="text-white/90 scale-120" />
             </Pressable>

@@ -1,153 +1,52 @@
-// ---- Request Payloads ----
+import type { components } from "@/core/types/api";
 
-export interface SendMessagePayload {
-  clientMessageId: string;
-  // merged: text was required in existing usage, kept optional per generated spec (to allow attachment-only)
-  text?: string;
-  // Added from generated spec
-  replyToMessageId?: string;
-  attachmentMediaIds?: string[];
-}
+// ---- Raw DTO Types derived directly from OpenAPI schema ----
 
-export interface EditMessagePayload {
-  text: string | null;
-  expectedVersion: number;
-}
+export type SendMessageDto = components["schemas"]["SendMessageDto"];
+export type EditMessageDto = components["schemas"]["EditMessageDto"];
+export type SetMessageReactionDto =
+  components["schemas"]["SetMessageReactionDto"];
+export type MessageAttachmentResponseDto =
+  components["schemas"]["MessageAttachmentResponseDto"];
+export type AudioMessageAttachmentResponseDto =
+  components["schemas"]["AudioMessageAttachmentResponseDto"];
+export type VideoMessageAttachmentResponseDto =
+  components["schemas"]["VideoMessageAttachmentResponseDto"];
+export type DocumentMessageAttachmentResponseDto =
+  components["schemas"]["DocumentMessageAttachmentResponseDto"];
+export type MessageReactionResponseDto =
+  components["schemas"]["MessageReactionResponseDto"];
+export type MessageResponseDto = components["schemas"]["MessageResponseDto"];
+export type MessagePageInfoDto = components["schemas"]["MessagePageInfoDto"];
+export type MessageHistoryResponseDto =
+  components["schemas"]["MessageHistoryResponseDto"];
+export type ConversationReadStateResponseDto =
+  components["schemas"]["ConversationReadStateResponseDto"];
+export type UpdateReceiptDto = components["schemas"]["UpdateReceiptDto"];
+export type ReceiptBoundaryResponseDto =
+  components["schemas"]["ReceiptBoundaryResponseDto"];
+export type ReceiptUpdateResponseDto =
+  components["schemas"]["ReceiptUpdateResponseDto"];
+export type ReceiptFrontierResponseDto =
+  components["schemas"]["ReceiptFrontierResponseDto"];
+export type ReceiptFrontiersResponseDto =
+  components["schemas"]["ReceiptFrontiersResponseDto"];
+export type ClearConversationMessagesResponseDto =
+  components["schemas"]["ClearConversationMessagesResponseDto"];
 
-export interface SetMessageReactionPayload {
-  emoji: "👍" | "❤️" | "😂" | "😮" | "😢" | "🙏";
-}
+// ---- Legacy/Convenience Payload Aliases ----
+
+export type SendMessagePayload = SendMessageDto;
+export type EditMessagePayload = EditMessageDto;
+export type SetMessageReactionPayload = SetMessageReactionDto;
+export type UpdateReceiptPayload = UpdateReceiptDto;
+export type MessageDto = MessageResponseDto;
+export type MessageListResponseDto = MessageHistoryResponseDto;
+export type MarkReadResponseDto = ConversationReadStateResponseDto;
 
 export interface MessageListQueryPayload {
   limit?: number;
   cursor?: string;
-}
-
-export interface UpdateReceiptPayload {
-  throughMessageId: string;
-}
-
-// ---- Raw Backend DTOs ----
-
-export interface MessageAttachmentResponseDto {
-  mediaId: string;
-  type: "image";
-  contentType: string;
-  sizeBytes: number;
-  width: number;
-  height: number;
-  url: string;
-}
-
-export interface AudioMessageAttachmentResponseDto {
-  mediaId: string;
-  type: "audio";
-  contentType: string;
-  sizeBytes: number;
-  durationMs: number;
-  url: string;
-}
-
-export interface VideoMessageAttachmentResponseDto {
-  mediaId: string;
-  contentType: string;
-  url: string;
-  type: "video";
-  sizeBytes: number;
-  durationMs: number;
-  width: number;
-  height: number;
-}
-
-export interface DocumentMessageAttachmentResponseDto {
-  mediaId: string;
-  type: "document";
-  contentType: string;
-  sizeBytes: number;
-  filename: string;
-  url: string;
-}
-
-export interface MessageReactionResponseDto {
-  userId: string;
-  emoji: string;
-}
-
-// Replaces generated MessageResponseDto to match existing naming
-export interface MessageDto {
-  id: string;
-  conversationId: string;
-  clientMessageId: string;
-  senderId: string;
-  // merged: kind expanded to generated union
-  kind: "text" | "image" | "audio" | "video" | "document";
-  // merged: text made nullable to support attachment-only messages
-  text: string | null;
-  createdAt: string;
-  // Added from generated spec
-  attachments: (
-    | MessageAttachmentResponseDto
-    | AudioMessageAttachmentResponseDto
-    | VideoMessageAttachmentResponseDto
-    | DocumentMessageAttachmentResponseDto
-  )[];
-  replyToMessageId: string | null;
-  editedAt: string | null;
-  deletedAt: string | null;
-  version: number;
-  reactions: MessageReactionResponseDto[];
-}
-
-export interface MessagePageInfoDto {
-  nextCursor: string | null;
-  hasNextPage: boolean;
-}
-
-export interface MessageListResponseDto {
-  items: MessageDto[];
-  pageInfo: MessagePageInfoDto;
-}
-
-export interface MarkReadResponseDto {
-  conversationId: string;
-  lastReadAt: string;
-  unreadCount: number;
-}
-
-export interface ReceiptBoundaryResponseDto {
-  messageId: string;
-  at: string;
-}
-
-export interface ReceiptUpdateResponseDto {
-  conversationId: string;
-  status: "delivered" | "read";
-  throughMessageId: string;
-  at: string;
-  changed: boolean;
-  unreadCount: number;
-  version: number;
-  delivered: ReceiptBoundaryResponseDto;
-  read: ReceiptBoundaryResponseDto | null;
-}
-
-export interface ReceiptFrontierResponseDto {
-  userId: string;
-  version: number;
-  delivered: ReceiptBoundaryResponseDto | null;
-  read: ReceiptBoundaryResponseDto | null;
-}
-
-export interface ReceiptFrontiersResponseDto {
-  conversationId: string;
-  items: ReceiptFrontierResponseDto[];
-}
-
-export interface ClearConversationMessagesResponseDto {
-  conversationId: string;
-  changed: boolean;
-  clearedAt: string | null;
-  clearedThroughMessageId: string | null;
 }
 
 // ---- Application Domain Models ----

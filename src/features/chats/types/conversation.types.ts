@@ -1,147 +1,47 @@
-// ---- Request Payloads (DTOs) ----
+import type { components } from "@/core/types/api";
 
-export interface CreateDirectConversationDto {
-  participantId: string;
-}
+// ---- Raw DTO Types derived directly from OpenAPI schema ----
 
-export interface CreateGroupConversationDto {
-  name: string;
-  participantIds: string[];
-  avatarMediaId?: string | null;
-}
+export type CreateDirectConversationDto =
+  components["schemas"]["CreateDirectConversationDto"];
+export type CreateGroupConversationDto =
+  components["schemas"]["CreateGroupConversationDto"];
+export type UpdateGroupConversationDto =
+  components["schemas"]["UpdateGroupConversationDto"];
+export type SetGroupAvatarDto = components["schemas"]["SetGroupAvatarDto"];
+export type AddGroupMembersDto = components["schemas"]["AddGroupMembersDto"];
+export type UpdateGroupMemberRoleDto =
+  components["schemas"]["UpdateGroupMemberRoleDto"];
+export type TransferGroupOwnershipDto =
+  components["schemas"]["TransferGroupOwnershipDto"];
+export type UpdateConversationSettingsDto =
+  components["schemas"]["UpdateConversationSettingsDto"];
+export type MuteConversationDto = components["schemas"]["MuteConversationDto"];
 
-export interface UpdateGroupConversationDto {
-  name?: string;
-  avatarMediaId?: string | null;
-}
-
-export interface SetGroupAvatarDto {
-  mediaId: string;
-}
-
-export interface AddGroupMembersDto {
-  participantIds: string[];
-}
-
-export interface UpdateGroupMemberRoleDto {
-  role: "admin" | "member";
-}
-
-export interface TransferGroupOwnershipDto {
-  newOwnerId: string;
-}
-
-export interface UpdateConversationSettingsDto {
-  archived?: boolean;
-  muted?: boolean;
-  pinned?: boolean;
-}
-
-export interface MuteConversationDto {
-  duration: "8_hours" | "24_hours" | "7_days" | "always";
-}
-
-// ---- Response DTOs ----
-
-export interface ConversationLatestMessageDto {
-  id: string;
-  senderId: string;
-  kind: "text" | "image" | "audio" | "video" | "document";
-  preview: string;
-  createdAt: string;
-}
-
-export interface ConversationMemberSettingsDto {
-  archived: boolean;
-  muted: boolean;
-  pinned: boolean;
-  favorited: boolean;
-  archivedAt: string | null;
-  mutedAt: string | null;
-  mutedUntil: string | null;
-  pinnedAt: string | null;
-  favoritedAt: string | null;
-  clearedAt: string | null;
-  clearedThroughMessageId: string | null;
-}
-
-export interface ConversationParticipantDto {
-  id: string;
-  displayName: Record<string, never> | null;
-  avatarUrl: string | null;
-}
-
-export interface GroupConversationParticipantDto {
-  id: string;
-  displayName: Record<string, never> | null;
-  avatarUrl: string | null;
-  role: "owner" | "admin" | "member";
-}
-
-export interface DirectConversationResponseDto {
-  id: string;
-  latestMessage: ConversationLatestMessageDto | null;
-  unreadCount: number;
-  settings: ConversationMemberSettingsDto;
-  lastActivityAt: string;
-  createdAt: string;
-  updatedAt: string;
-  type: "direct";
-  otherParticipant: ConversationParticipantDto;
-}
-
-export interface GroupConversationResponseDto {
-  id: string;
-  latestMessage: ConversationLatestMessageDto | null;
-  unreadCount: number;
-  settings: ConversationMemberSettingsDto;
-  lastActivityAt: string;
-  createdAt: string;
-  updatedAt: string;
-  type: "group";
-  name: string;
-  avatarUrl: string | null;
-  participants: GroupConversationParticipantDto[];
-  role: "owner" | "admin" | "member";
-}
-
-export interface ConversationPageInfoDto {
-  nextCursor: Record<string, never> | null;
-  hasNextPage: boolean;
-}
-
-export interface ConversationListResponseDto {
-  items: (DirectConversationResponseDto | GroupConversationResponseDto)[];
-  pageInfo: ConversationPageInfoDto;
-}
-
-export interface ConversationSettingsResponseDto {
-  conversationId: string;
-  archived: boolean;
-  muted: boolean;
-  pinned: boolean;
-  favorited: boolean;
-  archivedAt: string | null;
-  mutedAt: string | null;
-  mutedUntil: string | null;
-  pinnedAt: string | null;
-  favoritedAt: string | null;
-  clearedAt: string | null;
-  clearedThroughMessageId: string | null;
-}
-
-export interface ConversationReadStateResponseDto {
-  conversationId: string;
-  lastReadAt: string;
-  unreadCount: number;
-}
-
-export interface ClearConversationMessagesResponseDto {
-  conversationId: string;
-  changed: boolean;
-  clearedAt: string | null;
-  clearedThroughMessageId: string | null;
-}
+export type ConversationLatestMessageDto =
+  components["schemas"]["ConversationLatestMessageDto"];
+export type ConversationMemberSettingsDto =
+  components["schemas"]["ConversationMemberSettingsDto"];
+export type ConversationParticipantDto =
+  components["schemas"]["ConversationParticipantDto"];
+export type GroupConversationParticipantDto =
+  components["schemas"]["GroupConversationParticipantDto"];
+export type DirectConversationResponseDto =
+  components["schemas"]["DirectConversationResponseDto"];
+export type GroupConversationResponseDto =
+  components["schemas"]["GroupConversationResponseDto"];
+export type DeleteDirectChatResponseDto =
+  components["schemas"]["DeleteDirectChatResponseDto"];
+export type ConversationPageInfoDto =
+  components["schemas"]["ConversationPageInfoDto"];
+export type ConversationListResponseDto =
+  components["schemas"]["ConversationListResponseDto"];
+export type ConversationSettingsResponseDto =
+  components["schemas"]["ConversationSettingsResponseDto"];
+export type ConversationReadStateResponseDto =
+  components["schemas"]["ConversationReadStateResponseDto"];
+export type ClearConversationMessagesResponseDto =
+  components["schemas"]["ClearConversationMessagesResponseDto"];
 
 // ---- Application Domain Models ----
 

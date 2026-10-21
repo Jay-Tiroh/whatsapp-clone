@@ -19,6 +19,8 @@ export default function ConversationScreen() {
   const {
     conversation,
     messages,
+    isOtherUserOnline,
+    isOtherUserTyping,
     otherUserReceipt,
     handleSend,
     startTyping,
@@ -26,6 +28,7 @@ export default function ConversationScreen() {
     refreshing,
     onRefresh,
     onLoadMore,
+    isGroupConversation,
   } = useConversationScreenLogic(conversationId);
 
   return (
@@ -53,7 +56,11 @@ export default function ConversationScreen() {
           className="flex-1 items-center relative"
           style={StyleSheet.absoluteFill}
         >
-          <ChatHeader conversation={conversation} />
+          <ChatHeader
+            conversation={conversation}
+            isOnline={isOtherUserOnline}
+            isTyping={isOtherUserTyping}
+          />
 
           <View className="flex-1 w-full bg-transparent px-safe-offset-5 pb-5">
             <MessageList
@@ -63,6 +70,8 @@ export default function ConversationScreen() {
               refreshing={refreshing}
               onRefresh={onRefresh}
               onEndReached={onLoadMore}
+              isGroupConversation={isGroupConversation}
+              conversation={conversation as any}
             />
           </View>
         </View>

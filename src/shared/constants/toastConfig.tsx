@@ -58,13 +58,13 @@ function SonnerToast({
 
   return (
     <View
-      className={`w-[90%] min-h-[56px] rounded-[10px] border flex-row items-center px-4 py-3 gap-2.5 ${container}`}
+      className={`w-[90%] min-h-[26px] rounded-full border flex-row items-center px-4 py-2 gap-2.5 ${container}`}
     >
       <View className="w-6 items-center justify-center shrink-0">{icon}</View>
 
       <View className="flex-1 gap-0.5">
         {text1 && (
-          <Text className="text-body-md font-display-semibold text-foreground">
+          <Text className="text-body-sm font-display-semibold text-foreground">
             {text1}
           </Text>
         )}

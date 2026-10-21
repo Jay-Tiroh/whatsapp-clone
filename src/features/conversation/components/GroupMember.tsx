@@ -1,3 +1,4 @@
+import { GroupParticipant } from "@/features/chats/types/conversation.types";
 import ThemedText from "@/shared/components/ThemedText";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -24,7 +25,7 @@ export interface Member {
 }
 
 interface MemberItemProps {
-  member: Member;
+  member: GroupParticipant;
   onMessage: (id: string) => void;
   onInfo: (id: string) => void;
   onKick: (id: string) => void;
@@ -38,7 +39,7 @@ const MemberItem = React.memo(
       action(member.id);
       swipeableRef.current?.close();
     };
-
+    console.log("member", member);
     const [isOpen, setIsOpen] = useState(false);
     const handlePress = {};
 
@@ -130,17 +131,17 @@ const MemberItem = React.memo(
               ellipsizeMode="tail"
               numberOfLines={1}
             >
-              {member.name}
+              {member.displayName}
             </ThemedText>
             <ThemedText
               type="bodyMd"
               className={
-                member.isOnline
+                member.role === "admin" || member.role === "owner"
                   ? "text-primary-400 dark:text-primary-400"
                   : "text-neutral-300"
               }
             >
-              {member.statusText}
+              {member.role}
             </ThemedText>
           </View>
         </Pressable>

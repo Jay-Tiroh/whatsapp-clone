@@ -1,4 +1,5 @@
 import { useAuthStore } from "@/features/auth";
+import { Conversation } from "@/features/chats/types/conversation.types";
 import type {
   Message,
   ReceiptPayload,
@@ -15,6 +16,8 @@ type Props = {
   refreshing?: boolean;
   onRefresh?: () => void;
   onEndReached?: () => void;
+  isGroupConversation?: boolean;
+  conversation: Conversation;
 };
 
 export default function MessageList({
@@ -23,13 +26,25 @@ export default function MessageList({
   refreshing,
   onRefresh,
   onEndReached,
+  isGroupConversation,
+  conversation,
 }: Props) {
   const myId = useAuthStore((state) => state.user?.id);
+
+  const participants =
+    conversation?.type === "group" ? conversation?.participants : [];
 
   if (messages.length === 0) {
     return (
       <ThemedText className="text-center text-neutral-500">
         No messages yet
+      </ThemedText>
+    );
+  }
+  if (!conversation) {
+    return (
+      <ThemedText className="text-center text-neutral-500">
+        Loading...
       </ThemedText>
     );
   }
@@ -55,6 +70,8 @@ export default function MessageList({
               ? getMessageStatus(item, otherUserReceipt)
               : undefined
           }
+          isGroupConversation={isGroupConversation}
+          participants={participants}
         />
       )}
     />

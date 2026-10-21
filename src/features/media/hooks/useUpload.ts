@@ -153,7 +153,6 @@ export function useUpload(options: UseUploadOptions = {}) {
 
           if (cancelledRef.current) throw new Error("Upload cancelled");
           if (!result || result.status < 200 || result.status >= 300) {
-            console.log(authorization);
             let message = `Cloudinary upload failed with status ${result?.status}`;
             try {
               const parsed = result?.body ? JSON.parse(result.body) : null;
@@ -165,9 +164,7 @@ export function useUpload(options: UseUploadOptions = {}) {
           }
         }
 
-        // 4. Tell the backend the upload landed, so it can verify with Cloudinary
-        //    and finalize the MediaAsset (may need a retry or two if it checks
-        //    Cloudinary status synchronously and that isn't ready yet).
+        // 4. Tell the backend the upload landed, so it can verify with Cloudinary and finalize
         setStatus("completing");
         let finalAsset = await withRetry(
           () => mediaApi.completeUpload(media.id),

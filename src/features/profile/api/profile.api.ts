@@ -1,9 +1,10 @@
-// api/profile.api.ts
 import { api } from "@/core/lib/api";
 import type { BlockedUser, UserProfile } from "../types/profile.types";
 import type {
   BlockListResponseDto,
   BlockResponseDto,
+  PushDeviceResponseDto,
+  RegisterPushDeviceDto,
   SetProfileAvatarDto,
   UpdateProfileDto,
   UserResponseDto,
@@ -12,16 +13,16 @@ import type {
 const mapUserProfile = (dto: UserResponseDto): UserProfile => ({
   id: dto.id,
   phoneNumber: dto.phoneNumber,
-  // Cast safely addresses the Record<string, never> OpenAPI generation quirk
-  displayName: (dto.displayName as unknown as string) ?? null,
-  avatarUrl: (dto.avatarUrl as unknown as string) ?? null,
+  displayName: typeof dto.displayName === "string" ? dto.displayName : null,
+  avatarUrl: typeof dto.avatarUrl === "string" ? dto.avatarUrl : null,
   profileComplete: dto.profileComplete,
   createdAt: dto.createdAt,
 });
 
 const mapBlockedUser = (dto: BlockResponseDto): BlockedUser => ({
   id: dto.user.id,
-  displayName: (dto.user.displayName as unknown as string) ?? null,
+  displayName:
+    typeof dto.user.displayName === "string" ? dto.user.displayName : null,
   avatarUrl: dto.user.avatarUrl,
   blockedAt: dto.blockedAt,
 });
@@ -58,5 +59,20 @@ export const profileApi = {
 
   unblockUser: async (userId: string): Promise<void> => {
     await api.delete(`/v1/me/blocks/${userId}`);
+  },
+
+  registerPushDevice: async (
+    installationId: string,
+    payload: RegisterPushDeviceDto,
+  ): Promise<PushDeviceResponseDto> => {
+    const { data } = await api.put<PushDeviceResponseDto>(
+      `/v1/me/push-devices/${installationId}`,
+      payload,
+    );
+    return data;
+  },
+
+  unregisterPushDevice: async (installationId: string): Promise<void> => {
+    await api.delete(`/v1/me/push-devices/${installationId}`);
   },
 };

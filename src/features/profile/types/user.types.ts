@@ -1,70 +1,24 @@
-// ---- Request Payloads ----
+import type { components } from "@/core/types/api";
 
-// PATCH /v1/me
-export interface UpdateProfileDto {
-  displayName?: string;
-}
+// ---- Raw DTO Types derived directly from OpenAPI schema ----
 
-// POST /v1/contacts/match
-export interface MatchContactsDto {
-  phoneNumbers: string[];
-}
-
-// PUT /v1/me/avatar
-export interface SetProfileAvatarDto {
-  mediaId: string;
-}
-
-// ---- Response DTOs ----
-
-// GET /v1/me | PATCH /v1/me
-export interface UserResponseDto {
-  id: string;
-  phoneNumber: string;
-  displayName?: Record<string, never> | null;
-  avatarUrl?: Record<string, never> | null;
-  profileComplete: boolean;
-  createdAt: string;
-}
-
-// Nested inside BlockResponseDto
-export interface BlockedPublicUserDto {
-  id: string;
-  displayName: Record<string, never> | null;
-  avatarUrl: string | null;
-}
-
-// PUT /v1/me/blocks/{userId}
-export interface BlockResponseDto {
-  user: BlockedPublicUserDto;
-  blockedAt: string;
-}
-
-// GET /v1/me/blocks
-export interface BlockListResponseDto {
-  items: BlockResponseDto[];
-}
-
-// Nested inside ContactMatchDto / UserSearchResponseDto
-export interface PublicDiscoveryUserDto {
-  id: string;
-  displayName: Record<string, never> | null;
-  avatarUrl: string | null;
-}
-
-// Nested inside ContactMatchesResponseDto
-export interface ContactMatchDto {
-  matchedPhoneNumber: string;
-  user: PublicDiscoveryUserDto;
-}
-
-// POST /v1/contacts/match
-export interface ContactMatchesResponseDto {
-  matches: ContactMatchDto[];
-}
-
-// GET /v1/users/search
-export interface UserSearchResponseDto {
-  items: PublicDiscoveryUserDto[];
-  nextCursor: string | null;
-}
+export type UpdateProfileDto = components["schemas"]["UpdateProfileDto"];
+export type MatchContactsDto = components["schemas"]["MatchContactsDto"];
+export type SetProfileAvatarDto = components["schemas"]["SetProfileAvatarDto"];
+export type UserResponseDto = components["schemas"]["UserResponseDto"];
+export type BlockedPublicUserDto =
+  components["schemas"]["BlockedPublicUserDto"];
+export type BlockResponseDto = components["schemas"]["BlockResponseDto"];
+export type BlockListResponseDto =
+  components["schemas"]["BlockListResponseDto"];
+export type PublicDiscoveryUserDto =
+  components["schemas"]["PublicDiscoveryUserDto"];
+export type ContactMatchDto = components["schemas"]["ContactMatchDto"];
+export type ContactMatchesResponseDto =
+  components["schemas"]["ContactMatchesResponseDto"];
+export type UserSearchResponseDto =
+  components["schemas"]["UserSearchResponseDto"];
+export type RegisterPushDeviceDto =
+  components["schemas"]["RegisterPushDeviceDto"];
+export type PushDeviceResponseDto =
+  components["schemas"]["PushDeviceResponseDto"];

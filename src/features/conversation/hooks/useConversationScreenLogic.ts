@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useSocket } from "@/core/hooks/useSocket";
+import { useIsUserOnline } from "@/core/store/presenceStore";
 import { useAuthStore } from "@/features/auth";
 import { useGetConversationById } from "@/features/chats/hooks/useConversations";
 import { mapMessage } from "@/features/conversation/api/message.api";
@@ -13,7 +14,6 @@ import { useRealtimeMessaging } from "@/features/conversation/hooks/useRealtimeM
 import type {
   Message,
   MessageDto,
-  PresencePayload,
   ReceiptPayload,
   TypingPayload,
 } from "@/features/conversation/types/message.types";
@@ -37,10 +37,15 @@ export function useConversationScreenLogic(conversationId: string) {
   const markConversationRead = useMarkConversationRead();
 
   const [liveMessages, setLiveMessages] = useState<Message[]>([]);
-  const [isOtherUserOnline, setIsOtherUserOnline] = useState(false);
   const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
   const [otherUserReceipt, setOtherUserReceipt] =
     useState<ReceiptPayload | null>(null);
+
+  const otherParticipantId =
+    conversation?.type === "direct"
+      ? conversation.otherParticipant.id
+      : undefined;
+  const isOtherUserOnline = useIsUserOnline(otherParticipantId);
 
   const handleReceiptDelivered = useCallback(
     (receipt: ReceiptPayload) => {
@@ -75,14 +80,6 @@ export function useConversationScreenLogic(conversationId: string) {
     });
   }, []);
 
-  const handlePresenceChanged = useCallback(
-    (presence: PresencePayload) => {
-      if (presence.userId === currentUserId) return;
-      setIsOtherUserOnline(presence.status === "online");
-    },
-    [currentUserId],
-  );
-
   const handleTypingStarted = useCallback(
     (typing: TypingPayload) => {
       if (typing.userId === currentUserId) return;
@@ -104,7 +101,6 @@ export function useConversationScreenLogic(conversationId: string) {
     onMessageCreated: handleNewMessage,
     onReceiptDelivered: handleReceiptDelivered,
     onReceiptRead: handleReceiptRead,
-    onPresenceChanged: handlePresenceChanged,
     onTypingStarted: handleTypingStarted,
     onTypingStopped: handleTypingStopped,
   });
@@ -158,7 +154,7 @@ export function useConversationScreenLogic(conversationId: string) {
         clientMessageId,
         senderId: currentUserId,
         kind: "text",
-        text: trimmedText || null, // Updated: Reflects the nullable text type
+        text: trimmedText || null,
         createdAt: new Date().toISOString(),
         attachments: [],
         replyToMessageId: null,
@@ -174,6 +170,10 @@ export function useConversationScreenLogic(conversationId: string) {
     },
     [conversationId, currentUserId, sendMessage],
   );
+
+  const isGroupConversation = useMemo(() => {
+    return conversation?.type === "group";
+  }, [conversation]);
 
   useEffect(() => {
     if (!conversationId) return;
@@ -203,5 +203,6 @@ export function useConversationScreenLogic(conversationId: string) {
     onRefresh,
     onLoadMore,
     isFetchingNextPage,
+    isGroupConversation,
   };
 }

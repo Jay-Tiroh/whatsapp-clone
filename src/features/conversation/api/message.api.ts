@@ -86,7 +86,6 @@ export const messageApi = {
     return mapPaginatedMessages(data);
   },
 
-  // NEW: Search visible message text and captions
   search: async (
     conversationId: string,
     params: MessageListQueryPayload & { q: string },
@@ -98,7 +97,6 @@ export const messageApi = {
     return mapPaginatedMessages(data);
   },
 
-  // NEW: Get one visible message
   get: async (conversationId: string, messageId: string): Promise<Message> => {
     const { data } = await api.get<MessageDto>(
       `/v1/conversations/${conversationId}/messages/${messageId}`,
@@ -106,7 +104,6 @@ export const messageApi = {
     return mapMessage(data);
   },
 
-  // NEW: Delete your own message
   delete: async (
     conversationId: string,
     messageId: string,
@@ -117,7 +114,6 @@ export const messageApi = {
     return mapMessage(data);
   },
 
-  // NEW: Edit your own message text or attachment caption
   edit: async (
     conversationId: string,
     messageId: string,
@@ -130,7 +126,6 @@ export const messageApi = {
     return mapMessage(data);
   },
 
-  // NEW: Set or replace your reaction
   react: async (
     conversationId: string,
     messageId: string,
@@ -143,7 +138,6 @@ export const messageApi = {
     return mapMessage(data);
   },
 
-  // NEW: Remove your reaction
   unreact: async (
     conversationId: string,
     messageId: string,
@@ -154,7 +148,6 @@ export const messageApi = {
     return mapMessage(data);
   },
 
-  // NEW: Clear the caller's message history for a conversation
   clear: async (
     conversationId: string,
   ): Promise<ClearConversationMessagesResponseDto> => {

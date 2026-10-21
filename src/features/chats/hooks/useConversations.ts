@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { conversationApi } from "../api/conversation.api";
 import type {
   AddGroupMembersDto,
+  Conversation,
   CreateDirectConversationDto,
   CreateGroupConversationDto,
   MuteConversationDto,
@@ -19,7 +20,6 @@ export const useCreateDirectConversation = () => {
   });
 };
 
-// NEW
 export const useCreateGroupConversation = () => {
   return useMutation({
     mutationFn: (payload: CreateGroupConversationDto) =>
@@ -39,7 +39,6 @@ export const useGetConversations = (params?: {
   });
 };
 
-// NEW
 export const useGetArchivedConversations = (params?: {
   limit?: number;
   cursor?: string;
@@ -51,7 +50,6 @@ export const useGetArchivedConversations = (params?: {
   });
 };
 
-// NEW
 export const useGetFavoriteConversations = (params?: {
   limit?: number;
   cursor?: string;
@@ -72,7 +70,6 @@ export const useGetConversationById = (conversationId: string) => {
   });
 };
 
-// NEW
 export const useDeleteGroupConversation = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -84,7 +81,6 @@ export const useDeleteGroupConversation = () => {
   });
 };
 
-// NEW
 export const useUpdateGroupConversation = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -101,7 +97,6 @@ export const useUpdateGroupConversation = () => {
   });
 };
 
-// NEW
 export const useSetGroupAvatar = () => {
   return useMutation({
     mutationFn: ({
@@ -114,7 +109,6 @@ export const useSetGroupAvatar = () => {
   });
 };
 
-// NEW
 export const useClearGroupAvatar = () => {
   return useMutation({
     mutationFn: (conversationId: string) =>
@@ -122,7 +116,6 @@ export const useClearGroupAvatar = () => {
   });
 };
 
-// NEW
 export const useAddGroupMembers = () => {
   return useMutation({
     mutationFn: ({
@@ -135,7 +128,6 @@ export const useAddGroupMembers = () => {
   });
 };
 
-// NEW
 export const useRemoveGroupMember = () => {
   return useMutation({
     mutationFn: ({
@@ -148,7 +140,6 @@ export const useRemoveGroupMember = () => {
   });
 };
 
-// NEW
 export const useUpdateGroupMemberRole = () => {
   return useMutation({
     mutationFn: ({
@@ -164,7 +155,6 @@ export const useUpdateGroupMemberRole = () => {
   });
 };
 
-// NEW
 export const useTransferGroupOwnership = () => {
   return useMutation({
     mutationFn: ({
@@ -177,7 +167,6 @@ export const useTransferGroupOwnership = () => {
   });
 };
 
-// NEW
 export const useLeaveGroup = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -189,7 +178,17 @@ export const useLeaveGroup = () => {
   });
 };
 
-// NEW
+export const useDeleteForMe = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (conversationId: string) =>
+      conversationApi.deleteForMe(conversationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    },
+  });
+};
+
 export const useUpdateConversationSettings = () => {
   return useMutation({
     mutationFn: ({
@@ -202,7 +201,6 @@ export const useUpdateConversationSettings = () => {
   });
 };
 
-// NEW
 export const useArchiveConversation = () => {
   return useMutation({
     mutationFn: (conversationId: string) =>
@@ -210,7 +208,6 @@ export const useArchiveConversation = () => {
   });
 };
 
-// NEW
 export const useUnarchiveConversation = () => {
   return useMutation({
     mutationFn: (conversationId: string) =>
@@ -218,28 +215,6 @@ export const useUnarchiveConversation = () => {
   });
 };
 
-// NEW
-export const useMuteConversation = () => {
-  return useMutation({
-    mutationFn: ({
-      conversationId,
-      payload,
-    }: {
-      conversationId: string;
-      payload: MuteConversationDto;
-    }) => conversationApi.mute(conversationId, payload),
-  });
-};
-
-// NEW
-export const useUnmuteConversation = () => {
-  return useMutation({
-    mutationFn: (conversationId: string) =>
-      conversationApi.unmute(conversationId),
-  });
-};
-
-// NEW
 export const useFavoriteConversation = () => {
   return useMutation({
     mutationFn: (conversationId: string) =>
@@ -247,7 +222,6 @@ export const useFavoriteConversation = () => {
   });
 };
 
-// NEW
 export const useUnfavoriteConversation = () => {
   return useMutation({
     mutationFn: (conversationId: string) =>
@@ -255,25 +229,108 @@ export const useUnfavoriteConversation = () => {
   });
 };
 
-// NEW
-export const usePinConversation = () => {
-  return useMutation({
-    mutationFn: (conversationId: string) => conversationApi.pin(conversationId),
-  });
-};
+type ConversationSettings = Conversation["settings"];
 
-// NEW
-export const useUnpinConversation = () => {
-  return useMutation({
-    mutationFn: (conversationId: string) =>
-      conversationApi.unpin(conversationId),
-  });
-};
+function patchConversation(
+  old: unknown,
+  id: string,
+  patch: Partial<ConversationSettings>,
+): unknown {
+  if (!old || typeof old !== "object") return old;
 
-// NEW
+  const patchOne = (c: Conversation): Conversation =>
+    c.id === id ? { ...c, settings: { ...c.settings, ...patch } } : c;
+
+  if (Array.isArray(old)) return old.map(patchOne);
+  if ("items" in old && Array.isArray(old.items)) {
+    return { ...old, items: old.items.map(patchOne) };
+  }
+  if ("id" in old && old.id === id) return patchOne(old as Conversation);
+  return old;
+}
+
+function useOptimisticSetting<TVars>(
+  mutationFn: (vars: TVars) => Promise<unknown>,
+  getId: (vars: TVars) => string,
+  patch: Partial<ConversationSettings>,
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn,
+    onMutate: async (vars: TVars) => {
+      await queryClient.cancelQueries({ queryKey: ["conversations"] });
+      const previous = queryClient.getQueriesData({
+        queryKey: ["conversations"],
+      });
+
+      queryClient.setQueriesData({ queryKey: ["conversations"] }, (old) =>
+        patchConversation(old, getId(vars), patch),
+      );
+
+      return { previous };
+    },
+    onError: (_err, _vars, ctx) => {
+      ctx?.previous.forEach(([key, data]) =>
+        queryClient.setQueryData(key, data),
+      );
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    },
+  });
+}
+
+export const usePinConversation = () =>
+  useOptimisticSetting(
+    (id: string) => conversationApi.pin(id),
+    (id) => id,
+    { pinned: true },
+  );
+
+export const useUnpinConversation = () =>
+  useOptimisticSetting(
+    (id: string) => conversationApi.unpin(id),
+    (id) => id,
+    { pinned: false },
+  );
+
+type MuteVars = { conversationId: string; payload: MuteConversationDto };
+
+export const useMuteConversation = () =>
+  useOptimisticSetting(
+    ({ conversationId, payload }: MuteVars) =>
+      conversationApi.mute(conversationId, payload),
+    (v) => v.conversationId,
+    { muted: true },
+  );
+
+export const useUnmuteConversation = () =>
+  useOptimisticSetting(
+    (id: string) => conversationApi.unmute(id),
+    (id) => id,
+    { muted: false },
+  );
+
 export const useClearConversationMessages = () => {
   return useMutation({
     mutationFn: (conversationId: string) =>
       conversationApi.clearMessages(conversationId),
   });
+};
+
+export const useMarkConversationRead = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (conversationId: string) =>
+      conversationApi.markRead(conversationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    },
+  });
+};
+
+export const useInvalidateConversations = () => {
+  const queryClient = useQueryClient();
+  return () => queryClient.invalidateQueries({ queryKey: ["conversations"] });
 };

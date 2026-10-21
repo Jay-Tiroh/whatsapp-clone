@@ -1,19 +1,31 @@
-// features/chats/hooks/useConversationListRealtime.ts
 import { getSocket } from "@/core/lib/socket";
+import { usePresenceStore } from "@/core/store/presenceStore";
+import type {
+  AckResponse,
+  MessageDto,
+  PresencePayload,
+} from "@/features/conversation/types/message.types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import type { PaginatedConversations } from "../types/conversation.types";
 
-type MessageCreatedPayload = {
-  id: string;
-  conversationId: string;
-  senderId: string;
-  kind: "text";
-  text: string;
-  createdAt: string;
-};
-
 const MAX_SUBSCRIBED = 20;
+
+const toPreview = (message: MessageDto): string => {
+  if (message.text) return message.text;
+  switch (message.kind) {
+    case "image":
+      return "📷 Photo";
+    case "audio":
+      return "🎤 Voice message";
+    case "video":
+      return "🎥 Video";
+    case "document":
+      return "📄 Document";
+    default:
+      return "";
+  }
+};
 
 export function useConversationListRealtime(
   conversationIds: string[],
@@ -22,8 +34,9 @@ export function useConversationListRealtime(
 ) {
   const queryClient = useQueryClient();
   const idsRef = useRef<string[]>([]);
+  const setOnline = usePresenceStore((s) => s.setOnline);
+  const setOffline = usePresenceStore((s) => s.setOffline);
 
-  // Subscribe/unsubscribe as the visible conversation list changes
   useEffect(() => {
     const socket = getSocket();
     const idsToSubscribe = conversationIds.slice(0, MAX_SUBSCRIBED);
@@ -31,15 +44,19 @@ export function useConversationListRealtime(
     idsToSubscribe.forEach((conversationId) => {
       if (idsRef.current.includes(conversationId)) return;
 
-      socket.emit("presence.subscribe", { conversationId }, (ack: any) => {
-        if (!ack.ok) {
-          console.warn(
-            "[chatlist] subscribe failed",
-            conversationId,
-            ack.error,
-          );
-        }
-      });
+      socket.emit(
+        "presence.subscribe",
+        { conversationId },
+        (ack: AckResponse) => {
+          if (!ack.ok) {
+            console.warn(
+              "[chatlist] subscribe failed",
+              conversationId,
+              ack.error,
+            );
+          }
+        },
+      );
     });
 
     idsRef.current
@@ -58,11 +75,10 @@ export function useConversationListRealtime(
     };
   }, [conversationIds]);
 
-  // Listen for new messages and patch every cached conversations-list query
   useEffect(() => {
     const socket = getSocket();
 
-    const onMessageCreated = (message: MessageCreatedPayload) => {
+    const onMessageCreated = (message: MessageDto) => {
       queryClient.setQueriesData<PaginatedConversations>(
         { queryKey: ["conversations", "list"] },
         (old) => {
@@ -80,7 +96,7 @@ export function useConversationListRealtime(
                     id: message.id,
                     senderId: message.senderId,
                     kind: message.kind,
-                    preview: message.text,
+                    preview: toPreview(message),
                     createdAt: message.createdAt,
                   },
                   lastActivityAt: message.createdAt,
@@ -105,10 +121,21 @@ export function useConversationListRealtime(
       );
     };
 
+    const onPresenceChanged = (presence: PresencePayload) => {
+      if (presence.userId === currentUserId) return;
+      if (presence.status === "online") {
+        setOnline(presence.userId);
+      } else {
+        setOffline(presence.userId);
+      }
+    };
+
     socket.on("message.created", onMessageCreated);
+    socket.on("presence.changed", onPresenceChanged);
 
     return () => {
       socket.off("message.created", onMessageCreated);
+      socket.off("presence.changed", onPresenceChanged);
     };
-  }, [queryClient, currentUserId, activeConversationId]);
+  }, [queryClient, currentUserId, activeConversationId, setOnline, setOffline]);
 }

@@ -1,3 +1,4 @@
+import { GroupParticipant } from "@/features/chats/types/conversation.types";
 import MemberItem, {
   Member,
 } from "@/features/conversation/components/GroupMember";
@@ -69,12 +70,10 @@ const DUMMY_MEMBERS: Member[] = [
 const ItemSeparator = () => <View className="h-2" />;
 
 interface MembersListProps {
-  members?: Member[];
+  members?: GroupParticipant[];
 }
 
-export default function MembersList({
-  members = DUMMY_MEMBERS,
-}: MembersListProps) {
+export default function MembersList({ members }: MembersListProps) {
   const [listData, setListData] = useState(members);
 
   const handleMessage = useCallback((id: string) => {
@@ -86,11 +85,11 @@ export default function MembersList({
   }, []);
 
   const handleKick = useCallback((id: string) => {
-    setListData((prev) => prev.filter((m) => m.id !== id));
+    setListData((prev) => prev?.filter((m) => m.id !== id));
   }, []);
 
   const renderItem = useCallback(
-    ({ item }: ListRenderItemInfo<Member>) => (
+    ({ item }: ListRenderItemInfo<GroupParticipant>) => (
       <MemberItem
         member={item}
         onMessage={handleMessage}
@@ -101,7 +100,7 @@ export default function MembersList({
     [handleMessage, handleInfo, handleKick],
   );
 
-  const keyExtractor = useCallback((item: Member) => item.id, []);
+  const keyExtractor = useCallback((item: GroupParticipant) => item.id, []);
 
   return (
     <View className="flex-1 w-full">
@@ -112,7 +111,7 @@ export default function MembersList({
           color="option"
           className="flex-1"
         >
-          {listData.length} members
+          {listData?.length} members
         </ThemedText>
         <StyledMaterialIcons
           name="search"
@@ -126,7 +125,7 @@ export default function MembersList({
         />
       </View>
       <StyledFlashList
-        data={listData}
+        data={listData ?? []}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
         // estimatedItemSize={80}

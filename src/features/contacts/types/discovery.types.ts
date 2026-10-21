@@ -1,7 +1,18 @@
-// types/discovery.types.ts
+import type { components } from "@/core/types/api";
+
+// ---- Raw DTO Types derived directly from OpenAPI schema ----
+
+export type MatchContactsDto = components["schemas"]["MatchContactsDto"];
+export type PublicDiscoveryUserDto =
+  components["schemas"]["PublicDiscoveryUserDto"];
+export type ContactMatchDto = components["schemas"]["ContactMatchDto"];
+export type ContactMatchesResponseDto =
+  components["schemas"]["ContactMatchesResponseDto"];
+export type UserSearchResponseDto =
+  components["schemas"]["UserSearchResponseDto"];
 
 // ---- Request Payloads ----
-// Note: We keep this locally because it represents query params, not a JSON body DTO.
+
 export interface SearchUsersQueryPayload {
   q: string;
   limit?: number;
@@ -9,6 +20,7 @@ export interface SearchUsersQueryPayload {
 }
 
 // ---- Application Domain Models ----
+
 export interface DiscoveredUser {
   id: string;
   displayName: string | null;

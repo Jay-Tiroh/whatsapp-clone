@@ -49,7 +49,7 @@ export default function RootLayout() {
         </Stack>
         {hasSetupPin && isLocked && <PinLockScreen />}
       </View>
-      <Toast config={toastConfig} />
+      <Toast config={toastConfig} position="bottom" swipeable />
     </AppProviders>
   );
 }

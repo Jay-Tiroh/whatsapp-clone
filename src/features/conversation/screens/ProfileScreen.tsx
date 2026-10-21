@@ -38,7 +38,8 @@ const ProfileDetail = () => {
     });
   }
   // const isGroup = conversation?.type === "group";
-  const isGroup = true;
+  const isGroup =
+    typeof conversation?.type === "string" && conversation?.type === "group";
   const router = useRouter();
   const handlePhotoPress = () => {
     router.push(`/chats/${conversationId}/shared?tab=photo`);
@@ -58,13 +59,35 @@ const ProfileDetail = () => {
   const { onOpen: openQrModal, update: updateQrModal } = useQrModalStore();
 
   const handleQrModalOpen = () => {
-    updateQrModal({
-      name: conversation?.otherParticipant.displayName as string,
-      avatarUrl: conversation?.otherParticipant.avatarUrl as string,
-      isGroup: isGroup,
-    });
+    conversation?.type === "group"
+      ? updateQrModal({
+          name: conversation?.name as string,
+          avatarUrl: conversation?.avatarUrl as string,
+          isGroup: isGroup,
+        })
+      : updateQrModal({
+          name: conversation?.otherParticipant.displayName as string,
+          avatarUrl: conversation?.otherParticipant.avatarUrl as string,
+          isGroup: isGroup,
+        });
     openQrModal();
   };
+
+  const getImgSrc = () => {
+    if (isGroup) {
+      return conversation?.avatarUrl
+        ? { uri: conversation?.avatarUrl }
+        : require("@/assets/images/group.png");
+    } else {
+      return conversation?.otherParticipant.avatarUrl
+        ? { uri: conversation?.otherParticipant.avatarUrl }
+        : null;
+    }
+  };
+
+  const displayName = isGroup
+    ? conversation?.name
+    : conversation?.otherParticipant.displayName;
 
   return (
     <>
@@ -75,15 +98,23 @@ const ProfileDetail = () => {
       >
         {/* Header Section: Image, Svg Gradient Overlay, and Top Actions */}
         <View className="relative w-full h-[328px]">
-          <StyledImage
-            className="absolute inset-0 w-full h-full"
-            contentFit="cover"
-            source={
-              conversation?.otherParticipant.avatarUrl
-                ? { uri: conversation?.otherParticipant.avatarUrl }
-                : require("@/assets/images/avatar.png")
-            }
-          />
+          {getImgSrc ? (
+            <StyledImage
+              className="absolute inset-0 w-full h-full"
+              contentFit="cover"
+              source={getImgSrc()}
+            />
+          ) : (
+            <ThemedText
+              type="h2"
+              weight="bold"
+              className="absolute inset-0 w-full h-full text-center text-white/90 items-center justify-center flex"
+            >
+              {displayName
+                ?.split(" ")
+                .forEach((el) => el.charAt(0).toUpperCase()) ?? "U"}
+            </ThemedText>
+          )}
 
           {/* Gradient Overlay */}
 
@@ -137,7 +168,10 @@ const ProfileDetail = () => {
           {/* Profile Identity (Maintained as inverse for image contrast) */}
           <View className="absolute bottom-6 left-6 w-3/4">
             <ThemedText type="h2" className="text-white/90">
-              {conversation?.otherParticipant?.displayName ?? "Unknown user"}
+              {(conversation?.type === "group"
+                ? conversation?.name
+                : conversation?.otherParticipant?.displayName) ??
+                "Unknown user"}
             </ThemedText>
             {!isGroup && (
               <ThemedText
@@ -174,10 +208,7 @@ const ProfileDetail = () => {
                 numberOfLines={isReadMore ? undefined : 3}
                 ellipsizeMode="tail"
               >
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Sint
-                autem minima perspiciatis similique? Velit repudiandae quia ad
-                nam rerum laudantium assumenda? Illo neque aperiam voluptatibus
-                officiis ratione earum atque rerum!
+                {"No description available."}
               </ThemedText>
               <ThemedText
                 type="bodyLg"
@@ -193,7 +224,7 @@ const ProfileDetail = () => {
           <View className="px-6 pt-12 pb-6 gap-6">
             <View className="gap-1">
               <ThemedText type="bodyXl" weight="bold">
-                +61-123-753-555
+                {conversation?.otherParticipant.id || "N/A"}
               </ThemedText>
               <ThemedText type="bodyLg" color="muted">
                 Phone number
@@ -346,7 +377,7 @@ const ProfileDetail = () => {
           <>
             {/* Divider */}
             <View className="h-2 w-full bg-border my-4" />
-            <MembersList />
+            <MembersList members={conversation.participants} />
           </>
         )}
         {/* Divider */}

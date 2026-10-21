@@ -1,44 +1,44 @@
-import { useChatsStore } from "@/features/chats/store/chatsStore";
+import { useGetArchivedConversations } from "@/features/chats/hooks/useConversations";
 import ThemedText from "@/shared/components/ThemedText";
 import { formatTime } from "@/shared/utils/date";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useRouter } from "expo-router";
+import { useMemo } from "react";
 import { Pressable, View } from "react-native";
 import { withUniwind } from "uniwind";
-import type { Conversation } from "../types/conversation.types";
 
 const StyledFontAwesome6 = withUniwind(FontAwesome6);
 
-interface ArchivedButtonProps {
-  conversations: Conversation[];
-}
-
-export default function ArchivedButton({ conversations }: ArchivedButtonProps) {
+export default function ArchivedButton() {
   const router = useRouter();
-  const archivedChatIds = useChatsStore((s) => s.archivedChatIds);
+  // Same params as ArchivedScreen so both share one cache entry
+  const { data } = useGetArchivedConversations({ limit: 20 });
 
-  const archivedConversations = conversations
-    .filter((c) => archivedChatIds.includes(c.id))
-    .sort(
-      (a, b) =>
-        new Date(b.lastActivityAt).getTime() -
-        new Date(a.lastActivityAt).getTime(),
-    );
-  console.log("Archived Conversations:", archivedConversations);
-  console.log("Conversations:", conversations);
-  console.log("Archived ChatIds:", archivedChatIds);
+  const archivedConversations = useMemo(
+    () =>
+      [...(data?.items ?? [])].sort(
+        (a, b) =>
+          new Date(b.lastActivityAt).getTime() -
+          new Date(a.lastActivityAt).getTime(),
+      ),
+    [data?.items],
+  );
 
   if (archivedConversations.length === 0) return null;
 
   const mostRecent = archivedConversations[0];
   const totalUnread = archivedConversations.reduce(
-    (sum, c) => sum + c.unreadCount,
+    (sum, c) => sum + (c.unreadCount ?? 0),
     0,
   );
   const hasUnread = totalUnread > 0;
   const previewNames = archivedConversations
     .slice(0, 2)
-    .map((c) => c.otherParticipant.displayName ?? "Unknown")
+    .map(
+      (c) =>
+        (c.type === "group" ? c.name : c.otherParticipant?.displayName) ??
+        "Unknown",
+    )
     .join(", ");
 
   return (
@@ -46,7 +46,7 @@ export default function ArchivedButton({ conversations }: ArchivedButtonProps) {
       onPress={() => router.push("/(tabs)/chats/archived")}
       className="w-full px-safe-offset-6 gap-4 flex-row items-center rounded-xl h-20 active:bg-primary-50 active:dark:bg-neutral-700 bg-background"
     >
-      <View className="w-fit size-14 rounded-full bg-primary-400 true-center">
+      <View className="w-fit size-14 rounded-full bg-primary-400 items-center justify-center">
         <StyledFontAwesome6
           name="box-archive"
           size={24}

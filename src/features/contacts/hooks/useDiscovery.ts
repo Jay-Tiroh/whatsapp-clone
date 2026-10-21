@@ -1,8 +1,7 @@
-// hooks/useDiscovery.ts
-import { discoveryApi } from "@/features/contacts/api/discovery.api";
-import type { MatchContactsDto } from "@/features/profile";
 import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { discoveryApi } from "../api/discovery.api";
+import type { MatchContactsDto } from "../types/discovery.types";
 
 export function useDebouncedValue<T>(value: T, delayMs = 300): T {
   const [debounced, setDebounced] = useState(value);
@@ -21,7 +20,11 @@ export function useSearchUsers(query: string, limit = 20) {
   return useInfiniteQuery({
     queryKey: ["discovery", "searchUsers", debouncedQuery],
     queryFn: ({ pageParam }: { pageParam?: string }) =>
-      discoveryApi.searchUsers({ q: debouncedQuery, limit, cursor: pageParam }),
+      discoveryApi.searchUsers({
+        q: debouncedQuery,
+        limit,
+        cursor: pageParam,
+      }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     enabled: debouncedQuery.length > 0,

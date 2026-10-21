@@ -5,14 +5,14 @@ import { useEffect, useState } from "react";
 import { InteractionManager } from "react-native";
 
 type ContactsStatus = "idle" | "loading" | "granted" | "denied";
+type ContactDetails = { name: string; id: string; phones: string };
 
 export function useDeviceContacts() {
   const [phoneNumbers, setPhoneNumbers] = useState<string[]>([]);
   const [status, setStatus] = useState<ContactsStatus>("idle");
+  const [contacts, setContacts] = useState<ContactDetails[]>([]);
 
   useEffect(() => {
-    // Defer heavy processing until after navigation animations finish
-    // to prevent blocking the JS thread and causing UI stutter.
     const task = InteractionManager.runAfterInteractions(async () => {
       setStatus("loading");
       const { status: permStatus } = await requestPermissionsAsync();
@@ -22,7 +22,33 @@ export function useDeviceContacts() {
         return;
       }
 
-      const results = await Contact.getAllDetails([ContactField.PHONES]);
+      const FIELDS = [ContactField.FULL_NAME, ContactField.PHONES] as const;
+      const PAGE_SIZE = 500;
+      let offset = 0;
+      let results: Awaited<
+        ReturnType<typeof Contact.getAllDetails<typeof FIELDS>>
+      > = [];
+
+      while (true) {
+        const batch = await Contact.getAllDetails(FIELDS, {
+          limit: PAGE_SIZE,
+          offset,
+        });
+        results = results.concat(batch);
+        if (batch.length < PAGE_SIZE) break;
+        offset += PAGE_SIZE;
+      }
+
+      const details: ContactDetails[] = results.map((c) => ({
+        name: c.fullName ?? "(no name)",
+        id: c.id,
+        phones:
+          c.phones
+            ?.map((p) => p.number)
+            .filter(Boolean)
+            .join(", ") ?? "(no phones)",
+      }));
+      setContacts(details);
 
       const rawNumbers = results
         .flatMap((c) => c.phones?.map((p) => p.number) ?? [])
@@ -47,5 +73,5 @@ export function useDeviceContacts() {
     return () => task.cancel();
   }, []);
 
-  return { phoneNumbers, status };
+  return { phoneNumbers, status, contacts };
 }
