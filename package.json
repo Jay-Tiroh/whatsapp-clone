@@ -95,7 +95,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "gen:types": "openapi-typescript https://chateo-lhuw.onrender.com/v1/docs-yaml -o ./core/types/api.d.ts"
+    "gen:types": "openapi-typescript https://chateo-lhuw.onrender.com/v1/docs-yaml -o ./src/core/types/api.d.ts"
   },
   "private": true
 }

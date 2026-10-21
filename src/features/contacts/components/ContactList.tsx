@@ -1,5 +1,5 @@
-import { mockContactMatches } from "@/features/chats/mocks/discovery.mocks";
-import { ContactMatchDto } from "@/features/profile";
+import { useMatchedContacts } from "@/features/contacts/hooks/useMatchedContacts";
+import { ContactMatch } from "@/features/contacts/types/discovery.types";
 
 import SearchBar from "@/shared/components/Searchbar";
 import ThemedText from "@/shared/components/ThemedText";
@@ -13,31 +13,40 @@ const StyledImage = withUniwind(Image);
 const StyledFeather = withUniwind(Feather);
 const StyledScrollView = withUniwind(ScrollView);
 const alphabets = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const OTHER_GROUP_LETTER = "#";
+
 export default function ContactList() {
-  const matches = mockContactMatches;
-  // const { matches, isLoading: matchesLoading } = useMatchedContacts();
-  // console.log("matches", matches);
+  const { matches, isLoading: matchesLoading } = useMatchedContacts();
   const [query, setQuery] = useState("");
 
   const filteredMatches = useMemo(() => {
     const q = query.trim().toLowerCase();
+    const valid = matches.filter((match) => match?.user?.id);
     if (!q) {
-      return matches;
+      return valid;
     }
-    return matches.filter((match) =>
+    return valid.filter((match) =>
       match?.user?.displayName?.toLowerCase().includes(q),
     );
   }, [matches, query]);
 
   const sortedMatches = useMemo(() => {
-    return alphabets
-      .map((letter) => ({
-        letter,
-        contacts: filteredMatches.filter((match) =>
-          match?.user?.displayName?.toUpperCase().startsWith(letter),
-        ),
-      }))
-      .filter((group) => group.contacts.length > 0);
+    const groups = alphabets.map((letter) => ({
+      letter,
+      contacts: filteredMatches.filter((match) =>
+        match?.user?.displayName?.toUpperCase().startsWith(letter),
+      ),
+    }));
+
+    const grouped = new Set(groups.flatMap((g) => g.contacts));
+    const other = filteredMatches.filter((match) => !grouped.has(match));
+
+    return [
+      ...groups,
+      ...(other.length > 0
+        ? [{ letter: OTHER_GROUP_LETTER, contacts: other }]
+        : []),
+    ].filter((group) => group.contacts.length > 0);
   }, [filteredMatches]);
 
   const isSearching = query.trim().length > 0;
@@ -45,7 +54,7 @@ export default function ContactList() {
   return (
     <>
       {/* Header */}
-      <View className="px-6 pt-6 pb-8">
+      <View className="px-6 pt-12 pb-8">
         <ThemedText type="h4" className="text-center mb-4">
           Contact
         </ThemedText>
@@ -63,7 +72,11 @@ export default function ContactList() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {filteredMatches.length === 0 ? (
+        {matchesLoading ? (
+          <View className="items-center py-12">
+            <ThemedText color="muted">Finding your contacts…</ThemedText>
+          </View>
+        ) : filteredMatches.length === 0 ? (
           <View className="items-center py-12">
             <ThemedText color="muted">No contacts found</ThemedText>
           </View>
@@ -95,7 +108,7 @@ export default function ContactList() {
   );
 }
 
-const ContactListItem = ({ contact }: { contact: ContactMatchDto }) => {
+const ContactListItem = ({ contact }: { contact: ContactMatch }) => {
   return (
     <View className="flex-row items-center gap-4 p-4 px-6">
       <StyledImage

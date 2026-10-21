@@ -338,6 +338,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/conversations/{conversationId}/for-me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a direct chat for the signed-in user only
+         * @description Hides the chat from all your lists and clears your current history. The other participant is unaffected. Clears archive/pin/favorite, preserves mute. A new message from either participant restores the chat without restoring cleared history. Repeating while hidden is a no-op. No request body.
+         */
+        delete: operations["deleteForMe"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/conversations": {
         parameters: {
             query?: never;
@@ -942,6 +962,11 @@ export interface components {
             createdAt: string;
         };
         ConversationMemberSettingsDto: {
+            /**
+             * Format: date-time
+             * @description Deleted from your chat lists until a new message is sent. Direct chats only.
+             */
+            deletedAt: string | null;
             archived: boolean;
             muted: boolean;
             pinned: boolean;
@@ -1050,6 +1075,18 @@ export interface components {
              * @enum {string}
              */
             role: "owner" | "admin" | "member";
+        };
+        DeleteDirectChatResponseDto: {
+            /** Format: uuid */
+            conversationId: string;
+            /** @description False when this chat is already deleted for you. */
+            changed: boolean;
+            /** Format: date-time */
+            deletedAt: string;
+            /** Format: date-time */
+            clearedAt: string | null;
+            /** Format: uuid */
+            clearedThroughMessageId: string | null;
         };
         ConversationPageInfoDto: {
             nextCursor: Record<string, never> | null;
@@ -2221,6 +2258,41 @@ export interface operations {
             };
             /** @description The owner must transfer ownership or delete the group. */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    deleteForMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeleteDirectChatResponseDto"];
+                };
+            };
+            /** @description Invalid ID or a group conversation (CONVERSATION_DIRECT_REQUIRED). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conversation missing or caller is not a member. */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

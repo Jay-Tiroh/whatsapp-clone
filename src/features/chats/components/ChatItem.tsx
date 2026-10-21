@@ -1,18 +1,28 @@
 import MuteIcon from "@/assets/icons/mute.svg";
 import TrashIcon from "@/assets/icons/trash.svg";
 import { useFolderModalStore } from "@/core/store/modalStore";
-import { useChatsStore } from "@/features/chats/store/chatsStore";
+import { useIsUserOnline } from "@/core/store/presenceStore";
+import {
+  useArchiveConversation,
+  useMuteConversation,
+  usePinConversation,
+  useUnarchiveConversation,
+  useUnmuteConversation,
+  useUnpinConversation,
+} from "@/features/chats/hooks/useConversations";
 import ThemedText from "@/shared/components/ThemedText";
-import { showWarningToast } from "@/shared/hooks/showToast";
+import { showSuccessToast, showWarningToast } from "@/shared/hooks/showToast";
 import { formatTime } from "@/shared/utils/date";
+import { getErrorMessage } from "@/shared/utils/errors";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Foundation from "@expo/vector-icons/Foundation";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Octicons from "@expo/vector-icons/Octicons";
+import { useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { Href, useRouter } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { LayoutChangeEvent, Pressable, View } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import Swipeable, {
@@ -26,8 +36,10 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { withUniwind } from "uniwind";
-import type { Conversation } from "../types/conversation.types";
-
+import type {
+  Conversation,
+  MuteConversationDto,
+} from "../types/conversation.types";
 const StyledImage = withUniwind(Image);
 const StyledMaterialIcons = withUniwind(MaterialIcons);
 const StyledEntypo = withUniwind(Entypo);
@@ -45,8 +57,15 @@ interface ChatItemProps {
   isSelected?: boolean;
   onToggleSelect?: (id: string) => void;
   isArchived?: boolean;
+  pinnedCount?: number;
 }
-
+const MAX_PINNED = 3;
+const MUTE_DURATIONS: MuteConversationDto[] = [
+  { duration: "8_hours" },
+  { duration: "24_hours" },
+  { duration: "7_days" },
+  { duration: "always" },
+];
 const ChatItem = React.memo(
   ({
     conversation,
@@ -55,29 +74,26 @@ const ChatItem = React.memo(
     isSelected = false,
     onToggleSelect,
     isArchived = false,
+    pinnedCount = 0,
   }: ChatItemProps) => {
     const router = useRouter();
-    const [isPinned, setIsPinned] = useState(false);
-    const [isMuted, setIsMuted] = useState(false);
+    const queryClient = useQueryClient();
+    const { mutate: archive } = useArchiveConversation();
+    const { mutate: unarchive } = useUnarchiveConversation();
+    const { mutate: pin } = usePinConversation();
+    const { mutate: unpin } = useUnpinConversation();
+    const { mutate: mute } = useMuteConversation();
+    const { mutate: unmute } = useUnmuteConversation();
 
-    const unarchive = useChatsStore((s) => s.unarchive);
-    const archive = useChatsStore((s) => s.archive);
-    const pin = useChatsStore((s) => s.pin);
-    const unpin = useChatsStore((s) => s.unpin);
-    const mute = useChatsStore((s) => s.mute);
-    const unmute = useChatsStore((s) => s.unmute);
-    const mutedChats = useChatsStore((s) => s.mutedChatIds);
-    const pinnedChats = useChatsStore((s) => s.pinnedChatIds);
+    const isPinned = conversation.settings.pinned;
+    const isMuted = conversation.settings.muted;
 
-    useEffect(() => {
-      mutedChats.includes(conversation.id)
-        ? setIsMuted(true)
-        : setIsMuted(false);
-
-      pinnedChats.includes(conversation.id)
-        ? setIsPinned(true)
-        : setIsPinned(false);
-    }, [setIsMuted, setIsPinned, mutedChats, pinnedChats, conversation.id]);
+    const closeSwipe = () => swipeableRef.current?.close();
+    const onMutationError = (title: string) => (err: unknown) =>
+      showWarningToast({
+        title,
+        message: getErrorMessage(err) ?? "Please try again.",
+      });
 
     const { latestMessage, unreadCount, lastActivityAt } = conversation;
     const isGroup = conversation.type === "group";
@@ -93,7 +109,11 @@ const ChatItem = React.memo(
 
     const isYou = !!latestMessage && latestMessage.senderId === currentUserId;
     const hasUnread = unreadCount > 0;
-
+    const otherParticipantId =
+      conversation.type === "direct"
+        ? conversation.otherParticipant.id
+        : undefined;
+    const isOnline = useIsUserOnline(otherParticipantId);
     const swipeableRef = useRef<SwipeableMethods>(null);
     const [isOpen, setIsOpen] = useState(false);
     const isInteracting = isSelected || isOpen;
@@ -131,50 +151,75 @@ const ChatItem = React.memo(
       height: heightValue.value,
     }));
     // --- End animation setup ---
-
     const handlePinPress = () => {
-      if (pinnedChats.length >= 3) {
+      closeSwipe();
+      if (pinnedCount >= MAX_PINNED) {
         showWarningToast({
           title: "Pin Limit Reached",
-          message: "You can only pin up to 3 conversations.",
+          message: `You can only pin up to ${MAX_PINNED} conversations.`,
         });
+        return;
       }
-      pin(conversation.id);
-      swipeableRef.current?.close();
+      pin(conversation.id, {
+        onError: onMutationError("Couldn't pin conversation"),
+      });
     };
 
     const handleUnpinPress = () => {
-      unpin(conversation.id);
-      swipeableRef.current?.close();
-    };
-    const handleMutePress = () => {
-      mute(conversation.id);
-      swipeableRef.current?.close();
-    };
-    const handleUnmutePress = () => {
-      unmute(conversation.id);
-      swipeableRef.current?.close();
+      closeSwipe();
+      unpin(conversation.id, {
+        onError: onMutationError("Couldn't unpin conversation"),
+      });
     };
 
-    const handleDeletePress = () => swipeableRef.current?.close();
+    const handleMutePress = () => {
+      closeSwipe();
+      mute(
+        { conversationId: conversation.id, payload: MUTE_DURATIONS[0] }, // fill in per MuteConversationDto
+        { onError: onMutationError("Couldn't mute conversation") },
+      );
+    };
+
+    const handleUnmutePress = () => {
+      closeSwipe();
+      unmute(conversation.id, {
+        onError: onMutationError("Couldn't unmute conversation"),
+      });
+    };
 
     const handleArchivePress = () => {
-      if (pinnedChats.includes(conversation.id)) {
+      closeSwipe();
+      if (isPinned) {
         showWarningToast({
           title: "Cannot Archive Pinned Conversation",
           message: "Please unpin the conversation before archiving.",
         });
-        swipeableRef.current?.close();
         return;
       }
-      swipeableRef.current?.close();
-      collapseAndThen(() => archive(conversation.id));
+      archive(conversation.id, {
+        onSuccess: () => {
+          showSuccessToast({ title: "Conversation Archived" });
+          collapseAndThen(() =>
+            queryClient.invalidateQueries({ queryKey: ["conversations"] }),
+          );
+        },
+        onError: onMutationError("Error Archiving Conversation"),
+      });
     };
 
     const handleUnarchivePress = () => {
-      swipeableRef.current?.close();
-      collapseAndThen(() => unarchive(conversation.id));
+      closeSwipe();
+      unarchive(conversation.id, {
+        onSuccess: () => {
+          showSuccessToast({ title: "Conversation Unarchived" });
+          collapseAndThen(() =>
+            queryClient.invalidateQueries({ queryKey: ["conversations"] }),
+          );
+        },
+        onError: onMutationError("Error Unarchiving Conversation"),
+      });
     };
+    const handleDeletePress = () => swipeableRef.current?.close();
 
     const handleLongPress = () => {
       if (onToggleSelect) {
@@ -329,7 +374,7 @@ const ChatItem = React.memo(
                 : "bg-background"
             }`}
           >
-            <View className=" size-14 rounded-full relative">
+            <View className="size-14 rounded-full relative">
               <StyledImage
                 source={
                   avatarUrl
@@ -340,7 +385,9 @@ const ChatItem = React.memo(
                 contentFit="cover"
                 cachePolicy="memory-disk"
               />
-              <View className="border-2 border-background bg-primary-400 size-4 rounded-full absolute bottom-0 right-0" />
+              {isOnline && (
+                <View className="border-2 border-background bg-primary-400 size-4 rounded-full absolute bottom-0 right-0" />
+              )}
             </View>
             <View className="gap-1 flex-1">
               <View className="flex-row justify-between gap-2">
@@ -415,11 +462,17 @@ const ChatItem = React.memo(
     return (
       prevProps.isSelected === nextProps.isSelected &&
       prevProps.isSelecting === nextProps.isSelecting &&
+      prevProps.isArchived === nextProps.isArchived &&
+      prevProps.pinnedCount === nextProps.pinnedCount &&
       prevProps.conversation.lastActivityAt ===
         nextProps.conversation.lastActivityAt &&
       prevProps.conversation.unreadCount ===
         nextProps.conversation.unreadCount &&
-      prevProps.conversation.updatedAt === nextProps.conversation.updatedAt
+      prevProps.conversation.updatedAt === nextProps.conversation.updatedAt &&
+      prevProps.conversation.settings.muted ===
+        nextProps.conversation.settings.muted &&
+      prevProps.conversation.settings.pinned ===
+        nextProps.conversation.settings.pinned
     );
   },
 );

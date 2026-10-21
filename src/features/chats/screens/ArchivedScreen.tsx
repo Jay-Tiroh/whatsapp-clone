@@ -1,45 +1,38 @@
+import { useAuthStore } from "@/features/auth";
 import ChatItem from "@/features/chats/components/ChatItem";
 import SubListHeader from "@/features/chats/components/SubListHeader";
-import { mockConversationListResponse } from "@/features/chats/mocks/conversation.mocks";
-import { useChatsStore } from "@/features/chats/store/chatsStore";
+import {
+  useGetArchivedConversations,
+  useInvalidateConversations,
+  useMuteConversation,
+  useUnarchiveConversation,
+  useUnmuteConversation,
+} from "@/features/chats/hooks/useConversations";
 import type { Conversation } from "@/features/chats/types/conversation.types";
 import ThemedText from "@/shared/components/ThemedText";
-import { useCallback, useState } from "react";
+import { showWarningToast } from "@/shared/hooks/showToast";
+import { getErrorMessage } from "@/shared/utils/errors";
+import { useCallback, useMemo, useState } from "react";
 import { ActivityIndicator, FlatList, View } from "react-native";
 
 export default function ArchivedScreen() {
-  // TODO: Replace with useGetConversations({ status: 'archived' })
-  const data = mockConversationListResponse;
-  const { isLoading, isError, refetch, isRefetching } = {
-    isLoading: false,
-    isError: false,
-    refetch: () => {},
-    isRefetching: false,
-  };
+  const { data, isLoading, isError, refetch, isRefetching } =
+    useGetArchivedConversations({ limit: 20 });
+  const currentUserId = useAuthStore((s) => s.user?.id);
 
-  // Store selections
-  const archivedChats = useChatsStore((s) => s.archivedChatIds);
-  const pinnedChats = useChatsStore((s) => s.pinnedChatIds);
-  const mutedChats = useChatsStore((s) => s.mutedChatIds);
+  const conversations = useMemo(() => data?.items ?? [], [data?.items]);
+  const isEmpty = !isLoading && conversations.length === 0;
 
-  // Store actions
-  const mute = useChatsStore((s) => s.mute);
-  const unmute = useChatsStore((s) => s.unmute);
-  const unarchive = useChatsStore((s) => s.unarchive);
-
-  const archivedConversations =
-    data?.items.filter(
-      (c) => archivedChats.includes(c.id) && !pinnedChats.includes(c.id),
-    ) ?? [];
-
-  const isEmpty = !isLoading && (data?.items.length ?? 0) === 0;
+  const { mutate: muteConversation } = useMuteConversation();
+  const { mutate: unmuteConversation } = useUnmuteConversation();
+  const { mutateAsync: unarchiveAsync } = useUnarchiveConversation();
+  const invalidateConversations = useInvalidateConversations();
 
   // Selection state
   const [selectedConversations, setSelectedConversations] = useState<string[]>(
     [],
   );
   const isSelecting = selectedConversations.length > 0;
-
   const endSelection = () => setSelectedConversations([]);
 
   const handleToggleSelect = useCallback((id: string) => {
@@ -48,29 +41,52 @@ export default function ArchivedScreen() {
     );
   }, []);
 
-  // Bulk operation boolean derivations
-  const conversations = data?.items ?? [];
   const selectedItems = conversations.filter((c) =>
     selectedConversations.includes(c.id),
   );
-
   const isAllSelectedMuted =
-    selectedItems.length > 0 &&
-    selectedItems.every((c) => mutedChats.includes(c.id));
+    selectedItems.length > 0 && selectedItems.every((c) => c.settings.muted);
 
-  // Bulk operation handlers
+  const onBulkError = (title: string) => (err: unknown) =>
+    showWarningToast({
+      title,
+      message: getErrorMessage(err) ?? "Please try again.",
+    });
+
+  // Bulk handlers
   const handleBulkMute = () => {
-    selectedConversations.forEach(isAllSelectedMuted ? unmute : mute);
+    if (isAllSelectedMuted) {
+      selectedItems.forEach((c) =>
+        unmuteConversation(c.id, { onError: onBulkError("Couldn't unmute") }),
+      );
+    } else {
+      selectedItems
+        .filter((c) => !c.settings.muted)
+        .forEach((c) =>
+          muteConversation(
+            { conversationId: c.id, payload: { duration: "always" } },
+            { onError: onBulkError("Couldn't mute") },
+          ),
+        );
+    }
     endSelection();
   };
 
-  const handleBulkUnarchive = () => {
-    selectedConversations.forEach(unarchive);
+  const handleBulkUnarchive = async () => {
+    const ids = selectedItems.map((c) => c.id);
     endSelection();
+
+    const results = await Promise.allSettled(
+      ids.map((id) => unarchiveAsync(id)),
+    );
+    const failed = results.find((r) => r.status === "rejected");
+    if (failed && failed.status === "rejected") {
+      onBulkError("Couldn't unarchive some chats")(failed.reason);
+    }
+    invalidateConversations(); // one refetch after all requests settle
   };
 
   const handleBulkDelete = () => {
-    // wire to your delete action once confirmed
     endSelection();
   };
 
@@ -78,13 +94,14 @@ export default function ArchivedScreen() {
     ({ item }: { item: Conversation }) => (
       <ChatItem
         conversation={item}
+        currentUserId={currentUserId}
         isSelecting={isSelecting}
         isSelected={selectedConversations.includes(item.id)}
         onToggleSelect={handleToggleSelect}
         isArchived
       />
     ),
-    [isSelecting, selectedConversations, handleToggleSelect],
+    [currentUserId, isSelecting, selectedConversations, handleToggleSelect],
   );
 
   const renderContent = () => {
@@ -107,7 +124,7 @@ export default function ArchivedScreen() {
     }
     return (
       <FlatList
-        data={archivedConversations ?? []}
+        data={conversations}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerClassName="gap-1"

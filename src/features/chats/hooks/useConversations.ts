@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { conversationApi } from "../api/conversation.api";
 import type {
   AddGroupMembersDto,
+  Conversation,
   CreateDirectConversationDto,
   CreateGroupConversationDto,
   MuteConversationDto,
@@ -219,27 +220,6 @@ export const useUnarchiveConversation = () => {
 };
 
 // NEW
-export const useMuteConversation = () => {
-  return useMutation({
-    mutationFn: ({
-      conversationId,
-      payload,
-    }: {
-      conversationId: string;
-      payload: MuteConversationDto;
-    }) => conversationApi.mute(conversationId, payload),
-  });
-};
-
-// NEW
-export const useUnmuteConversation = () => {
-  return useMutation({
-    mutationFn: (conversationId: string) =>
-      conversationApi.unmute(conversationId),
-  });
-};
-
-// NEW
 export const useFavoriteConversation = () => {
   return useMutation({
     mutationFn: (conversationId: string) =>
@@ -255,25 +235,100 @@ export const useUnfavoriteConversation = () => {
   });
 };
 
-// NEW
-export const usePinConversation = () => {
-  return useMutation({
-    mutationFn: (conversationId: string) => conversationApi.pin(conversationId),
-  });
-};
+type ConversationSettings = Conversation["settings"];
 
-// NEW
-export const useUnpinConversation = () => {
-  return useMutation({
-    mutationFn: (conversationId: string) =>
-      conversationApi.unpin(conversationId),
-  });
-};
+// The ONE place that knows the cache shape. Handles a plain array,
+// a paginated { items } object, and the single-conversation detail cache.
+// If getList returns something else (e.g. { data, nextCursor }), edit here only.
+function patchConversation(
+  old: unknown,
+  id: string,
+  patch: Partial<ConversationSettings>,
+): unknown {
+  if (!old || typeof old !== "object") return old;
 
+  const patchOne = (c: Conversation): Conversation =>
+    c.id === id ? { ...c, settings: { ...c.settings, ...patch } } : c;
+
+  if (Array.isArray(old)) return old.map(patchOne);
+  if ("items" in old && Array.isArray(old.items)) {
+    return { ...old, items: old.items.map(patchOne) };
+  }
+  if ("id" in old && old.id === id) return patchOne(old as Conversation);
+  return old;
+}
+
+function useOptimisticSetting<TVars>(
+  mutationFn: (vars: TVars) => Promise<unknown>,
+  getId: (vars: TVars) => string,
+  patch: Partial<ConversationSettings>,
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn,
+    onMutate: async (vars: TVars) => {
+      await queryClient.cancelQueries({ queryKey: ["conversations"] });
+      const previous = queryClient.getQueriesData({
+        queryKey: ["conversations"],
+      });
+
+      queryClient.setQueriesData({ queryKey: ["conversations"] }, (old) =>
+        patchConversation(old, getId(vars), patch),
+      );
+
+      return { previous };
+    },
+    onError: (_err, _vars, ctx) => {
+      ctx?.previous.forEach(([key, data]) =>
+        queryClient.setQueryData(key, data),
+      );
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    },
+  });
+}
+
+export const usePinConversation = () =>
+  useOptimisticSetting(
+    (id: string) => conversationApi.pin(id),
+    (id) => id,
+    { pinned: true },
+  );
+
+export const useUnpinConversation = () =>
+  useOptimisticSetting(
+    (id: string) => conversationApi.unpin(id),
+    (id) => id,
+    { pinned: false },
+  );
+
+type MuteVars = { conversationId: string; payload: MuteConversationDto };
+
+export const useMuteConversation = () =>
+  useOptimisticSetting(
+    ({ conversationId, payload }: MuteVars) =>
+      conversationApi.mute(conversationId, payload),
+    (v) => v.conversationId,
+    { muted: true },
+  );
+
+export const useUnmuteConversation = () =>
+  useOptimisticSetting(
+    (id: string) => conversationApi.unmute(id),
+    (id) => id,
+    { muted: false },
+  );
 // NEW
 export const useClearConversationMessages = () => {
   return useMutation({
     mutationFn: (conversationId: string) =>
       conversationApi.clearMessages(conversationId),
   });
+};
+
+export const useInvalidateConversations = () => {
+  const queryClient = useQueryClient();
+  return () => queryClient.invalidateQueries({ queryKey: ["conversations"] });
 };

@@ -2,7 +2,7 @@ import { useActionModalStore, useQrModalStore } from "@/core/store/modalStore";
 import { useLogout } from "@/features/auth";
 import { useGetProfile } from "@/features/profile";
 import ThemedText from "@/shared/components/ThemedText";
-import { showErrorToast } from "@/shared/hooks/showToast";
+import { showErrorToast, showSuccessToast } from "@/shared/hooks/showToast";
 import { getErrorMessage } from "@/shared/utils/errors";
 import Feather from "@expo/vector-icons/Feather";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
@@ -184,6 +184,12 @@ export default function SettingsScreen() {
     openQrModal();
   };
 
+  const toggleToast = () => {
+    showSuccessToast({
+      title: "Success",
+      message: "This is a success toast message.",
+    });
+  };
   return (
     <>
       <ScrollView
@@ -290,6 +296,7 @@ export default function SettingsScreen() {
           iconType="feather"
           icon="database"
           label="Data and storage"
+          onPress={toggleToast}
         />
         <SettingsItem icon="circle-question" label="FAQ" />
         <SettingsItem

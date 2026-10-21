@@ -13,13 +13,13 @@ import { useRealtimeMessaging } from "@/features/conversation/hooks/useRealtimeM
 import type {
   Message,
   MessageDto,
-  PresencePayload,
   ReceiptPayload,
   TypingPayload,
 } from "@/features/conversation/types/message.types";
 import { logger } from "@/shared/utils/logger";
 import * as Crypto from "expo-crypto";
 
+import { useIsUserOnline } from "@/core/store/presenceStore";
 export function useConversationScreenLogic(conversationId: string) {
   const currentUserId = useAuthStore((state) => state.user?.id);
 
@@ -37,10 +37,15 @@ export function useConversationScreenLogic(conversationId: string) {
   const markConversationRead = useMarkConversationRead();
 
   const [liveMessages, setLiveMessages] = useState<Message[]>([]);
-  const [isOtherUserOnline, setIsOtherUserOnline] = useState(false);
   const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
   const [otherUserReceipt, setOtherUserReceipt] =
     useState<ReceiptPayload | null>(null);
+
+  const otherParticipantId =
+    conversation?.type === "direct"
+      ? conversation.otherParticipant.id
+      : undefined;
+  const isOtherUserOnline = useIsUserOnline(otherParticipantId);
 
   const handleReceiptDelivered = useCallback(
     (receipt: ReceiptPayload) => {
@@ -75,14 +80,6 @@ export function useConversationScreenLogic(conversationId: string) {
     });
   }, []);
 
-  const handlePresenceChanged = useCallback(
-    (presence: PresencePayload) => {
-      if (presence.userId === currentUserId) return;
-      setIsOtherUserOnline(presence.status === "online");
-    },
-    [currentUserId],
-  );
-
   const handleTypingStarted = useCallback(
     (typing: TypingPayload) => {
       if (typing.userId === currentUserId) return;
@@ -104,7 +101,6 @@ export function useConversationScreenLogic(conversationId: string) {
     onMessageCreated: handleNewMessage,
     onReceiptDelivered: handleReceiptDelivered,
     onReceiptRead: handleReceiptRead,
-    onPresenceChanged: handlePresenceChanged,
     onTypingStarted: handleTypingStarted,
     onTypingStopped: handleTypingStopped,
   });
@@ -174,7 +170,9 @@ export function useConversationScreenLogic(conversationId: string) {
     },
     [conversationId, currentUserId, sendMessage],
   );
-
+  const isGroupConversation = useMemo(() => {
+    return conversation?.type === "group";
+  }, [conversation]);
   useEffect(() => {
     if (!conversationId) return;
     markConversationRead.mutate(conversationId);
@@ -203,5 +201,6 @@ export function useConversationScreenLogic(conversationId: string) {
     onRefresh,
     onLoadMore,
     isFetchingNextPage,
+    isGroupConversation,
   };
 }

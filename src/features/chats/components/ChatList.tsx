@@ -6,22 +6,25 @@ import type { Conversation } from "../types/conversation.types";
 
 interface ChatListProps {
   conversations: Conversation[];
-  archived: Conversation[];
-  onRefresh: () => void;
+  // Updated to accept React Query's refetch function signature
+  onRefresh: () => void | Promise<any>;
   isRefetching: boolean;
   isSelecting: boolean;
   selectedConversations: string[];
   setSelectedConversations: React.Dispatch<React.SetStateAction<string[]>>;
+  currentUserId?: string;
+  pinnedCount: number;
 }
 
 export default function ChatList({
-  archived,
   conversations,
   onRefresh,
   isRefetching,
   isSelecting,
   selectedConversations,
   setSelectedConversations,
+  currentUserId,
+  pinnedCount,
 }: ChatListProps) {
   const handleToggleSelect = useCallback(
     (id: string) => {
@@ -36,12 +39,20 @@ export default function ChatList({
     ({ item }: { item: Conversation }) => (
       <ChatItem
         conversation={item}
+        currentUserId={currentUserId}
         isSelecting={isSelecting}
         isSelected={selectedConversations.includes(item.id)}
         onToggleSelect={handleToggleSelect}
+        pinnedCount={pinnedCount}
       />
     ),
-    [isSelecting, selectedConversations, handleToggleSelect],
+    [
+      currentUserId,
+      isSelecting,
+      selectedConversations,
+      handleToggleSelect,
+      pinnedCount,
+    ],
   );
 
   return (
@@ -50,12 +61,13 @@ export default function ChatList({
         data={conversations}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        ListHeaderComponent={() => <ArchivedButton conversations={archived} />}
+        // No longer passing inline function or props here
+        ListHeaderComponent={<ArchivedButton />}
         contentContainerClassName="gap-1"
         showsVerticalScrollIndicator={false}
         onRefresh={onRefresh}
         refreshing={isRefetching}
-        extraData={selectedConversations} // Forces re-render when selections change
+        extraData={selectedConversations}
       />
     </View>
   );
