@@ -12,3 +12,7 @@ export type MediaAssetResponseDto =
   components["schemas"]["MediaAssetResponseDto"];
 export type CreateMediaUploadResponseDto =
   components["schemas"]["CreateMediaUploadResponseDto"];
+
+// ---- Legacy / Convenience Payload Aliases ----
+
+export type CreateMediaUploadPayload = CreateMediaUploadDto;

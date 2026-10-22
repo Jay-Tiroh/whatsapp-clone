@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useSocket } from "@/core/hooks/useSocket";
 import { useIsUserOnline } from "@/core/store/presenceStore";
@@ -19,6 +19,7 @@ import type {
 } from "@/features/conversation/types/message.types";
 import { logger } from "@/shared/utils/logger";
 import * as Crypto from "expo-crypto";
+import { useIsFocused } from "expo-router";
 
 export function useConversationScreenLogic(conversationId: string) {
   const currentUserId = useAuthStore((state) => state.user?.id);
@@ -34,7 +35,9 @@ export function useConversationScreenLogic(conversationId: string) {
 
   const { data: conversation } = useGetConversationById(conversationId);
   const sendMessage = useSendMessage(conversationId);
-  const markConversationRead = useMarkConversationRead();
+  const { mutate: markRead } = useMarkConversationRead();
+  const lastReadMessageId = useRef<string | null>(null);
+  const isFocused = useIsFocused();
 
   const [liveMessages, setLiveMessages] = useState<Message[]>([]);
   const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
@@ -136,6 +139,28 @@ export function useConversationScreenLogic(conversationId: string) {
     );
   }, [data, liveMessages]);
 
+  // Latest message from the OTHER user: the only kind that needs marking read
+  const latestIncomingMessageId = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].senderId !== currentUserId) return messages[i].id;
+    }
+    return null;
+  }, [messages, currentUserId]);
+
+  useEffect(() => {
+    if (!isFocused || !latestIncomingMessageId) return;
+    if (lastReadMessageId.current === latestIncomingMessageId) return;
+
+    lastReadMessageId.current = latestIncomingMessageId;
+
+    markRead(conversationId, {
+      onError: () => {
+        // allow a retry on the next render/new message
+        lastReadMessageId.current = null;
+      },
+    });
+  }, [isFocused, latestIncomingMessageId, conversationId, markRead]);
+
   const handleSend = useCallback(
     (text: string) => {
       if (!currentUserId) {
@@ -174,11 +199,6 @@ export function useConversationScreenLogic(conversationId: string) {
   const isGroupConversation = useMemo(() => {
     return conversation?.type === "group";
   }, [conversation]);
-
-  useEffect(() => {
-    if (!conversationId) return;
-    markConversationRead.mutate(conversationId);
-  }, [conversationId, markConversationRead]);
 
   const onRefresh = useCallback(() => {
     refetch();

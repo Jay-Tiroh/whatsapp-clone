@@ -1,6 +1,6 @@
-import type { CreateMediaUploadPayload } from "../types/media.types";
+import type { CreateMediaUploadDto } from "../types/media.types";
 
-const EXTENSION_MAP: Record<string, CreateMediaUploadPayload["contentType"]> = {
+const EXTENSION_MAP: Record<string, CreateMediaUploadDto["contentType"]> = {
   jpg: "image/jpeg",
   jpeg: "image/jpeg",
   png: "image/png",
@@ -22,7 +22,7 @@ const EXTENSION_MAP: Record<string, CreateMediaUploadPayload["contentType"]> = {
 
 export function inferContentType(
   uriOrFilename: string,
-): CreateMediaUploadPayload["contentType"] {
+): CreateMediaUploadDto["contentType"] {
   const ext = uriOrFilename.split(".").pop()?.toLowerCase().split("?")[0] ?? "";
   const contentType = EXTENSION_MAP[ext];
   if (!contentType) throw new Error(`Unsupported file extension: .${ext}`);

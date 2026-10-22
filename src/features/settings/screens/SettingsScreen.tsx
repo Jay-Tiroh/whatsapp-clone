@@ -142,22 +142,21 @@ export default function SettingsScreen() {
   ];
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [actionConfig, setActionConfig] = useState<ActionConfigType | null>(
-    null,
-  );
+
   const { onOpen: openActionModal, update: updateActionModal } =
     useActionModalStore();
+
   const handleLogoutPress = () => {
-    setActionConfig(
-      ActionConfig.find((config) => config.for === "logout") || null,
-    );
+    const config = ActionConfig.find((c) => c.for === "logout");
+    if (!config) return; // nothing to show if the config is missing
+
     updateActionModal({
-      title: actionConfig?.title as string,
-      message: actionConfig?.message as string,
-      primaryBtnText: actionConfig?.primaryBtnText as string,
-      primaryBtnVariant: actionConfig?.primaryBtnVariant,
-      onPrimaryPress: actionConfig?.onPrimaryPress as () => void,
-      onSecondaryPress: actionConfig?.onSecondaryPress,
+      title: config.title,
+      message: config.message,
+      primaryBtnText: config.primaryBtnText,
+      primaryBtnVariant: config.primaryBtnVariant,
+      onPrimaryPress: config.onPrimaryPress,
+      onSecondaryPress: config.onSecondaryPress,
       iconName: "exclamation",
       iconColorClassName: "accent-red-500",
       iconBgClassName: "bg-red-500/20",
