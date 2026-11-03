@@ -17,6 +17,10 @@ import type {
   ReceiptPayload,
   TypingPayload,
 } from "@/features/conversation/types/message.types";
+import {
+  useMarkReceiptDelivered,
+  useMarkReceiptRead,
+} from "@/features/receipt/hooks/useReceipt";
 import { logger } from "@/shared/utils/logger";
 import * as Crypto from "expo-crypto";
 import { useIsFocused } from "expo-router";
@@ -36,7 +40,12 @@ export function useConversationScreenLogic(conversationId: string) {
   const { data: conversation } = useGetConversationById(conversationId);
   const sendMessage = useSendMessage(conversationId);
   const { mutate: markRead } = useMarkConversationRead();
+  const { mutate: markDelivered } = useMarkReceiptDelivered(conversationId);
+  const { mutate: markReceiptRead } = useMarkReceiptRead(conversationId);
+
+  const lastDeliveredId = useRef<string | null>(null);
   const lastReadMessageId = useRef<string | null>(null);
+  const lastReceiptReadId = useRef<string | null>(null);
   const isFocused = useIsFocused();
 
   const [liveMessages, setLiveMessages] = useState<Message[]>([]);
@@ -147,20 +156,60 @@ export function useConversationScreenLogic(conversationId: string) {
     return null;
   }, [messages, currentUserId]);
 
+  // Reset when switching conversations
+  useEffect(() => {
+    lastDeliveredId.current = null;
+    lastReadMessageId.current = null;
+    lastReceiptReadId.current = null;
+  }, [conversationId]);
+
+  // Delivered: the message reached this device
+  useEffect(() => {
+    if (!latestIncomingMessageId) return;
+    if (lastDeliveredId.current === latestIncomingMessageId) return;
+
+    lastDeliveredId.current = latestIncomingMessageId;
+    markDelivered(
+      { throughMessageId: latestIncomingMessageId },
+      {
+        onError: () => {
+          lastDeliveredId.current = null;
+        },
+      },
+    );
+  }, [latestIncomingMessageId, markDelivered]);
+
+  // Read: the user is looking at it
   useEffect(() => {
     if (!isFocused || !latestIncomingMessageId) return;
-    if (lastReadMessageId.current === latestIncomingMessageId) return;
 
-    lastReadMessageId.current = latestIncomingMessageId;
+    if (lastReadMessageId.current !== latestIncomingMessageId) {
+      lastReadMessageId.current = latestIncomingMessageId;
+      markRead(conversationId, {
+        onError: () => {
+          lastReadMessageId.current = null;
+        },
+      });
+    }
 
-    markRead(conversationId, {
-      onError: () => {
-        // allow a retry on the next render/new message
-        lastReadMessageId.current = null;
-      },
-    });
-  }, [isFocused, latestIncomingMessageId, conversationId, markRead]);
-
+    if (lastReceiptReadId.current !== latestIncomingMessageId) {
+      lastReceiptReadId.current = latestIncomingMessageId;
+      markReceiptRead(
+        { throughMessageId: latestIncomingMessageId },
+        {
+          onError: () => {
+            lastReceiptReadId.current = null;
+          },
+        },
+      );
+    }
+  }, [
+    isFocused,
+    latestIncomingMessageId,
+    conversationId,
+    markRead,
+    markReceiptRead,
+  ]);
   const handleSend = useCallback(
     (text: string) => {
       if (!currentUserId) {

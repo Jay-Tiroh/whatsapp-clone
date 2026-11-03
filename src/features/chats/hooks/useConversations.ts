@@ -14,16 +14,22 @@ import type {
 } from "../types/conversation.types";
 
 export const useCreateDirectConversation = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (payload: CreateDirectConversationDto) =>
       conversationApi.createDirect(payload),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["conversations", "list"] }),
   });
 };
 
 export const useCreateGroupConversation = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (payload: CreateGroupConversationDto) =>
       conversationApi.createGroup(payload),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["conversations", "list"] }),
   });
 };
 
@@ -201,33 +207,28 @@ export const useUpdateConversationSettings = () => {
   });
 };
 
-export const useArchiveConversation = () => {
+function useConversationAction<TVars>(
+  mutationFn: (vars: TVars) => Promise<unknown>,
+) {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (conversationId: string) =>
-      conversationApi.archive(conversationId),
+    mutationFn,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["conversations"] }),
   });
-};
+}
 
-export const useUnarchiveConversation = () => {
-  return useMutation({
-    mutationFn: (conversationId: string) =>
-      conversationApi.unarchive(conversationId),
-  });
-};
+export const useArchiveConversation = () =>
+  useConversationAction((id: string) => conversationApi.archive(id));
 
-export const useFavoriteConversation = () => {
-  return useMutation({
-    mutationFn: (conversationId: string) =>
-      conversationApi.favorite(conversationId),
-  });
-};
+export const useUnarchiveConversation = () =>
+  useConversationAction((id: string) => conversationApi.unarchive(id));
 
-export const useUnfavoriteConversation = () => {
-  return useMutation({
-    mutationFn: (conversationId: string) =>
-      conversationApi.unfavorite(conversationId),
-  });
-};
+export const useFavoriteConversation = () =>
+  useConversationAction((id: string) => conversationApi.favorite(id));
+
+export const useUnfavoriteConversation = () =>
+  useConversationAction((id: string) => conversationApi.unfavorite(id));
 
 type ConversationSettings = Conversation["settings"];
 
@@ -316,17 +317,6 @@ export const useClearConversationMessages = () => {
   return useMutation({
     mutationFn: (conversationId: string) =>
       conversationApi.clearMessages(conversationId),
-  });
-};
-
-export const useMarkConversationRead = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (conversationId: string) =>
-      conversationApi.markRead(conversationId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["conversations"] });
-    },
   });
 };
 

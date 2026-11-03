@@ -20,6 +20,7 @@ import { useMatchedContacts, useSearchUsers } from "@/features/contacts";
 import ThemedText from "@/shared/components/ThemedText";
 import { showWarningToast } from "@/shared/hooks/showToast";
 import { useExitOnDoubleBack } from "@/shared/hooks/useExitOnDoubleBack";
+import { usePullToRefresh } from "@/shared/hooks/usePullToRefresh";
 import { getErrorMessage } from "@/shared/utils/errors";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
@@ -27,7 +28,12 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  View,
+} from "react-native";
 import { withUniwind } from "uniwind";
 
 const StyledMaterialIcons = withUniwind(MaterialIcons);
@@ -49,6 +55,17 @@ export default function ChatListScreen() {
 
   const { data, isLoading, isError, refetch, isRefetching } =
     useGetConversations({ limit: 20 });
+  const { isPulling, handleRefresh } = usePullToRefresh(refetch);
+
+  const refreshControl = (
+    <RefreshControl
+      refreshing={isPulling}
+      onRefresh={handleRefresh}
+      tintColor="#25D366"
+      colors={["#25D366"]}
+      progressBackgroundColor="#ffffff"
+    />
+  );
   const currentUserId = useAuthStore((s) => s.user?.id);
 
   useConversationListRealtime(
@@ -221,21 +238,32 @@ export default function ChatListScreen() {
 
     if (isError) {
       return (
-        <ThemedText className="text-center mt-8">
-          Couldn't load chats.
-        </ThemedText>
+        <ScrollView
+          contentContainerClassName="flex-grow"
+          refreshControl={refreshControl}
+        >
+          <ThemedText className="text-center mt-8">
+            Couldn't load chats. Pull down to retry.
+          </ThemedText>
+        </ScrollView>
       );
     }
 
     if (isEmpty) {
-      return <ChatListEmpty matches={matches} />;
+      return (
+        <ScrollView
+          contentContainerClassName="flex-grow"
+          refreshControl={refreshControl}
+        >
+          <ChatListEmpty matches={matches} />
+        </ScrollView>
+      );
     }
 
     return (
       <ChatList
         conversations={displayConversations ?? []}
         onRefresh={refetch}
-        isRefetching={isRefetching}
         isSelecting={isSelecting}
         selectedConversations={selectedConversations}
         setSelectedConversations={setSelectedConversations}

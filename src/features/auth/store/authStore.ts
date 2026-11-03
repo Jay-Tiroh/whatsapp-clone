@@ -1,3 +1,4 @@
+import { bumpSessionGeneration } from "@/core/lib/sessionGeneration";
 import { reconnectSocketWithNewToken } from "@/core/lib/socket";
 import { storage } from "@/core/lib/storage";
 import { tokenStorage } from "@/core/lib/tokenStorage";
@@ -5,7 +6,6 @@ import { resetAllStores } from "@/core/store/storeRegistry";
 import type { AuthSession, User } from "@/features/auth/types/auth.types";
 import { create } from "zustand";
 import { createJSONStorage, persist, StateStorage } from "zustand/middleware";
-
 const mmkvStorage: StateStorage = {
   setItem: (name, value) => storage.set(name, value),
   getItem: (name) => storage.getString(name) ?? null,
@@ -31,6 +31,7 @@ export const useAuthStore = create<AuthState>()(
       hasHydrated: false,
       hydrateUser: (user: User) => set({ isAuthenticated: true, user }),
       setSession: (auth) => {
+        bumpSessionGeneration(); // a refresh from the previous session must not overwrite these tokens
         tokenStorage.setTokens(auth.accessToken, auth.refreshToken);
         set({ isAuthenticated: true, user: auth.user });
         reconnectSocketWithNewToken();
@@ -40,6 +41,7 @@ export const useAuthStore = create<AuthState>()(
           user: state.user ? { ...state.user, ...partial } : state.user,
         })),
       clearSession: () => {
+        bumpSessionGeneration();
         tokenStorage.clearTokens();
         set({ isAuthenticated: false, user: null });
         resetAllStores();

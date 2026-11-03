@@ -1,14 +1,13 @@
 import ArchivedButton from "@/features/chats/components/ArchivedButton";
 import ChatItem from "@/features/chats/components/ChatItem";
+import { usePullToRefresh } from "@/shared/hooks/usePullToRefresh";
 import { useCallback } from "react";
-import { FlatList, View } from "react-native";
+import { FlatList, RefreshControl, View } from "react-native";
 import type { Conversation } from "../types/conversation.types";
 
 interface ChatListProps {
   conversations: Conversation[];
-  // Updated to accept React Query's refetch function signature
   onRefresh: () => void | Promise<any>;
-  isRefetching: boolean;
   isSelecting: boolean;
   selectedConversations: string[];
   setSelectedConversations: React.Dispatch<React.SetStateAction<string[]>>;
@@ -19,13 +18,14 @@ interface ChatListProps {
 export default function ChatList({
   conversations,
   onRefresh,
-  isRefetching,
   isSelecting,
   selectedConversations,
   setSelectedConversations,
   currentUserId,
   pinnedCount,
 }: ChatListProps) {
+  // Only true for user-initiated pulls
+  const { isPulling, handleRefresh } = usePullToRefresh(onRefresh);
   const handleToggleSelect = useCallback(
     (id: string) => {
       setSelectedConversations((prev) =>
@@ -61,13 +61,20 @@ export default function ChatList({
         data={conversations}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        // No longer passing inline function or props here
         ListHeaderComponent={<ArchivedButton />}
         contentContainerClassName="gap-1"
         showsVerticalScrollIndicator={false}
-        onRefresh={onRefresh}
-        refreshing={isRefetching}
         extraData={selectedConversations}
+        refreshControl={
+          <RefreshControl
+            refreshing={isPulling}
+            onRefresh={handleRefresh}
+            enabled={!isSelecting}
+            tintColor="#25D366"
+            colors={["#25D366"]}
+            progressBackgroundColor="#ffffff"
+          />
+        }
       />
     </View>
   );

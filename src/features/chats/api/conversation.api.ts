@@ -4,7 +4,6 @@ import type {
   ClearConversationMessagesResponseDto,
   Conversation,
   ConversationListResponseDto,
-  ConversationReadStateResponseDto,
   ConversationSettingsResponseDto,
   CreateDirectConversationDto,
   CreateGroupConversationDto,
@@ -330,15 +329,6 @@ export const conversationApi = {
   ): Promise<ClearConversationMessagesResponseDto> => {
     const { data } = await api.delete<ClearConversationMessagesResponseDto>(
       `/v1/conversations/${conversationId}/messages`,
-    );
-    return data;
-  },
-
-  markRead: async (
-    conversationId: string,
-  ): Promise<ConversationReadStateResponseDto> => {
-    const { data } = await api.post<ConversationReadStateResponseDto>(
-      `/v1/conversations/${conversationId}/read`,
     );
     return data;
   },
