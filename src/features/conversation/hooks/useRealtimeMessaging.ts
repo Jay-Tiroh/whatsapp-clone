@@ -6,6 +6,7 @@ import { getSocket } from "@/core/lib/socket";
 import { usePresenceStore } from "@/core/store/presenceStore";
 import { useCallback, useEffect, useRef } from "react";
 
+import { logger } from "@/shared/utils/logger";
 import type {
   AckResponse,
   MessageDto,
@@ -61,9 +62,7 @@ export function useRealtimeMessaging({
 
     const socket = getSocket();
 
-    const debugListener = (event: string, ...args: unknown[]) => {
-      console.log("[socket:event]", event, args);
-    };
+    const debugListener = (event: string, ...args: unknown[]) => {};
     socket.onAny(debugListener);
 
     const onMessageCreatedEvent = (message: MessageDto) => {
@@ -129,11 +128,11 @@ export function useRealtimeMessaging({
     if (!conversationId) return;
     const socket = getSocket();
     if (!socket.connected) {
-      console.warn("[realtime] cannot start typing - socket disconnected");
+      logger.warn("[realtime] cannot start typing - socket disconnected");
       return;
     }
     socket.emit("typing.start", { conversationId }, (ack: AckResponse) => {
-      if (!ack.ok) console.warn("[realtime] typing.start failed:", ack.error);
+      if (!ack.ok) logger.warn("[realtime] typing.start failed:", ack.error);
     });
   }, [conversationId]);
 
@@ -142,7 +141,7 @@ export function useRealtimeMessaging({
     const socket = getSocket();
     if (!socket.connected) return;
     socket.emit("typing.stop", { conversationId }, (ack: AckResponse) => {
-      if (!ack.ok) console.warn("[realtime] typing.stop failed:", ack.error);
+      if (!ack.ok) logger.warn("[realtime] typing.stop failed:", ack.error);
     });
   }, [conversationId]);
 

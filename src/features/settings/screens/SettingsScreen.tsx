@@ -135,9 +135,7 @@ export default function SettingsScreen() {
       secondaryBtnText: "Cancel",
       primaryBtnVariant: "danger",
       onPrimaryPress: () => logout(),
-      onSecondaryPress: () => {
-        console.log("Cancel pressed");
-      },
+      onSecondaryPress: () => {},
     },
   ];
 

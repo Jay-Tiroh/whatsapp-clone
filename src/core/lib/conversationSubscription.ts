@@ -1,6 +1,7 @@
 // core/lib/conversationSubscription.ts
 import { getSocket } from "@/core/lib/socket";
 import type { AckResponse } from "@/features/conversation/types/message.types";
+import { logger } from "@/shared/utils/logger";
 
 export function subscribeToConversation(
   conversationId: string,
@@ -11,7 +12,7 @@ export function subscribeToConversation(
     { conversationId },
     (ack: AckResponse) => {
       if (!ack.ok) {
-        console.warn("[realtime] subscribe failed:", conversationId, ack.error);
+        logger.warn("[realtime] subscribe failed:", conversationId, ack.error);
       }
       onResult?.(ack.ok);
     },
@@ -24,7 +25,7 @@ export function unsubscribeFromConversation(conversationId: string) {
     { conversationId },
     (ack: AckResponse) => {
       if (!ack.ok) {
-        console.warn(
+        logger.warn(
           "[realtime] unsubscribe failed:",
           conversationId,
           ack.error,

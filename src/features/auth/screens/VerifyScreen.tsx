@@ -52,15 +52,12 @@ const ResendAction = memo(
             onChallengeUpdated(data.challengeId);
           },
           onError: (error) => {
-            if (error instanceof AxiosError) {
-              logger.error("status:", error.response?.status);
-              logger.error("data:", error.response?.data);
-            } else {
-              logger.error("unexpected error:", error);
-            }
+            logger.error("unexpected error:", getErrorMessage(error));
+
             showErrorToast({
               title: "Couldn't resend code",
-              message: "Check your number and try again.",
+              message:
+                getErrorMessage(error) ?? "Check your number and try again.",
             });
           },
         },

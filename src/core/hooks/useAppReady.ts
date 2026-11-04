@@ -3,6 +3,7 @@ import { api } from "@/core/lib/api";
 import { tokenStorage } from "@/core/lib/tokenStorage";
 import { useAuthStore } from "@/features/auth";
 import { getAuthDestination } from "@/features/auth/utils/getAuthDestination";
+import { logger } from "@/shared/utils/logger";
 import axios from "axios";
 import { useFonts } from "expo-font";
 import { useEffect, useState } from "react";
@@ -62,7 +63,7 @@ export const useAppReady = () => {
   }, [hasStoreHydrated]);
 
   useEffect(() => {
-    if (fontError) console.warn("Font loading error:", fontError);
+    if (fontError) logger.warn("Font loading error:", fontError);
   }, [fontError]);
 
   const isFullyReady =

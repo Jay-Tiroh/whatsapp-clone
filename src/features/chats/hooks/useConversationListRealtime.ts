@@ -5,6 +5,7 @@ import type {
   MessageDto,
   PresencePayload,
 } from "@/features/conversation/types/message.types";
+import { logger } from "@/shared/utils/logger";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import type { PaginatedConversations } from "../types/conversation.types";
@@ -49,7 +50,7 @@ export function useConversationListRealtime(
         { conversationId },
         (ack: AckResponse) => {
           if (!ack.ok) {
-            console.warn(
+            logger.warn(
               "[chatlist] subscribe failed",
               conversationId,
               ack.error,

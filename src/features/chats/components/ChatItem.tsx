@@ -10,6 +10,7 @@ import {
   useUnmuteConversation,
   useUnpinConversation,
 } from "@/features/chats/hooks/useConversations";
+import { useThrottledPress } from "@/features/conversation/hooks/useThrottledPress";
 import ThemedText from "@/shared/components/ThemedText";
 import { showSuccessToast, showWarningToast } from "@/shared/hooks/showToast";
 import { formatTime } from "@/shared/utils/date";
@@ -88,6 +89,10 @@ const ChatItem = React.memo(
     const isPinned = conversation.settings.pinned;
     const isMuted = conversation.settings.muted;
 
+    const guardedAction = useThrottledPress(
+      (action: () => void) => action(),
+      600,
+    );
     const closeSwipe = () => swipeableRef.current?.close();
     const onMutationError = (title: string) => (err: unknown) =>
       showWarningToast({
@@ -227,11 +232,16 @@ const ChatItem = React.memo(
       }
     };
 
+    const navigateToChat = useThrottledPress(
+      () => router.push(`/chats/${conversation.id}` as Href),
+      2000,
+    );
+
     const handlePress = () => {
       if (isSelecting && onToggleSelect) {
         onToggleSelect(conversation.id);
       } else {
-        router.push(`/chats/${conversation.id}` as Href);
+        navigateToChat();
       }
     };
 
@@ -244,7 +254,9 @@ const ChatItem = React.memo(
         <StyledTouchableOpacity
           activeOpacity={0.7}
           className="chat-item-swipe-card bg-warning"
-          onPress={isMuted ? handleUnmutePress : handleMutePress}
+          onPress={() =>
+            guardedAction(isMuted ? handleUnmutePress : handleMutePress)
+          }
         >
           {isMuted ? (
             <StyledFoundation
@@ -263,7 +275,9 @@ const ChatItem = React.memo(
           <StyledTouchableOpacity
             activeOpacity={0.7}
             className="chat-item-swipe-card bg-neutral-100 dark:bg-neutral-500"
-            onPress={isPinned ? handleUnpinPress : handlePinPress}
+            onPress={() =>
+              guardedAction(isPinned ? handleUnpinPress : handlePinPress)
+            }
           >
             {isPinned ? (
               <StyledOcticons
@@ -291,7 +305,7 @@ const ChatItem = React.memo(
         <StyledTouchableOpacity
           activeOpacity={0.7}
           className="chat-item-swipe-card bg-danger"
-          onPress={handleDeletePress}
+          onPress={() => guardedAction(handleDeletePress)}
         >
           <StyledTrashIcon className="size-6 text-white/90" />
           <ThemedText type="bodyMd" weight="medium" className="text-white/90">
@@ -302,7 +316,7 @@ const ChatItem = React.memo(
           <StyledTouchableOpacity
             activeOpacity={0.7}
             className="chat-item-swipe-card bg-neutral-100 dark:bg-neutral-500"
-            onPress={handleUnarchivePress}
+            onPress={() => guardedAction(handleUnarchivePress)}
           >
             <StyledMaterialIcons
               name="unarchive"
@@ -317,7 +331,7 @@ const ChatItem = React.memo(
           <StyledTouchableOpacity
             activeOpacity={0.7}
             className="chat-item-swipe-card bg-neutral-100 dark:bg-neutral-500"
-            onPress={handleArchivePress}
+            onPress={() => guardedAction(handleArchivePress)}
           >
             <StyledFontAwesome6
               name="box-archive"
