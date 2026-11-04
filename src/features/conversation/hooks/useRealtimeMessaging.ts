@@ -6,6 +6,7 @@ import { getSocket } from "@/core/lib/socket";
 import { usePresenceStore } from "@/core/store/presenceStore";
 import { useCallback, useEffect, useRef } from "react";
 
+import { getErrorMessage } from "@/shared/utils/errors";
 import { logger } from "@/shared/utils/logger";
 import type {
   AckResponse,
@@ -132,7 +133,11 @@ export function useRealtimeMessaging({
       return;
     }
     socket.emit("typing.start", { conversationId }, (ack: AckResponse) => {
-      if (!ack.ok) logger.warn("[realtime] typing.start failed:", ack.error);
+      if (!ack.ok)
+        logger.warn(
+          "[realtime] typing.start failed:",
+          getErrorMessage(ack.error),
+        );
     });
   }, [conversationId]);
 
@@ -141,7 +146,11 @@ export function useRealtimeMessaging({
     const socket = getSocket();
     if (!socket.connected) return;
     socket.emit("typing.stop", { conversationId }, (ack: AckResponse) => {
-      if (!ack.ok) logger.warn("[realtime] typing.stop failed:", ack.error);
+      if (!ack.ok)
+        logger.warn(
+          "[realtime] typing.stop failed:",
+          getErrorMessage(ack.error),
+        );
     });
   }, [conversationId]);
 
