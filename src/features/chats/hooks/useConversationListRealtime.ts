@@ -8,8 +8,68 @@ import type {
 import { logger } from "@/shared/utils/logger";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
-import type { PaginatedConversations } from "../types/conversation.types";
 
+import type {
+  Conversation,
+  PaginatedConversations,
+} from "../types/conversation.types";
+
+const isNewer = (incoming: string, current: string | undefined): boolean => {
+  if (!current) return true;
+  const a = Date.parse(incoming);
+  const b = Date.parse(current);
+  return Number.isNaN(a) || Number.isNaN(b) ? incoming > current : a > b;
+};
+
+export function applyMessageCreated(
+  old: PaginatedConversations,
+  message: MessageDto,
+  currentUserId: string | undefined,
+  activeConversationId: string | undefined,
+): { data: PaginatedConversations; found: boolean } {
+  const index = old.items.findIndex((c) => c.id === message.conversationId);
+  if (index === -1) return { data: old, found: false };
+
+  const conversation = old.items[index];
+  const latest = conversation.latestMessage;
+
+  // Replay or stale event: same message, or not newer than what we show.
+  if (
+    latest?.id === message.id ||
+    !isNewer(message.createdAt, latest?.createdAt)
+  ) {
+    return { data: old, found: true };
+  }
+
+  const isOwnMessage = message.senderId === currentUserId;
+  const isOpenRightNow = message.conversationId === activeConversationId;
+
+  const updated: Conversation = {
+    ...conversation,
+    latestMessage: {
+      id: message.id,
+      senderId: message.senderId,
+      kind: message.kind,
+      preview: toPreview(message),
+      createdAt: message.createdAt,
+    },
+    lastActivityAt: message.createdAt,
+    unreadCount:
+      isOwnMessage || isOpenRightNow
+        ? conversation.unreadCount
+        : conversation.unreadCount + 1,
+  };
+
+  const rest = old.items.filter((_, i) => i !== index);
+
+  // Pinned chats stay on top. An unpinned chat goes just below the last pinned one.
+  const insertAt = updated.settings.pinned
+    ? 0
+    : rest.map((c) => c.settings.pinned).lastIndexOf(true) + 1;
+
+  const items = [...rest.slice(0, insertAt), updated, ...rest.slice(insertAt)];
+  return { data: { ...old, items }, found: true };
+}
 const MAX_SUBSCRIBED = 20;
 
 const toPreview = (message: MessageDto): string => {
@@ -80,48 +140,28 @@ export function useConversationListRealtime(
     const socket = getSocket();
 
     const onMessageCreated = (message: MessageDto) => {
+      let missing = false;
+
       queryClient.setQueriesData<PaginatedConversations>(
         { queryKey: ["conversations", "list"] },
         (old) => {
           if (!old) return old;
-
-          const isOwnMessage = message.senderId === currentUserId;
-          const isOpenRightNow =
-            message.conversationId === activeConversationId;
-
-          const updated = old.items.map((conversation) =>
-            conversation.id === message.conversationId
-              ? {
-                  ...conversation,
-                  latestMessage: {
-                    id: message.id,
-                    senderId: message.senderId,
-                    kind: message.kind,
-                    preview: toPreview(message),
-                    createdAt: message.createdAt,
-                  },
-                  lastActivityAt: message.createdAt,
-                  unreadCount:
-                    isOwnMessage || isOpenRightNow
-                      ? conversation.unreadCount
-                      : conversation.unreadCount + 1,
-                }
-              : conversation,
+          const result = applyMessageCreated(
+            old,
+            message,
+            currentUserId,
+            activeConversationId,
           );
-
-          const index = updated.findIndex(
-            (c) => c.id === message.conversationId,
-          );
-          if (index > 0) {
-            const [moved] = updated.splice(index, 1);
-            updated.unshift(moved);
-          }
-
-          return { ...old, items: updated };
+          if (!result.found) missing = true;
+          return result.data;
         },
       );
-    };
 
+      // A brand-new chat, or one past the cached page: let the server decide.
+      if (missing) {
+        queryClient.invalidateQueries({ queryKey: ["conversations", "list"] });
+      }
+    };
     const onPresenceChanged = (presence: PresencePayload) => {
       if (presence.userId === currentUserId) return;
       if (presence.status === "online") {
