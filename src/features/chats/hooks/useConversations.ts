@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { conversationApi } from "../api/conversation.api";
 import type {
   AddGroupMembersDto,
@@ -14,27 +19,38 @@ import type {
 } from "../types/conversation.types";
 
 export const useCreateDirectConversation = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (payload: CreateDirectConversationDto) =>
       conversationApi.createDirect(payload),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["conversations", "list"] }),
   });
 };
 
 export const useCreateGroupConversation = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (payload: CreateGroupConversationDto) =>
       conversationApi.createGroup(payload),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["conversations", "list"] }),
   });
 };
 
 export const useGetConversations = (params?: {
   limit?: number;
-  cursor?: string;
   archived?: boolean;
 }) => {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ["conversations", "list", params],
-    queryFn: () => conversationApi.getList(params),
+    queryFn: ({ pageParam }) =>
+      conversationApi.getList({ ...params, cursor: pageParam }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) =>
+      lastPage.pageInfo.hasNextPage
+        ? (lastPage.pageInfo.nextCursor ?? undefined)
+        : undefined,
     staleTime: 1000 * 10,
   });
 };
@@ -201,33 +217,28 @@ export const useUpdateConversationSettings = () => {
   });
 };
 
-export const useArchiveConversation = () => {
+function useConversationAction<TVars>(
+  mutationFn: (vars: TVars) => Promise<unknown>,
+) {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (conversationId: string) =>
-      conversationApi.archive(conversationId),
+    mutationFn,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["conversations"] }),
   });
-};
+}
 
-export const useUnarchiveConversation = () => {
-  return useMutation({
-    mutationFn: (conversationId: string) =>
-      conversationApi.unarchive(conversationId),
-  });
-};
+export const useArchiveConversation = () =>
+  useConversationAction((id: string) => conversationApi.archive(id));
 
-export const useFavoriteConversation = () => {
-  return useMutation({
-    mutationFn: (conversationId: string) =>
-      conversationApi.favorite(conversationId),
-  });
-};
+export const useUnarchiveConversation = () =>
+  useConversationAction((id: string) => conversationApi.unarchive(id));
 
-export const useUnfavoriteConversation = () => {
-  return useMutation({
-    mutationFn: (conversationId: string) =>
-      conversationApi.unfavorite(conversationId),
-  });
-};
+export const useFavoriteConversation = () =>
+  useConversationAction((id: string) => conversationApi.favorite(id));
+
+export const useUnfavoriteConversation = () =>
+  useConversationAction((id: string) => conversationApi.unfavorite(id));
 
 type ConversationSettings = Conversation["settings"];
 
@@ -242,10 +253,29 @@ function patchConversation(
     c.id === id ? { ...c, settings: { ...c.settings, ...patch } } : c;
 
   if (Array.isArray(old)) return old.map(patchOne);
+
+  // Infinite list: { pages: [{ items, pageInfo }], pageParams }
+  if ("pages" in old && Array.isArray(old.pages)) {
+    return {
+      ...old,
+      pages: old.pages.map((page: { items?: Conversation[] }) =>
+        page && Array.isArray(page.items)
+          ? { ...page, items: page.items.map(patchOne) }
+          : page,
+      ),
+    };
+  }
+
+  // Single page: { items, pageInfo }
   if ("items" in old && Array.isArray(old.items)) {
     return { ...old, items: old.items.map(patchOne) };
   }
-  if ("id" in old && old.id === id) return patchOne(old as Conversation);
+
+  // Single conversation (the detail query)
+  if ("id" in old && "settings" in old) {
+    return patchOne(old as Conversation);
+  }
+
   return old;
 }
 
@@ -316,17 +346,6 @@ export const useClearConversationMessages = () => {
   return useMutation({
     mutationFn: (conversationId: string) =>
       conversationApi.clearMessages(conversationId),
-  });
-};
-
-export const useMarkConversationRead = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (conversationId: string) =>
-      conversationApi.markRead(conversationId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["conversations"] });
-    },
   });
 };
 

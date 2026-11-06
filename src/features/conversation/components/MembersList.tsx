@@ -76,13 +76,9 @@ interface MembersListProps {
 export default function MembersList({ members }: MembersListProps) {
   const [listData, setListData] = useState(members);
 
-  const handleMessage = useCallback((id: string) => {
-    console.log("Message member:", id);
-  }, []);
+  const handleMessage = useCallback((id: string) => {}, []);
 
-  const handleInfo = useCallback((id: string) => {
-    console.log("View info for member:", id);
-  }, []);
+  const handleInfo = useCallback((id: string) => {}, []);
 
   const handleKick = useCallback((id: string) => {
     setListData((prev) => prev?.filter((m) => m.id !== id));

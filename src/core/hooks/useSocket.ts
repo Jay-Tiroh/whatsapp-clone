@@ -1,5 +1,6 @@
 import { connectSocket, getSocket } from "@/core/lib/socket";
 import { showErrorToast } from "@/shared/hooks/showToast";
+import { logger } from "@/shared/utils/logger";
 import { useEffect, useState } from "react";
 
 export function useSocket() {
@@ -10,20 +11,20 @@ export function useSocket() {
     const socket = getSocket();
 
     const onConnect = () => {
-      console.log("[socket] connected", socket.id);
+      logger.log("[socket] connected", socket.id);
 
       setIsConnected(true);
       setError(null);
     };
 
     const onDisconnect = (reason: string) => {
-      console.log("[socket] disconnected:", reason);
+      logger.log("[socket] disconnected:", reason);
 
       setIsConnected(false);
     };
 
     const onConnectError = (err: Error) => {
-      console.error("[socket] connection error:", err);
+      logger.error("[socket] connection error:", err);
 
       setIsConnected(false);
       setError(err.message);

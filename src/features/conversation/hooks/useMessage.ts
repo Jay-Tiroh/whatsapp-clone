@@ -5,14 +5,13 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
-import { messageApi, receiptApi } from "../api/message.api";
+import { messageApi } from "../api/message.api";
 
 import type {
   EditMessagePayload,
   MessageListQueryPayload,
   SendMessagePayload,
   SetMessageReactionPayload,
-  UpdateReceiptPayload,
 } from "../types/message.types";
 
 export const useSendMessage = (conversationId: string) => {
@@ -205,27 +204,5 @@ export const useMarkConversationRead = () => {
         queryKey: ["conversations", "list"],
       });
     },
-  });
-};
-
-export const useMarkReceiptDelivered = (conversationId: string) => {
-  return useMutation({
-    mutationFn: (payload: UpdateReceiptPayload) =>
-      receiptApi.markDelivered(conversationId, payload),
-  });
-};
-
-export const useMarkReceiptRead = (conversationId: string) => {
-  return useMutation({
-    mutationFn: (payload: UpdateReceiptPayload) =>
-      receiptApi.markRead(conversationId, payload),
-  });
-};
-
-export const useGetReceiptFrontiers = (conversationId: string) => {
-  return useQuery({
-    queryKey: ["receipts", conversationId, "frontiers"],
-    queryFn: () => receiptApi.getFrontiers(conversationId),
-    enabled: Boolean(conversationId),
   });
 };

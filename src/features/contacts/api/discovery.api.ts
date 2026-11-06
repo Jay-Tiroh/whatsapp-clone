@@ -24,16 +24,15 @@ const mapContactMatch = (dto: ContactMatchDto): ContactMatch => ({
 export const discoveryApi = {
   matchContacts: async (
     payload: MatchContactsDto,
+    signal?: AbortSignal,
   ): Promise<{ matches: ContactMatch[] }> => {
     const { data } = await api.post<ContactMatchesResponseDto>(
       "/v1/contacts/match",
       payload,
+      { signal },
     );
-    return {
-      matches: data.matches.map(mapContactMatch),
-    };
+    return { matches: data.matches.map(mapContactMatch) };
   },
-
   searchUsers: async (
     params: SearchUsersQueryPayload,
   ): Promise<{ items: DiscoveredUser[]; nextCursor: string | null }> => {

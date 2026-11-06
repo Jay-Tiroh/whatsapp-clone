@@ -1,5 +1,5 @@
-import { ReceiptPayload } from "@/features/conversation/screens/ConversationScreen";
 import { Message } from "@/features/conversation/types/message.types";
+import type { ReceiptPayload } from "../types/message.types";
 
 export type MessageStatus = "sent" | "delivered" | "read";
 

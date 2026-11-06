@@ -24,7 +24,7 @@ const ProfileDetail = () => {
   const { conversationId } = useLocalSearchParams<{
     conversationId: string;
   }>();
-  console.log("conversationId", conversationId);
+
   const {
     data: conversation,
     error,

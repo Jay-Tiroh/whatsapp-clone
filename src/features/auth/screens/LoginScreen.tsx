@@ -12,7 +12,6 @@ import { showErrorToast } from "@/shared/hooks/showToast";
 import { getErrorMessage } from "@/shared/utils/errors";
 import { logger } from "@/shared/utils/logger";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AxiosError } from "axios";
 import { useRouter } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
 import { Text, View } from "react-native";
@@ -52,13 +51,8 @@ const LoginScreen = () => {
           });
         },
         onError: (error) => {
-          if (error instanceof AxiosError) {
-            logger.error("status:", error.response?.status);
-            logger.error("data:", error.response?.data);
-            logger.error(error);
-          } else {
-            logger.error("unexpected error:", error);
-          }
+          logger.error("unexpected error:", getErrorMessage(error));
+
           showErrorToast({
             title: "Couldn't send code",
             message:

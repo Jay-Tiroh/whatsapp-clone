@@ -1,5 +1,6 @@
+import { teardownSession } from "@/core/lib/session";
 import { tokenStorage } from "@/core/lib/tokenStorage";
-import { useAuthStore } from "@/features/auth/store/authStore";
+import { showSuccessToast, showWarningToast } from "@/shared/hooks/showToast";
 import { useMutation } from "@tanstack/react-query";
 import { authApi } from "../api/auth.api";
 import type {
@@ -34,16 +35,27 @@ export function useRefreshToken() {
 }
 
 export function useLogout() {
-  const clearSession = useAuthStore((s) => s.clearSession);
-
   return useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const refreshToken = tokenStorage.getRefreshToken();
-      return authApi.logout({ refreshToken: refreshToken || "" });
+      if (refreshToken) {
+        await authApi.logout({ refreshToken });
+      }
     },
-    onSettled: () => {
-      tokenStorage.clearTokens();
-      clearSession();
+    onSuccess: () => {
+      showSuccessToast({
+        title: "Logged out",
+        message: "You have been logged out successfully.",
+      });
     },
+    onError: () => {
+      // Server call failed, but the user must never be trapped logged in.
+      showWarningToast({
+        title: "Error logging out",
+        message:
+          "An unknown error occurred while logging out. You have been logged out locally.",
+      });
+    },
+    onSettled: () => teardownSession(),
   });
 }

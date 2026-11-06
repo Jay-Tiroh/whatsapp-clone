@@ -15,9 +15,7 @@ export function getSocket(): Socket {
       path: "/socket.io",
       transports: ["websocket"],
       autoConnect: false,
-      auth: {
-        token: tokenStorage.getAccessToken(),
-      },
+      auth: (cb) => cb({ token: tokenStorage.getAccessToken() }),
     });
   }
 

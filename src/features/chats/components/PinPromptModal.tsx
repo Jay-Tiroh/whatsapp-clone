@@ -31,12 +31,7 @@ export default function PinPromptModal({
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
   const router = useRouter();
-  console.log(
-    "PinPromptModal render — modalVisible:",
-    modalVisible,
-    "isRendered:",
-    isRendered,
-  );
+
   const handleClose = () => onDismiss();
 
   useEffect(() => {

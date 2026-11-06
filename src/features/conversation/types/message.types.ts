@@ -152,3 +152,8 @@ export type Options = {
   onTypingStarted?: (typing: TypingPayload) => void;
   onTypingStopped?: (typing: TypingPayload) => void;
 };
+
+export type LocalDeliveryState = "pending" | "failed";
+
+// A Message plus local-only send state. Server messages never carry `delivery`.
+export type DisplayMessage = Message & { delivery?: LocalDeliveryState };

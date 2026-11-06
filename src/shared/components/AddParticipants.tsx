@@ -1,4 +1,4 @@
-import { mockContactMatches } from "@/features/chats/mocks/discovery.mocks";
+import { useMatchedContacts } from "@/features/contacts";
 import { ContactMatch } from "@/features/contacts/types/discovery.types";
 import Header from "@/features/folder/components/FolderSheetHeader";
 import SearchBar from "@/shared/components/Searchbar";
@@ -17,7 +17,7 @@ const StyledImage = withUniwind(Image);
 export default function AddParticipants() {
   const [query, setQuery] = useState<string>("");
 
-  const matches = mockContactMatches;
+  const { matches, isLoading: matchesLoading } = useMatchedContacts();
   return (
     <>
       <Header title="Add Participants" stage={2} />

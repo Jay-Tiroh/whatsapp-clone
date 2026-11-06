@@ -39,7 +39,7 @@ const MemberItem = React.memo(
       action(member.id);
       swipeableRef.current?.close();
     };
-    console.log("member", member);
+
     const [isOpen, setIsOpen] = useState(false);
     const handlePress = {};
 
