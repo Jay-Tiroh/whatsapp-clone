@@ -1,7 +1,7 @@
 import { useAuthStore } from "@/features/auth";
 import { Conversation } from "@/features/chats/types/conversation.types";
 import type {
-  Message,
+  DisplayMessage,
   ReceiptPayload,
 } from "@/features/conversation/types/message.types";
 import ThemedText from "@/shared/components/ThemedText";
@@ -11,11 +11,12 @@ import MessageBubble from "./MessageBubble";
 
 type Props = {
   conversationId: string;
-  messages: Message[];
+  messages: DisplayMessage[];
   otherUserReceipt: ReceiptPayload | null;
   refreshing?: boolean;
   onRefresh?: () => void;
   onEndReached?: () => void;
+  onRetry: (clientMessageId: string) => void;
   isGroupConversation?: boolean;
   conversation: Conversation;
 };
@@ -26,6 +27,7 @@ export default function MessageList({
   refreshing,
   onRefresh,
   onEndReached,
+  onRetry,
   isGroupConversation,
   conversation,
 }: Props) {
@@ -53,7 +55,9 @@ export default function MessageList({
     <FlashList
       showsVerticalScrollIndicator={false}
       data={messages}
-      keyExtractor={(item) => item.id}
+      // clientMessageId is the same before and after confirmation, so a bubble
+      // doesn't remount when pending turns into sent.
+      keyExtractor={(item) => item.clientMessageId || item.id}
       maintainVisibleContentPosition={{
         startRenderingFromBottom: true,
         autoscrollToBottomThreshold: 0.2,
@@ -66,10 +70,12 @@ export default function MessageList({
         <MessageBubble
           item={item}
           status={
-            item.senderId === myId
+            item.senderId === myId && !item.delivery
               ? getMessageStatus(item, otherUserReceipt)
               : undefined
           }
+          delivery={item.delivery}
+          onRetry={() => onRetry(item.clientMessageId)}
           isGroupConversation={isGroupConversation}
           participants={participants}
         />

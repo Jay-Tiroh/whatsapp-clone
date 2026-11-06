@@ -8,10 +8,12 @@ import { mapMessage } from "@/features/conversation/api/message.api";
 import {
   useGetMessages,
   useMarkConversationRead,
-  useSendMessage,
 } from "@/features/conversation/hooks/useMessage";
+import { useMessageDelivery } from "@/features/conversation/hooks/useMessageDelivery";
 import { useRealtimeMessaging } from "@/features/conversation/hooks/useRealtimeMessaging";
+import { useOutboxStore } from "@/features/conversation/store/outboxStore";
 import type {
+  DisplayMessage,
   Message,
   MessageDto,
   ReceiptPayload,
@@ -21,8 +23,6 @@ import {
   useMarkReceiptDelivered,
   useMarkReceiptRead,
 } from "@/features/receipt/hooks/useReceipt";
-import { logger } from "@/shared/utils/logger";
-import * as Crypto from "expo-crypto";
 import { useIsFocused } from "expo-router";
 
 export function useConversationScreenLogic(conversationId: string) {
@@ -38,7 +38,6 @@ export function useConversationScreenLogic(conversationId: string) {
   } = useGetMessages(conversationId);
 
   const { data: conversation } = useGetConversationById(conversationId);
-  const sendMessage = useSendMessage(conversationId);
   const { mutate: markRead } = useMarkConversationRead();
   const { mutate: markDelivered } = useMarkReceiptDelivered(conversationId);
   const { mutate: markReceiptRead } = useMarkReceiptRead(conversationId);
@@ -79,18 +78,34 @@ export function useConversationScreenLogic(conversationId: string) {
     [currentUserId],
   );
 
-  const handleNewMessage = useCallback((dto: MessageDto) => {
-    const message = mapMessage(dto);
-
+  const upsertLive = useCallback((message: Message) => {
     setLiveMessages((previous) => {
-      const duplicate = previous.some(
+      const i = previous.findIndex(
         (m) =>
           m.id === message.id || m.clientMessageId === message.clientMessageId,
       );
-      if (duplicate) return previous;
-      return [...previous, message];
+      if (i === -1) return [...previous, message];
+      if (previous[i].version > message.version) return previous; // never go backwards
+      const next = [...previous];
+      next[i] = message;
+      return next;
     });
   }, []);
+
+  const handleNewMessage = useCallback(
+    (dto: MessageDto) => {
+      const message = mapMessage(dto);
+      // Socket confirmed it, possibly before the HTTP response did.
+      useOutboxStore.getState().remove(message.clientMessageId);
+      upsertLive(message);
+    },
+    [upsertLive],
+  );
+
+  const { send, retry, outboxMessages } = useMessageDelivery({
+    conversationId,
+    onConfirmed: upsertLive,
+  });
 
   const handleTypingStarted = useCallback(
     (typing: TypingPayload) => {
@@ -119,15 +134,12 @@ export function useConversationScreenLogic(conversationId: string) {
 
   useSocket();
 
-  const messages = useMemo<Message[]>(() => {
+  const messages = useMemo<DisplayMessage[]>(() => {
     const fetchedMessages = data?.pages.flatMap((page) => page.items) ?? [];
 
     const uniqueFetchedMessages = Array.from(
       new Map(
-        fetchedMessages.map((message) => [
-          message.clientMessageId || message.id,
-          message,
-        ]),
+        fetchedMessages.map((m) => [m.clientMessageId || m.id, m]),
       ).values(),
     );
 
@@ -137,16 +149,29 @@ export function useConversationScreenLogic(conversationId: string) {
     );
 
     const extraLiveMessages = liveMessages.filter(
-      (message) =>
-        !fetchedIds.has(message.id) &&
-        !fetchedClientIds.has(message.clientMessageId),
+      (m) => !fetchedIds.has(m.id) && !fetchedClientIds.has(m.clientMessageId),
     );
 
-    return [...uniqueFetchedMessages, ...extraLiveMessages].sort(
+    const serverMessages = [
+      ...uniqueFetchedMessages,
+      ...extraLiveMessages,
+    ].sort(
       (a, b) =>
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
     );
-  }, [data, liveMessages]);
+
+    // Anything the server already knows about is no longer "unconfirmed".
+    const serverClientIds = new Set(
+      serverMessages.map((m) => m.clientMessageId),
+    );
+    const unconfirmed = outboxMessages.filter(
+      (m) => !serverClientIds.has(m.clientMessageId),
+    );
+
+    // Unconfirmed messages go last. Device clocks and server clocks can disagree,
+    // so we don't sort local timestamps in among server ones.
+    return [...serverMessages, ...unconfirmed];
+  }, [data, liveMessages, outboxMessages]);
 
   // Latest message from the OTHER user: the only kind that needs marking read
   const latestIncomingMessageId = useMemo(() => {
@@ -210,40 +235,7 @@ export function useConversationScreenLogic(conversationId: string) {
     markRead,
     markReceiptRead,
   ]);
-  const handleSend = useCallback(
-    (text: string) => {
-      if (!currentUserId) {
-        logger.warn("Cannot send message: current user unavailable");
-        return;
-      }
-
-      const trimmedText = text.trim();
-      if (!trimmedText) return;
-
-      const clientMessageId = Crypto.randomUUID();
-
-      const optimisticMessage: Message = {
-        id: clientMessageId,
-        conversationId,
-        clientMessageId,
-        senderId: currentUserId,
-        kind: "text",
-        text: trimmedText || null,
-        createdAt: new Date().toISOString(),
-        attachments: [],
-        replyToMessageId: null,
-        editedAt: null,
-        deletedAt: null,
-        version: 1,
-        reactions: [],
-      };
-
-      setLiveMessages((previous) => [...previous, optimisticMessage]);
-
-      sendMessage.mutate({ clientMessageId, text: trimmedText });
-    },
-    [conversationId, currentUserId, sendMessage],
-  );
+  const handleSend = send;
 
   const isGroupConversation = useMemo(() => {
     return conversation?.type === "group";
@@ -273,5 +265,6 @@ export function useConversationScreenLogic(conversationId: string) {
     onLoadMore,
     isFetchingNextPage,
     isGroupConversation,
+    retrySend: retry,
   };
 }

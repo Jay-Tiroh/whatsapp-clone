@@ -23,6 +23,7 @@ export default function ConversationScreen() {
     isOtherUserTyping,
     otherUserReceipt,
     handleSend,
+    retrySend,
     startTyping,
     stopTyping,
     refreshing,
@@ -70,6 +71,7 @@ export default function ConversationScreen() {
               refreshing={refreshing}
               onRefresh={onRefresh}
               onEndReached={onLoadMore}
+              onRetry={retrySend}
               isGroupConversation={isGroupConversation}
               conversation={conversation as any}
             />
