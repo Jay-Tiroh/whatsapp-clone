@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { conversationApi } from "../api/conversation.api";
 import type {
   AddGroupMembersDto,
@@ -35,12 +40,17 @@ export const useCreateGroupConversation = () => {
 
 export const useGetConversations = (params?: {
   limit?: number;
-  cursor?: string;
   archived?: boolean;
 }) => {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ["conversations", "list", params],
-    queryFn: () => conversationApi.getList(params),
+    queryFn: ({ pageParam }) =>
+      conversationApi.getList({ ...params, cursor: pageParam }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) =>
+      lastPage.pageInfo.hasNextPage
+        ? (lastPage.pageInfo.nextCursor ?? undefined)
+        : undefined,
     staleTime: 1000 * 10,
   });
 };
@@ -243,10 +253,29 @@ function patchConversation(
     c.id === id ? { ...c, settings: { ...c.settings, ...patch } } : c;
 
   if (Array.isArray(old)) return old.map(patchOne);
+
+  // Infinite list: { pages: [{ items, pageInfo }], pageParams }
+  if ("pages" in old && Array.isArray(old.pages)) {
+    return {
+      ...old,
+      pages: old.pages.map((page: { items?: Conversation[] }) =>
+        page && Array.isArray(page.items)
+          ? { ...page, items: page.items.map(patchOne) }
+          : page,
+      ),
+    };
+  }
+
+  // Single page: { items, pageInfo }
   if ("items" in old && Array.isArray(old.items)) {
     return { ...old, items: old.items.map(patchOne) };
   }
-  if ("id" in old && old.id === id) return patchOne(old as Conversation);
+
+  // Single conversation (the detail query)
+  if ("id" in old && "settings" in old) {
+    return patchOne(old as Conversation);
+  }
+
   return old;
 }
 

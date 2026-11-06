@@ -6,7 +6,7 @@ import type {
   PresencePayload,
 } from "@/features/conversation/types/message.types";
 import { logger } from "@/shared/utils/logger";
-import { useQueryClient } from "@tanstack/react-query";
+import { InfiniteData, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 
 import type {
@@ -69,6 +69,38 @@ export function applyMessageCreated(
 
   const items = [...rest.slice(0, insertAt), updated, ...rest.slice(insertAt)];
   return { data: { ...old, items }, found: true };
+}
+
+export function applyMessageCreatedToPages(
+  old: InfiniteData<PaginatedConversations>,
+  message: MessageDto,
+  currentUserId: string | undefined,
+  activeConversationId: string | undefined,
+): { data: InfiniteData<PaginatedConversations>; found: boolean } {
+  if (old.pages.length === 0) return { data: old, found: false };
+
+  const sizes = old.pages.map((p) => p.items.length);
+  const flat: PaginatedConversations = {
+    items: old.pages.flatMap((p) => p.items),
+    pageInfo: old.pages[0].pageInfo,
+  };
+
+  const result = applyMessageCreated(
+    flat,
+    message,
+    currentUserId,
+    activeConversationId,
+  );
+  if (result.data === flat) return { data: old, found: result.found };
+
+  let offset = 0;
+  const pages = old.pages.map((page, i) => {
+    const items = result.data.items.slice(offset, offset + sizes[i]);
+    offset += sizes[i];
+    return { ...page, items };
+  });
+
+  return { data: { ...old, pages }, found: true };
 }
 const MAX_SUBSCRIBED = 20;
 
@@ -142,11 +174,11 @@ export function useConversationListRealtime(
     const onMessageCreated = (message: MessageDto) => {
       let missing = false;
 
-      queryClient.setQueriesData<PaginatedConversations>(
+      queryClient.setQueriesData<InfiniteData<PaginatedConversations>>(
         { queryKey: ["conversations", "list"] },
         (old) => {
           if (!old) return old;
-          const result = applyMessageCreated(
+          const result = applyMessageCreatedToPages(
             old,
             message,
             currentUserId,
@@ -156,7 +188,6 @@ export function useConversationListRealtime(
           return result.data;
         },
       );
-
       // A brand-new chat, or one past the cached page: let the server decide.
       if (missing) {
         queryClient.invalidateQueries({ queryKey: ["conversations", "list"] });

@@ -30,6 +30,7 @@ export default function ConversationScreen() {
     onRefresh,
     onLoadMore,
     isGroupConversation,
+    isFetchingNextPage,
   } = useConversationScreenLogic(conversationId);
 
   return (
@@ -70,7 +71,8 @@ export default function ConversationScreen() {
               otherUserReceipt={otherUserReceipt}
               refreshing={refreshing}
               onRefresh={onRefresh}
-              onEndReached={onLoadMore}
+              onStartReached={onLoadMore}
+              isFetchingOlder={isFetchingNextPage}
               onRetry={retrySend}
               isGroupConversation={isGroupConversation}
               conversation={conversation as any}

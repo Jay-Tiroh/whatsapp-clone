@@ -16,6 +16,7 @@ import {
   useUnmuteConversation,
   useUnpinConversation,
 } from "@/features/chats/hooks/useConversations";
+import { Conversation } from "@/features/chats/types/conversation.types";
 import { useMatchedContacts, useSearchUsers } from "@/features/contacts";
 import ThemedText from "@/shared/components/ThemedText";
 import { showWarningToast } from "@/shared/hooks/showToast";
@@ -53,8 +54,15 @@ export default function ChatListScreen() {
   const isSelecting = selectedConversations.length > 0;
   const endSelection = () => setSelectedConversations([]);
 
-  const { data, isLoading, isError, refetch, isRefetching } =
-    useGetConversations({ limit: 20 });
+  const {
+    data,
+    isLoading,
+    isError,
+    refetch,
+    fetchNextPage: fetchMoreChats,
+    hasNextPage: hasMoreChats,
+    isFetchingNextPage: isFetchingMoreChats,
+  } = useGetConversations({ limit: 20 });
   const { isPulling, handleRefresh } = usePullToRefresh(refetch);
 
   const refreshControl = (
@@ -68,14 +76,7 @@ export default function ChatListScreen() {
   );
   const currentUserId = useAuthStore((s) => s.user?.id);
 
-  useConversationListRealtime(
-    data?.items.map((c) => c.id) ?? [],
-    currentUserId,
-  );
-
   const { matches, isLoading: matchesLoading } = useMatchedContacts();
-
-  const isEmpty = !isLoading && (data?.items.length ?? 0) === 0;
 
   // Search
   const [search, setSearch] = useState("");
@@ -88,8 +89,18 @@ export default function ChatListScreen() {
   } = useSearchUsers(search);
   const searchResults = searchData?.pages.flatMap((p) => p.items) ?? [];
 
-  const conversations = data?.items ?? [];
+  const conversations = useMemo(() => {
+    const seen = new Map<string, Conversation>();
+    data?.pages.forEach((page) => page.items.forEach((c) => seen.set(c.id, c)));
+    return [...seen.values()];
+  }, [data]);
 
+  useConversationListRealtime(
+    conversations.map((c) => c.id),
+    currentUserId,
+  );
+
+  const isEmpty = !isLoading && conversations.length === 0;
   // Lists splitting
   const { displayConversations, pinnedCount } = useMemo(() => {
     const pinned = conversations
@@ -269,6 +280,9 @@ export default function ChatListScreen() {
         setSelectedConversations={setSelectedConversations}
         currentUserId={currentUserId}
         pinnedCount={pinnedCount}
+        onEndReached={fetchMoreChats}
+        hasMore={hasMoreChats}
+        isFetchingMore={isFetchingMoreChats}
       />
     );
   };

@@ -2,7 +2,12 @@ import ArchivedButton from "@/features/chats/components/ArchivedButton";
 import ChatItem from "@/features/chats/components/ChatItem";
 import { usePullToRefresh } from "@/shared/hooks/usePullToRefresh";
 import { useCallback } from "react";
-import { FlatList, RefreshControl, View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  View,
+} from "react-native";
 import type { Conversation } from "../types/conversation.types";
 
 interface ChatListProps {
@@ -13,6 +18,9 @@ interface ChatListProps {
   setSelectedConversations: React.Dispatch<React.SetStateAction<string[]>>;
   currentUserId?: string;
   pinnedCount: number;
+  onEndReached?: () => void;
+  hasMore?: boolean;
+  isFetchingMore?: boolean;
 }
 
 export default function ChatList({
@@ -23,6 +31,9 @@ export default function ChatList({
   setSelectedConversations,
   currentUserId,
   pinnedCount,
+  onEndReached,
+  hasMore,
+  isFetchingMore,
 }: ChatListProps) {
   // Only true for user-initiated pulls
   const { isPulling, handleRefresh } = usePullToRefresh(onRefresh);
@@ -62,6 +73,13 @@ export default function ChatList({
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         ListHeaderComponent={<ArchivedButton />}
+        onEndReached={() => {
+          if (hasMore && !isFetchingMore) onEndReached?.();
+        }}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          isFetchingMore ? <ActivityIndicator className="my-4" /> : null
+        }
         contentContainerClassName="gap-1"
         showsVerticalScrollIndicator={false}
         extraData={selectedConversations}
