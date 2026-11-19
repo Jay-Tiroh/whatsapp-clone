@@ -28,7 +28,7 @@ export type OutboxAttachment = {
   stage: UploadStage;
 };
 
-export type OutboxStatus = "pending" | "failed";
+export type OutboxStatus = "pending" | "failed" | "conflict";
 export type OutboxEntry = {
   clientMessageId: string;
   conversationId: string;
@@ -47,12 +47,19 @@ type Actions = {
   enqueue: (entry: Omit<OutboxEntry, "status" | "attempts">) => void;
   markPending: (id: string) => void;
   markFailed: (id: string, error?: string) => void;
+  markConflict: (id: string, error: string) => void;
   remove: (id: string) => void;
   reset: () => void;
   patchAttachment: (
     id: string,
     clientUploadId: string,
     patch: Partial<OutboxAttachment>,
+  ) => void;
+  /** Replace an expired upload identity; the old clientUploadId is never reused. */
+  restartAttachment: (
+    id: string,
+    oldClientUploadId: string,
+    newClientUploadId: string,
   ) => void;
 };
 
@@ -97,6 +104,18 @@ export const useOutboxStore = create<State & Actions>()(
           };
         }),
 
+      markConflict: (id, error) =>
+        set((s) => {
+          const e = s.entries[id];
+          if (!e) return s;
+          return {
+            entries: {
+              ...s.entries,
+              [id]: { ...e, status: "conflict", lastError: error },
+            },
+          };
+        }),
+
       remove: (id) =>
         set((s) => {
           if (!s.entries[id]) return s;
@@ -114,6 +133,29 @@ export const useOutboxStore = create<State & Actions>()(
                 ...e,
                 attachments: e.attachments.map((a) =>
                   a.clientUploadId === clientUploadId ? { ...a, ...patch } : a,
+                ),
+              },
+            },
+          };
+        }),
+      restartAttachment: (id, oldClientUploadId, newClientUploadId) =>
+        set((s) => {
+          const e = s.entries[id];
+          if (!e) return s;
+          return {
+            entries: {
+              ...s.entries,
+              [id]: {
+                ...e,
+                attachments: e.attachments.map((a) =>
+                  a.clientUploadId === oldClientUploadId
+                    ? {
+                        ...a,
+                        clientUploadId: newClientUploadId,
+                        mediaId: undefined,
+                        stage: "new" as const,
+                      }
+                    : a,
                 ),
               },
             },

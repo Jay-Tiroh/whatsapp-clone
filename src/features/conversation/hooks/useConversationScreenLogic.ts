@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { useSocket } from "@/core/hooks/useSocket";
 import { useIsUserOnline } from "@/core/store/presenceStore";
 import { useAuthStore } from "@/features/auth";
 import { useGetConversationById } from "@/features/chats/hooks/useConversations";
@@ -95,11 +94,15 @@ export function useConversationScreenLogic(conversationId: string) {
   const handleNewMessage = useCallback(
     (dto: MessageDto) => {
       const message = mapMessage(dto);
-      // Socket confirmed it, possibly before the HTTP response did.
-      useOutboxStore.getState().remove(message.clientMessageId);
+      // Socket confirmed our own send, possibly before the HTTP response did.
+      // Removing the outbox entry here is safe; upsertLive dedupes by id and
+      // clientMessageId, so the later HTTP response cannot add a second bubble.
+      if (message.senderId === currentUserId) {
+        useOutboxStore.getState().remove(message.clientMessageId);
+      }
       upsertLive(message);
     },
-    [upsertLive],
+    [upsertLive, currentUserId],
   );
 
   const { send, retry, sendImage, discard, outboxMessages } =
@@ -132,8 +135,6 @@ export function useConversationScreenLogic(conversationId: string) {
     onTypingStarted: handleTypingStarted,
     onTypingStopped: handleTypingStopped,
   });
-
-  useSocket();
 
   const messages = useMemo<DisplayMessage[]>(() => {
     const fetchedMessages = data?.pages.flatMap((page) => page.items) ?? [];

@@ -1,5 +1,8 @@
 import { bumpSessionGeneration } from "@/core/lib/sessionGeneration";
-import { reconnectSocketWithNewToken } from "@/core/lib/socket";
+import {
+  disconnectSocket,
+  reconnectSocketWithNewToken,
+} from "@/core/lib/socket";
 import { storage } from "@/core/lib/storage";
 import { tokenStorage } from "@/core/lib/tokenStorage";
 import { resetAllStores } from "@/core/store/storeRegistry";
@@ -43,6 +46,7 @@ export const useAuthStore = create<AuthState>()(
       clearSession: () => {
         bumpSessionGeneration();
         tokenStorage.clearTokens();
+        disconnectSocket();
         set({ isAuthenticated: false, user: null });
         resetAllStores();
       },

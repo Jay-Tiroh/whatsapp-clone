@@ -153,7 +153,9 @@ export type Options = {
   onTypingStopped?: (typing: TypingPayload) => void;
 };
 
-export type LocalDeliveryState = "pending" | "failed";
+// "conflict" is terminal: the same clientMessageId already exists with a
+// different payload, so retrying it can never succeed.
+export type LocalDeliveryState = "pending" | "failed" | "conflict";
 
 // A Message plus local-only send state. Server messages never carry `delivery`.
 export type DisplayMessage = Message & { delivery?: LocalDeliveryState };

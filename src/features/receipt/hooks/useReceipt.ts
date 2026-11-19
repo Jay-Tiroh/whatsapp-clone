@@ -1,3 +1,4 @@
+import { useAccountId } from "@/core/lib/queryKeys";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { receiptApi } from "../api/receipt.api";
 import type { UpdateReceiptPayload } from "../types/receipt.types";
@@ -34,8 +35,9 @@ export function useMarkReceiptRead(conversationId: string) {
 }
 
 export function useGetReceiptFrontiers(conversationId: string) {
+  const accountId = useAccountId();
   return useQuery({
-    queryKey: ["receipts", conversationId, "frontiers"],
+    queryKey: ["receipts", conversationId, "frontiers", accountId],
     queryFn: () => receiptApi.getFrontiers(conversationId),
     enabled: Boolean(conversationId),
   });

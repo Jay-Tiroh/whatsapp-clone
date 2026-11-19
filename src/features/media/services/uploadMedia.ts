@@ -1,5 +1,7 @@
 import * as FileSystem from "expo-file-system/legacy";
 
+import { isMediaUploadExpired } from "@/shared/utils/errors";
+
 import { mediaApi } from "../api/media.api";
 import type {
   CreateMediaUploadDto,
@@ -10,6 +12,17 @@ export class UploadCancelledError extends Error {
   constructor() {
     super("Upload cancelled");
     this.name = "UploadCancelledError";
+  }
+}
+
+/**
+ * The pending authorization expired (410 MEDIA_UPLOAD_EXPIRED). The caller must
+ * start a brand-new attempt with a fresh clientUploadId; this one cannot be reused.
+ */
+export class MediaUploadExpiredError extends Error {
+  constructor() {
+    super("The upload authorization expired");
+    this.name = "MediaUploadExpiredError";
   }
 }
 
@@ -60,16 +73,31 @@ export async function uploadMedia(p: Params): Promise<MediaAssetResponseDto> {
 
     // Skip create + upload when a previous attempt already got the bytes up.
     if (p.stage === "new" || !mediaId) {
-      const { media, upload } = await mediaApi.createUpload({
-        clientUploadId: id,
-        purpose: p.purpose,
-        contentType: p.contentType,
-        sizeBytes: p.sizeBytes,
-        originalFilename: p.originalFilename,
-      });
+      let created: Awaited<ReturnType<typeof mediaApi.createUpload>>;
+      try {
+        created = await mediaApi.createUpload({
+          clientUploadId: id,
+          purpose: p.purpose,
+          contentType: p.contentType,
+          sizeBytes: p.sizeBytes,
+          originalFilename: p.originalFilename,
+        });
+      } catch (error) {
+        if (isMediaUploadExpired(error)) throw new MediaUploadExpiredError();
+        throw error;
+      }
+
+      const { media, upload } = created;
       check();
       mediaId = media.id;
       p.onMediaCreated?.(mediaId);
+
+      // A replay of an already-completed upload returns the ready asset with
+      // upload: null. Contract: skip both the transfer and the completion call.
+      if (!upload && media.status === "ready") {
+        p.onUploaded?.();
+        return media;
+      }
 
       if (upload) {
         const task = FileSystem.createUploadTask(

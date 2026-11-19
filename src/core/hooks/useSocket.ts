@@ -1,13 +1,25 @@
 import { connectSocket, getSocket } from "@/core/lib/socket";
+import { useAuthStore } from "@/features/auth";
 import { showErrorToast } from "@/shared/hooks/showToast";
 import { logger } from "@/shared/utils/logger";
 import { useEffect, useState } from "react";
 
+/**
+ * Owns the socket connection for the signed-in session. Mounted once at the app
+ * root, so a restored session connects without opening a conversation.
+ */
 export function useSocket() {
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      setIsConnected(false);
+      setError(null);
+      return;
+    }
+
     const socket = getSocket();
 
     const onConnect = () => {
@@ -52,7 +64,7 @@ export function useSocket() {
       socket.off("disconnect", onDisconnect);
       socket.off("connect_error", onConnectError);
     };
-  }, []);
+  }, [isAuthenticated]);
 
   return {
     isConnected,

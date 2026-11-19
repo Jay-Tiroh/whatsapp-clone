@@ -1,3 +1,5 @@
+import { useAccountId } from "@/core/lib/queryKeys";
+import { getSessionGeneration } from "@/core/lib/sessionGeneration";
 import {
   useInfiniteQuery,
   useMutation,
@@ -42,8 +44,9 @@ export const useGetConversations = (params?: {
   limit?: number;
   archived?: boolean;
 }) => {
+  const accountId = useAccountId();
   return useInfiniteQuery({
-    queryKey: ["conversations", "list", params],
+    queryKey: ["conversations", "list", accountId, params],
     queryFn: ({ pageParam }) =>
       conversationApi.getList({ ...params, cursor: pageParam }),
     initialPageParam: undefined as string | undefined,
@@ -59,8 +62,9 @@ export const useGetArchivedConversations = (params?: {
   limit?: number;
   cursor?: string;
 }) => {
+  const accountId = useAccountId();
   return useQuery({
-    queryKey: ["conversations", "archived", params],
+    queryKey: ["conversations", "archived", accountId, params],
     queryFn: () => conversationApi.getListArchived(params),
     staleTime: 1000 * 10,
   });
@@ -71,16 +75,18 @@ export const useGetFavoriteConversations = (params?: {
   cursor?: string;
   archived?: boolean;
 }) => {
+  const accountId = useAccountId();
   return useQuery({
-    queryKey: ["conversations", "favorites", params],
+    queryKey: ["conversations", "favorites", accountId, params],
     queryFn: () => conversationApi.getListFavorites(params),
     staleTime: 1000 * 10,
   });
 };
 
 export const useGetConversationById = (conversationId: string) => {
+  const accountId = useAccountId();
   return useQuery({
-    queryKey: ["conversations", "detail", conversationId],
+    queryKey: ["conversations", "detail", conversationId, accountId],
     queryFn: () => conversationApi.getById(conversationId),
     enabled: !!conversationId,
   });
@@ -99,6 +105,7 @@ export const useDeleteGroupConversation = () => {
 
 export const useUpdateGroupConversation = () => {
   const queryClient = useQueryClient();
+  const accountId = useAccountId();
   return useMutation({
     mutationFn: ({
       conversationId,
@@ -108,7 +115,10 @@ export const useUpdateGroupConversation = () => {
       payload: UpdateGroupConversationDto;
     }) => conversationApi.updateGroup(conversationId, payload),
     onSuccess: (data) => {
-      queryClient.setQueryData(["conversations", "detail", data.id], data);
+      queryClient.setQueryData(
+        ["conversations", "detail", data.id, accountId],
+        data,
+      );
     },
   });
 };
@@ -289,6 +299,10 @@ function useOptimisticSetting<TVars>(
   return useMutation({
     mutationFn,
     onMutate: async (vars: TVars) => {
+      // Remember which session/account this mutation belongs to. A snapshot from
+      // account A must never be restored after B has signed in.
+      const generation = getSessionGeneration();
+
       await queryClient.cancelQueries({ queryKey: ["conversations"] });
       const previous = queryClient.getQueriesData({
         queryKey: ["conversations"],
@@ -298,14 +312,16 @@ function useOptimisticSetting<TVars>(
         patchConversation(old, getId(vars), patch),
       );
 
-      return { previous };
+      return { previous, generation };
     },
     onError: (_err, _vars, ctx) => {
-      ctx?.previous.forEach(([key, data]) =>
-        queryClient.setQueryData(key, data),
-      );
+      if (!ctx || ctx.generation !== getSessionGeneration()) return;
+      ctx.previous.forEach(([key, data]) => {
+        queryClient.setQueryData(key, data);
+      });
     },
-    onSettled: () => {
+    onSettled: (_data, _err, _vars, ctx) => {
+      if (!ctx || ctx.generation !== getSessionGeneration()) return;
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
     },
   });

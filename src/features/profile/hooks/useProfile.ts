@@ -1,3 +1,4 @@
+import { useAccountId } from "@/core/lib/queryKeys";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { profileApi } from "../api/profile.api";
 import type {
@@ -7,8 +8,9 @@ import type {
 } from "../types/user.types";
 
 export const useGetProfile = () => {
+  const accountId = useAccountId();
   return useQuery({
-    queryKey: ["profile", "me"],
+    queryKey: ["profile", "me", accountId],
     queryFn: profileApi.getMe,
     staleTime: 1000 * 60 * 2,
   });
@@ -16,21 +18,23 @@ export const useGetProfile = () => {
 
 export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
+  const accountId = useAccountId();
   return useMutation({
     mutationFn: (payload: UpdateProfileDto) =>
       profileApi.updateProfile(payload),
     onSuccess: (data) => {
-      queryClient.setQueryData(["profile", "me"], data);
+      queryClient.setQueryData(["profile", "me", accountId], data);
     },
   });
 };
 
 export const useSetAvatar = () => {
   const queryClient = useQueryClient();
+  const accountId = useAccountId();
   return useMutation({
     mutationFn: (payload: SetProfileAvatarDto) => profileApi.setAvatar(payload),
     onSuccess: (data) => {
-      queryClient.setQueryData(["profile", "me"], data);
+      queryClient.setQueryData(["profile", "me", accountId], data);
     },
   });
 };
@@ -46,8 +50,9 @@ export const useRemoveAvatar = () => {
 };
 
 export const useGetBlocks = () => {
+  const accountId = useAccountId();
   return useQuery({
-    queryKey: ["profile", "blocks"],
+    queryKey: ["profile", "blocks", accountId],
     queryFn: profileApi.getBlocks,
   });
 };

@@ -1,5 +1,6 @@
 import { useAppLockGate } from "@/core/hooks/useAppLockGate";
 import { useAppReady } from "@/core/hooks/useAppReady";
+import { useSocket } from "@/core/hooks/useSocket";
 import AppProviders from "@/core/providers/AppProviders";
 import { usePinStore } from "@/core/store/pinStore";
 import { useAuthStore } from "@/features/auth";
@@ -26,6 +27,8 @@ export default function RootLayout() {
     string | undefined;
   const background = backgroundColor ?? "#F5F7F9";
   useAppLockGate();
+  // The session owns the socket: restored sessions connect before any chat opens.
+  useSocket();
   const isLocked = usePinStore((s) => s.isLocked);
   const hasSetupPin = usePinStore((s) => s.hasSetupPin);
   useEffect(() => {

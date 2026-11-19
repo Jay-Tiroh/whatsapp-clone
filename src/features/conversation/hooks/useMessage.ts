@@ -5,6 +5,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
+import { useAccountId } from "@/core/lib/queryKeys";
 import { useDebouncedValue } from "@/shared/hooks/useDebouncedValue";
 
 import { messageApi } from "../api/message.api";
@@ -43,8 +44,9 @@ export const useGetMessages = (
   conversationId: string,
   params?: Omit<MessageListQueryPayload, "cursor">,
 ) => {
+  const accountId = useAccountId();
   return useInfiniteQuery({
-    queryKey: ["messages", conversationId, "list", params],
+    queryKey: ["messages", conversationId, "list", accountId, params],
 
     queryFn: ({ pageParam }) =>
       messageApi.getList(conversationId, {
@@ -80,9 +82,17 @@ export const useSearchMessages = (
   );
 
   const validation = validateMessageSearchQuery(debouncedQuery);
+  const accountId = useAccountId();
 
   const query = useInfiniteQuery({
-    queryKey: ["messages", conversationId, "search", validation.query, params],
+    queryKey: [
+      "messages",
+      conversationId,
+      "search",
+      validation.query,
+      accountId,
+      params,
+    ],
 
     queryFn: ({ pageParam }) =>
       messageApi.search(conversationId, {
@@ -116,8 +126,9 @@ export const useSearchMessages = (
 };
 
 export const useGetMessage = (conversationId: string, messageId: string) => {
+  const accountId = useAccountId();
   return useQuery({
-    queryKey: ["messages", conversationId, "detail", messageId],
+    queryKey: ["messages", conversationId, "detail", messageId, accountId],
     queryFn: () => messageApi.get(conversationId, messageId),
     enabled: Boolean(conversationId) && Boolean(messageId),
   });

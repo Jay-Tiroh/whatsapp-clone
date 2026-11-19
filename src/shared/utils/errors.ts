@@ -1,6 +1,17 @@
 // src/utils/errors.ts
 import { isAxiosError, type AxiosError } from "axios";
 
+function extractCodeFromData(data: unknown): string | undefined {
+  if (typeof data !== "object" || data === null) return undefined;
+  const obj = data as Record<string, unknown>;
+  if (typeof obj.code === "string") return obj.code;
+  if (typeof obj.error === "object" && obj.error !== null) {
+    const nested = obj.error as Record<string, unknown>;
+    if (typeof nested.code === "string") return nested.code;
+  }
+  return undefined;
+}
+
 function extractMessageFromData(data: unknown): string | undefined {
   if (typeof data === "string") return data;
   if (typeof data === "object" && data !== null) {
@@ -59,4 +70,32 @@ export function isNotFound(error: unknown): boolean {
 
 export function isUnauthorized(error: unknown): boolean {
   return isAxiosError(error) && error.response?.status === 401;
+}
+
+/** Machine-readable error code from the API body (`{ code }` or `{ error: { code } }`). */
+export function getApiErrorCode(error: unknown): string | undefined {
+  if (!isAxiosError(error)) return undefined;
+  return extractCodeFromData(error.response?.data);
+}
+
+export function isApiStatus(error: unknown, status: number): boolean {
+  return isAxiosError(error) && error.response?.status === status;
+}
+
+/** The pending upload authorization expired and its clientUploadId cannot be reused. */
+export function isMediaUploadExpired(error: unknown): boolean {
+  return (
+    isApiStatus(error, 410) || getApiErrorCode(error) === "MEDIA_UPLOAD_EXPIRED"
+  );
+}
+
+/**
+ * Sending with a clientMessageId that already exists for a different payload.
+ * Retrying cannot succeed: the client must surface a terminal state instead.
+ */
+export function isMessageIdempotencyConflict(error: unknown): boolean {
+  const code = getApiErrorCode(error);
+  if (code) return code === "MESSAGE_IDEMPOTENCY_CONFLICT";
+  // Message send only documents 409 for idempotency conflicts.
+  return isApiStatus(error, 409);
 }

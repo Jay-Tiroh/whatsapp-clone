@@ -4,6 +4,7 @@ import {
 } from "@/core/lib/conversationSubscription";
 import { getSocket } from "@/core/lib/socket";
 import { usePresenceStore } from "@/core/store/presenceStore";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef } from "react";
 
 import { getErrorMessage } from "@/shared/utils/errors";
@@ -28,6 +29,7 @@ export function useRealtimeMessaging({
 }: Options) {
   const setOnline = usePresenceStore((s) => s.setOnline);
   const setOffline = usePresenceStore((s) => s.setOffline);
+  const queryClient = useQueryClient();
 
   const handlers = useRef({
     onMessageCreated,
@@ -110,6 +112,17 @@ export function useRealtimeMessaging({
     socket.on("typing.started", onTypingStartedEvent);
     socket.on("typing.stopped", onTypingStoppedEvent);
 
+    // Restore the subscription after a reconnect and catch up on anything
+    // created while the socket was down.
+    const onReconnect = () => {
+      subscribeToConversation(conversationId);
+      queryClient.invalidateQueries({
+        queryKey: ["messages", conversationId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    };
+
+    socket.on("connect", onReconnect);
     subscribeToConversation(conversationId);
 
     return () => {
@@ -120,10 +133,11 @@ export function useRealtimeMessaging({
       socket.off("typing.started", onTypingStartedEvent);
       socket.off("typing.stopped", onTypingStoppedEvent);
       socket.offAny(debugListener);
+      socket.off("connect", onReconnect);
 
       unsubscribeFromConversation(conversationId);
     };
-  }, [conversationId, setOnline, setOffline]);
+  }, [conversationId, setOnline, setOffline, queryClient]);
 
   const startTyping = useCallback(() => {
     if (!conversationId) return;

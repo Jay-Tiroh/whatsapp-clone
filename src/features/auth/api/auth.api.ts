@@ -71,7 +71,16 @@ export const authApi = {
     return mapAuthResponse(data);
   },
 
-  logout: async (payload: RefreshTokenDto): Promise<void> => {
-    await api.post(AUTH_ENDPOINTS.LOGOUT, payload);
+  logout: async (
+    payload: RefreshTokenDto,
+    accessToken?: string | null,
+  ): Promise<void> => {
+    // The local session may already be cleared when this runs; send the
+    // captured token explicitly so the server can still revoke this session.
+    await api.post(AUTH_ENDPOINTS.LOGOUT, payload, {
+      headers: accessToken
+        ? { Authorization: `Bearer ${accessToken}` }
+        : undefined,
+    });
   },
 };

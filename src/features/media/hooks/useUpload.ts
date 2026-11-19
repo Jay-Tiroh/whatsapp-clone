@@ -1,3 +1,4 @@
+import { isMediaUploadExpired } from "@/shared/utils/errors";
 import * as Crypto from "expo-crypto";
 import * as FileSystem from "expo-file-system/legacy";
 import { useCallback, useRef, useState } from "react";
@@ -74,6 +75,8 @@ export function useUpload(options: UseUploadOptions = {}) {
           return await fn();
         } catch (err) {
           lastError = err;
+          // An expired authorization is terminal for this clientUploadId.
+          if (isMediaUploadExpired(err)) throw err;
           if (attempt < maxAttempts) {
             await new Promise((r) => setTimeout(r, 500 * 2 ** attempt));
           }
@@ -104,23 +107,46 @@ export function useUpload(options: UseUploadOptions = {}) {
           throw new Error("File does not exist at the given uri");
         const resolvedContentType =
           contentType ?? inferContentType(originalFilename ?? uri);
-        const clientUploadId = Crypto.randomUUID();
 
-        const payload: CreateMediaUploadDto = {
-          clientUploadId,
-          purpose,
-          contentType: resolvedContentType,
-          sizeBytes: info.size ?? 0,
-          originalFilename,
-        };
-
-        // 2. Ask the backend to authorize the upload
+        // 2. Ask the backend to authorize the upload. A 410 means this
+        // clientUploadId expired and can never be reused: start a fresh attempt
+        // under a new id (there is no renewal endpoint).
         setStatus("requesting");
-        const { media, upload: authorization } = await withRetry(
-          () => mediaApi.createUpload(payload),
-          maxAuthRetries,
-        );
+        let created:
+          Awaited<ReturnType<typeof mediaApi.createUpload>> | undefined;
+        for (let restart = 0; ; restart++) {
+          const payload: CreateMediaUploadDto = {
+            clientUploadId: Crypto.randomUUID(),
+            purpose,
+            contentType: resolvedContentType,
+            sizeBytes: info.size ?? 0,
+            originalFilename,
+          };
+
+          try {
+            created = await withRetry(
+              () => mediaApi.createUpload(payload),
+              maxAuthRetries,
+            );
+            break;
+          } catch (error) {
+            if (isMediaUploadExpired(error) && restart < 1) continue;
+            throw error;
+          }
+        }
         if (cancelledRef.current) throw new Error("Upload cancelled");
+        if (!created) throw new Error("Upload authorization failed");
+
+        const { media, upload: authorization } = created;
+
+        // Replay of an already-completed upload: upload is null and the media is
+        // ready. Contract: skip both the transfer and the completion call.
+        if (!authorization && media.status === "ready") {
+          setAsset(media);
+          setProgress(1);
+          setStatus("success");
+          return media;
+        }
 
         // 3. If Cloudinary auth came back, push the file there directly
         if (authorization) {
@@ -170,6 +196,7 @@ export function useUpload(options: UseUploadOptions = {}) {
           () => mediaApi.completeUpload(media.id),
           0,
         );
+        if (cancelledRef.current) throw new Error("Upload cancelled");
 
         let attempts = 0;
         while (
@@ -178,11 +205,22 @@ export function useUpload(options: UseUploadOptions = {}) {
         ) {
           if (cancelledRef.current) throw new Error("Upload cancelled");
           await new Promise((r) => setTimeout(r, 1000 * 2 ** attempts));
+          if (cancelledRef.current) throw new Error("Upload cancelled");
           finalAsset = await mediaApi.completeUpload(media.id);
           attempts++;
         }
-        if (finalAsset.status === "failed")
-          throw new Error("Media processing failed");
+
+        // The user may have cancelled while the last completion was in flight.
+        if (cancelledRef.current) throw new Error("Upload cancelled");
+
+        // A still-pending asset after retries is NOT success.
+        if (finalAsset.status !== "ready") {
+          throw new Error(
+            finalAsset.status === "failed"
+              ? "Media processing failed"
+              : "Media is still processing. Please try again.",
+          );
+        }
 
         setAsset(finalAsset);
         setProgress(1);

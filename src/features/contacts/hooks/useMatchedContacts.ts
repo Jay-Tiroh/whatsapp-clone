@@ -1,4 +1,5 @@
 // features/contacts/hooks/useMatchedContacts.ts
+import { useAccountId } from "@/core/lib/queryKeys";
 import { logger } from "@/shared/utils/logger";
 import { useQuery } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
@@ -94,9 +95,10 @@ async function matchInBatches(
 export function useMatchedContacts() {
   const { phoneNumbers, status } = useDeviceContacts();
   const contactsKey = useMemo(() => hashNumbers(phoneNumbers), [phoneNumbers]);
+  const accountId = useAccountId();
 
   const query = useQuery({
-    queryKey: ["contacts", "match", contactsKey],
+    queryKey: ["contacts", "match", contactsKey, accountId],
     queryFn: ({ signal }) => matchInBatches(phoneNumbers, signal),
     enabled: status === "granted" && phoneNumbers.length > 0,
     staleTime: 1000 * 60 * 10, // reopening the screen costs nothing

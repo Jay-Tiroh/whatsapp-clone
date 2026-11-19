@@ -33,16 +33,26 @@ export function applyMessageCreated(
   const conversation = old.items[index];
   const latest = conversation.latestMessage;
 
-  // Replay or stale event: same message, or not newer than what we show.
-  if (
-    latest?.id === message.id ||
-    !isNewer(message.createdAt, latest?.createdAt)
-  ) {
+  // Deduplicate by identity only. Preview ordering is a separate concern: a
+  // distinct message that arrives out of order is still a real message.
+  if (latest?.id === message.id) {
     return { data: old, found: true };
   }
 
   const isOwnMessage = message.senderId === currentUserId;
   const isOpenRightNow = message.conversationId === activeConversationId;
+  const countsAsUnread = !isOwnMessage && !isOpenRightNow;
+
+  // Older/out-of-order event: it must still count toward unread, but it must
+  // not replace the newest preview or move the conversation in the list.
+  if (latest && !isNewer(message.createdAt, latest.createdAt)) {
+    if (!countsAsUnread) return { data: old, found: true };
+
+    const items = old.items.map((c, i) =>
+      i === index ? { ...c, unreadCount: c.unreadCount + 1 } : c,
+    );
+    return { data: { ...old, items }, found: true };
+  }
 
   const updated: Conversation = {
     ...conversation,
@@ -54,10 +64,9 @@ export function applyMessageCreated(
       createdAt: message.createdAt,
     },
     lastActivityAt: message.createdAt,
-    unreadCount:
-      isOwnMessage || isOpenRightNow
-        ? conversation.unreadCount
-        : conversation.unreadCount + 1,
+    unreadCount: countsAsUnread
+      ? conversation.unreadCount + 1
+      : conversation.unreadCount,
   };
 
   const rest = old.items.filter((_, i) => i !== index);
@@ -167,6 +176,31 @@ export function useConversationListRealtime(
       idsRef.current = [];
     };
   }, [conversationIds]);
+
+  // A reconnect creates a new socket id, so the server forgets subscriptions.
+  // Re-subscribe and refetch anything missed while offline.
+  useEffect(() => {
+    const socket = getSocket();
+    const onReconnect = () => {
+      idsRef.current.forEach((conversationId) => {
+        socket.emit(
+          "presence.subscribe",
+          { conversationId },
+          (ack: AckResponse) => {
+            if (!ack.ok) {
+              logger.warn("[chatlist] resubscribe failed", conversationId);
+            }
+          },
+        );
+      });
+      queryClient.invalidateQueries({ queryKey: ["conversations", "list"] });
+    };
+
+    socket.on("connect", onReconnect);
+    return () => {
+      socket.off("connect", onReconnect);
+    };
+  }, [queryClient]);
 
   useEffect(() => {
     const socket = getSocket();

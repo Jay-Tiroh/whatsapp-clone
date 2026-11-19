@@ -122,19 +122,37 @@ export default function MessageBubble({
             </ThemedText>
           </Pressable>
         )}
-        {sentByMe && delivery === "failed" && onDiscard && (
-          <Pressable
-            onPress={onDiscard}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel="Discard unsent message"
-            className="ml-3"
+        {sentByMe && delivery === "conflict" && (
+          <View
+            accessible
+            accessibilityLabel="Message not sent because it conflicts with an earlier send"
+            className="flex-row items-center gap-1"
           >
-            <ThemedText className="text-xs text-neutral-500 dark:text-neutral-400">
-              Discard
+            <StyledIonicons
+              name="alert-circle"
+              size={16}
+              className="text-red-500"
+            />
+            <ThemedText className="text-xs text-red-500">
+              Not sent · Conflicting message
             </ThemedText>
-          </Pressable>
+          </View>
         )}
+        {sentByMe &&
+          (delivery === "failed" || delivery === "conflict") &&
+          onDiscard && (
+            <Pressable
+              onPress={onDiscard}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Discard unsent message"
+              className="ml-3"
+            >
+              <ThemedText className="text-xs text-neutral-500 dark:text-neutral-400">
+                Discard
+              </ThemedText>
+            </Pressable>
+          )}
         {sentByMe && !delivery && (
           <View accessible accessibilityLabel={statusLabel}>
             <StyledIonicons
