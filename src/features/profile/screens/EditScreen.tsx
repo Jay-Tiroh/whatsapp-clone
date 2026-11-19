@@ -1,4 +1,3 @@
-import UploadModal from "@/features/auth/components/UploadModal";
 import { useUpload } from "@/features/media/hooks/useUpload";
 import {
   useGetProfile,
@@ -14,6 +13,7 @@ import { FormTextInput } from "@/shared/components/FormTextInput";
 import Spacer from "@/shared/components/Spacer";
 import ThemedButton from "@/shared/components/ThemedButton";
 import ThemedText from "@/shared/components/ThemedText";
+import UploadModal from "@/shared/components/UploadModal";
 import { showSuccessToast, showWarningToast } from "@/shared/hooks/showToast";
 import { getErrorMessage } from "@/shared/utils/errors";
 import { logger } from "@/shared/utils/logger";
@@ -233,9 +233,9 @@ export default function EditScreen() {
       </View>
       <View className="px-6">
         <ThemedButton
-          label={isProfileUpdatePending ? "Saving..." : "Save"}
+          label="Save"
           onPress={handleSubmit(onSubmit)}
-          disabled={isProfileUpdatePending}
+          isLoading={isProfileUpdatePending}
         />
       </View>
 

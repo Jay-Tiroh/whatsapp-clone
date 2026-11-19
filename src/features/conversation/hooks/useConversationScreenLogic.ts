@@ -102,10 +102,11 @@ export function useConversationScreenLogic(conversationId: string) {
     [upsertLive],
   );
 
-  const { send, retry, outboxMessages } = useMessageDelivery({
-    conversationId,
-    onConfirmed: upsertLive,
-  });
+  const { send, retry, sendImage, discard, outboxMessages } =
+    useMessageDelivery({
+      conversationId,
+      onConfirmed: upsertLive,
+    });
 
   const handleTypingStarted = useCallback(
     (typing: TypingPayload) => {
@@ -266,5 +267,7 @@ export function useConversationScreenLogic(conversationId: string) {
     isFetchingNextPage,
     isGroupConversation,
     retrySend: retry,
+    sendImage,
+    discard,
   };
 }

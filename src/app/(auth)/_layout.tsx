@@ -1,26 +1,20 @@
 import { useAuthStore } from "@/features/auth";
-import { getAuthDestination } from "@/features/auth/utils/getAuthDestination";
-import { Href, Redirect, Stack, useSegments } from "expo-router";
+import { Stack } from "expo-router";
 import { View } from "react-native";
 import { useCSSVariable } from "uniwind";
 
 export default function AuthLayout() {
   const backgroundColor = useCSSVariable("--color-background") as
     string | undefined;
+
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const user = useAuthStore((s) => s.user);
-  const segments = useSegments();
-  const currentScreen = segments[segments.length - 1];
-
-  const destination = getAuthDestination(isAuthenticated, user);
-  // destination is "/login", "/name", "/upload", or "/(tabs)" — strip the leading slash to compare against the current segment
-  const destinationScreen = destination
-    .replace(/^\//, "")
-    .replace(/^\(tabs\)$/, "chats");
-
-  if (isAuthenticated && currentScreen !== destinationScreen) {
-    return <Redirect href={destination as Href} />;
-  }
+  const displayName = useAuthStore((s) => s.user?.displayName ?? null);
+  const isProfileComplete = useAuthStore(
+    (s) => s.user?.profileComplete === true,
+  );
+  // Signed in but still owing onboarding steps. These users stay in this group
+  // until `profileComplete` flips, which is parsed by the root guard too.
+  const needsOnboarding = isAuthenticated && !isProfileComplete;
 
   return (
     <View className="flex-1 bg-background">
@@ -30,10 +24,16 @@ export default function AuthLayout() {
           contentStyle: { backgroundColor: backgroundColor ?? "#F5F7F9" },
         }}
       >
-        <Stack.Screen name="login" />
-        <Stack.Screen name="verify" />
-        <Stack.Screen name="name" />
-        <Stack.Screen name="upload" />
+        <Stack.Protected guard={!isAuthenticated}>
+          <Stack.Screen name="login" />
+          <Stack.Screen name="verify" />
+        </Stack.Protected>
+        <Stack.Protected guard={needsOnboarding && !displayName}>
+          <Stack.Screen name="name" />
+        </Stack.Protected>
+        <Stack.Protected guard={needsOnboarding && !!displayName}>
+          <Stack.Screen name="upload" />
+        </Stack.Protected>
       </Stack>
     </View>
   );

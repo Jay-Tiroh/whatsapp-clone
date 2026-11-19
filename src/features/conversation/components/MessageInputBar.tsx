@@ -10,8 +10,10 @@ import { EaseView } from "react-native-ease/uniwind";
 
 import EmojiPicker from "rn-emoji-keyboard";
 
+import type { PickedImage } from "@/features/media/utils/localMedia";
+import UploadModal from "@/shared/components/UploadModal";
+import { Alert, Keyboard } from "react-native";
 import { withUniwind } from "uniwind";
-
 const StyledAntDesign = withUniwind(AntDesign);
 
 const StyledFontAwesome = withUniwind(FontAwesome);
@@ -20,9 +22,8 @@ const StyledEntypo = withUniwind(Entypo);
 
 type Props = {
   onSend: (text: string) => void;
-
+  onSendImage?: (image: PickedImage) => Promise<void> | void;
   onTypingStart?: () => void;
-
   onTypingStop?: () => void;
 };
 
@@ -32,12 +33,29 @@ export default function MessageInputBar({
   onSend,
   onTypingStart,
   onTypingStop,
+  onSendImage,
 }: Props) {
   const [value, setValue] = useState("");
 
   const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+
+  const handleImageSelected = async (
+    uri: string,
+    meta?: { width?: number; height?: number },
+  ) => {
+    try {
+      await onSendImage?.({ uri, ...meta });
+    } catch (error) {
+      Alert.alert(
+        "Couldn't send image",
+        error instanceof Error ? error.message : "Please try again.",
+      );
+    }
+  };
 
   const isTypingRef = useRef(false);
 
@@ -136,7 +154,12 @@ export default function MessageInputBar({
   return (
     <View className="w-full gap-4 flex-row items-center max-w-11/12 mx-auto mb-1">
       <View className="flex-row flex-1 items-center px-5 h-14 bg-white dark:bg-neutral-700 rounded-full">
-        <Pressable hitSlop={8} onPress={() => setIsPickerOpen(true)}>
+        <Pressable
+          hitSlop={8}
+          onPress={() => setIsPickerOpen(true)}
+          accessibilityRole="button"
+          accessibilityLabel="Open emoji picker"
+        >
           <StyledEntypo
             name="emoji-happy"
             size={24}
@@ -154,9 +177,18 @@ export default function MessageInputBar({
           autoCapitalize="sentences"
           autoCorrect
           returnKeyType="send"
+          accessibilityLabel="Message"
         />
 
-        <Pressable hitSlop={8}>
+        <Pressable
+          hitSlop={8}
+          onPress={() => {
+            Keyboard.dismiss();
+            setIsUploadOpen(true);
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="Attach a photo"
+        >
           <StyledEntypo
             name="attachment"
             size={24}
@@ -167,9 +199,15 @@ export default function MessageInputBar({
 
       <Pressable
         onPress={hasText ? handleSend : handleMicPress}
+        accessibilityRole="button"
+        accessibilityLabel={
+          hasText ? "Send message" : "Voice messages coming soon"
+        }
         className="rounded-full size-13 bg-primary-400 true-center overflow-hidden relative"
       >
         <EaseView
+          importantForAccessibility="no-hide-descendants"
+          accessibilityElementsHidden
           style={{
             position: "absolute",
             width: "100%",
@@ -190,6 +228,8 @@ export default function MessageInputBar({
         </EaseView>
 
         <EaseView
+          importantForAccessibility="no-hide-descendants"
+          accessibilityElementsHidden
           style={{
             position: "absolute",
             width: "100%",
@@ -212,6 +252,11 @@ export default function MessageInputBar({
         onEmojiSelected={(emojiObject) => {
           handleEmojiSelected(emojiObject.emoji);
         }}
+      />
+      <UploadModal
+        modalVisible={isUploadOpen}
+        setModalVisible={setIsUploadOpen}
+        onImageSelected={handleImageSelected}
       />
     </View>
   );

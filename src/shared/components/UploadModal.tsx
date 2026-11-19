@@ -1,4 +1,5 @@
 import CameraCapture from "@/shared/components/CameraCapture";
+import ThemedText from "@/shared/components/ThemedText";
 import { logger } from "@/shared/utils/logger";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Image } from "expo-image";
@@ -6,6 +7,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as MediaLibrary from "expo-media-library/legacy";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  Alert,
   Animated,
   Dimensions,
   Modal,
@@ -19,11 +21,12 @@ import { withUniwind } from "uniwind";
 const StyledMaterialCommunityIcons = withUniwind(MaterialCommunityIcons);
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+type PickedMeta = { width?: number; height?: number };
 
 type ModalProps = {
   modalVisible: boolean;
   setModalVisible: (visible: boolean) => void;
-  onImageSelected?: (uri: string) => void;
+  onImageSelected?: (uri: string, meta?: PickedMeta) => void;
 };
 const StyledImage = withUniwind(Image);
 
@@ -34,6 +37,7 @@ export default function UploadModal({
 }: ModalProps) {
   const [mediaPermission, requestMediaPermission] =
     MediaLibrary.usePermissions();
+  const [permissionDenied, setPermissionDenied] = useState(false);
   const [recentPhotos, setRecentPhotos] = useState<MediaLibrary.Asset[]>([]);
   const [showCamera, setShowCamera] = useState(false);
 
@@ -47,6 +51,7 @@ export default function UploadModal({
       if (!perm || perm.status !== "granted") {
         perm = await requestMediaPermission();
       }
+      setPermissionDenied(!perm.granted);
       if (!perm.granted) return;
 
       const { assets } = await MediaLibrary.getAssetsAsync({
@@ -95,23 +100,36 @@ export default function UploadModal({
   }, [modalVisible, backdropOpacity, translateY, loadRecentPhotos]);
 
   const handleClose = () => setModalVisible(false);
-
   const handlePickFromGallery = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.8,
-    });
-    if (!result.canceled) {
-      onImageSelected?.(result.assets[0].uri);
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        quality: 0.8,
+      });
+      if (result.canceled) return;
+      const { uri, width, height } = result.assets[0];
+      onImageSelected?.(uri, { width, height });
       handleClose();
+    } catch (err) {
+      logger.warn("Gallery pick failed", err);
+      Alert.alert("Couldn't open your gallery", "Please try again.");
     }
   };
 
-  const handleSelectRecent = (asset: MediaLibrary.Asset) => {
-    onImageSelected?.(asset.uri);
-    handleClose();
+  const handleSelectRecent = async (asset: MediaLibrary.Asset) => {
+    try {
+      // asset.uri can be ph:// on iOS; localUri is a real file we can copy.
+      const info = await MediaLibrary.getAssetInfoAsync(asset);
+      onImageSelected?.(info.localUri ?? asset.uri, {
+        width: asset.width,
+        height: asset.height,
+      });
+      handleClose();
+    } catch (err) {
+      logger.warn("Recent photo select failed", err);
+      Alert.alert("Couldn't use that photo", "Please pick another one.");
+    }
   };
-
   return (
     <>
       <Modal
@@ -149,6 +167,7 @@ export default function UploadModal({
 
                 {recentPhotos.map((asset) => (
                   <Pressable
+                    accessibilityRole="button"
                     key={asset.id}
                     onPress={() => handleSelectRecent(asset)}
                     className="active:opacity-80 size-16 rounded-lg overflow-hidden bg-neutral-900/10"
@@ -163,9 +182,16 @@ export default function UploadModal({
                   </Pressable>
                 ))}
               </ScrollView>
+              {permissionDenied && (
+                <ThemedText className="px-4 pt-2 text-neutral-500 dark:text-neutral-300 text-body-sm">
+                  Allow photo access in Settings to see recent photos, or choose
+                  from your gallery below.
+                </ThemedText>
+              )}
 
               <View className="p-4 gap-2 mt-2">
                 <Pressable
+                  accessibilityRole="button"
                   onPress={() => setShowCamera(true)}
                   className="flex-row gap-4 active:opacity-80 h-10 items-center px-2"
                 >
@@ -179,6 +205,7 @@ export default function UploadModal({
                   </Text>
                 </Pressable>
                 <Pressable
+                  accessibilityRole="button"
                   onPress={handlePickFromGallery}
                   className="flex-row gap-4 active:opacity-80 h-10 items-center px-2"
                 >
@@ -200,9 +227,9 @@ export default function UploadModal({
       <CameraCapture
         visible={showCamera}
         onClose={() => setShowCamera(false)}
-        onCapture={(uri) => {
+        onCapture={(uri, meta) => {
           setShowCamera(false);
-          onImageSelected?.(uri);
+          onImageSelected?.(uri, meta);
           handleClose();
         }}
       />

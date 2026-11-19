@@ -1,12 +1,13 @@
+import { storage } from "@/core/lib/storage";
+import { registerResettableStore } from "@/core/store/storeRegistry";
+import { type UploadStage } from "@/features/media/services/uploadMedia";
+import { clearLocalOutboxFiles } from "@/features/media/utils/localMedia";
 import { create } from "zustand";
 import {
   createJSONStorage,
   persist,
   type StateStorage,
 } from "zustand/middleware";
-
-import { storage } from "@/core/lib/storage"; // adjust to wherever your MMKV file lives
-import { registerResettableStore } from "@/core/store/storeRegistry";
 
 const mmkvStorage: StateStorage = {
   getItem: (name) => storage.getString(name) ?? null,
@@ -16,14 +17,24 @@ const mmkvStorage: StateStorage = {
   },
 };
 
-export type OutboxStatus = "pending" | "failed";
+export type OutboxAttachment = {
+  clientUploadId: string; // never regenerated: upload retry identity
+  localFile: string; // file name only; resolved at use time
+  contentType: string;
+  sizeBytes: number;
+  width?: number;
+  height?: number;
+  mediaId?: string;
+  stage: UploadStage;
+};
 
+export type OutboxStatus = "pending" | "failed";
 export type OutboxEntry = {
-  clientMessageId: string; // never regenerated: this is the retry identity
+  clientMessageId: string;
   conversationId: string;
-  ownerId: string; // account that wrote it, so account B never sees A's drafts
-  text: string;
-  mediaIds: string[]; // reserved for 6.4 so a finished upload survives a failed send
+  ownerId: string;
+  text: string; // may be "" for an image-only message
+  attachments: OutboxAttachment[];
   createdAt: string;
   status: OutboxStatus;
   attempts: number;
@@ -38,6 +49,11 @@ type Actions = {
   markFailed: (id: string, error?: string) => void;
   remove: (id: string) => void;
   reset: () => void;
+  patchAttachment: (
+    id: string,
+    clientUploadId: string,
+    patch: Partial<OutboxAttachment>,
+  ) => void;
 };
 
 export const useOutboxStore = create<State & Actions>()(
@@ -87,12 +103,42 @@ export const useOutboxStore = create<State & Actions>()(
           const { [id]: _removed, ...rest } = s.entries;
           return { entries: rest };
         }),
-
+      patchAttachment: (id, clientUploadId, patch) =>
+        set((s) => {
+          const e = s.entries[id];
+          if (!e) return s;
+          return {
+            entries: {
+              ...s.entries,
+              [id]: {
+                ...e,
+                attachments: e.attachments.map((a) =>
+                  a.clientUploadId === clientUploadId ? { ...a, ...patch } : a,
+                ),
+              },
+            },
+          };
+        }),
       reset: () => set({ entries: {} }),
     }),
     {
       name: "message-outbox",
-      version: 1,
+      version: 2,
+      migrate: (persisted, version) => {
+        if (version < 2) {
+          const old =
+            (persisted as { entries?: Record<string, Record<string, unknown>> })
+              ?.entries ?? {};
+          const entries = Object.fromEntries(
+            Object.entries(old).map(([id, e]) => {
+              const { mediaIds: _dropped, ...rest } = e;
+              return [id, { ...rest, attachments: [] }];
+            }),
+          );
+          return { entries } as unknown as State;
+        }
+        return persisted as State;
+      },
       storage: createJSONStorage(() => mmkvStorage),
       partialize: (s) => ({ entries: s.entries }),
       // A request that was in flight when the app died is not "pending" any more.
@@ -112,4 +158,11 @@ export const useOutboxStore = create<State & Actions>()(
   ),
 );
 
-registerResettableStore({ reset: () => useOutboxStore.getState().reset() });
+registerResettableStore({
+  reset: () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    require("@/features/media/services/uploadMedia").cancelAllUploads();
+    clearLocalOutboxFiles();
+    useOutboxStore.getState().reset();
+  },
+});

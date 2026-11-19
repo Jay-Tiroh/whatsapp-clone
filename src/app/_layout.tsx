@@ -2,6 +2,7 @@ import { useAppLockGate } from "@/core/hooks/useAppLockGate";
 import { useAppReady } from "@/core/hooks/useAppReady";
 import AppProviders from "@/core/providers/AppProviders";
 import { usePinStore } from "@/core/store/pinStore";
+import { useAuthStore } from "@/features/auth";
 import { PinLockScreen } from "@/features/settings";
 import { toastConfig } from "@/shared/constants/toastConfig";
 import { Stack } from "expo-router";
@@ -15,6 +16,12 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const { isReady, initialDestination } = useAppReady();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isProfileComplete = useAuthStore(
+    (s) => s.user?.profileComplete === true,
+  );
+  // Signed in but still owing the name/avatar steps.
+  const needsOnboarding = isAuthenticated && !isProfileComplete;
   const backgroundColor = useCSSVariable("--color-background") as
     string | undefined;
   const background = backgroundColor ?? "#F5F7F9";
@@ -43,9 +50,19 @@ export default function RootLayout() {
             animationDuration: 300,
           }}
         >
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          {/* (auth) is declared first so that when a guard blocks a route
+              (deep link to a chat while signed out, logout, expired token)
+              the navigator falls back to the login flow, not the welcome
+              screen. */}
+          <Stack.Protected guard={!isAuthenticated || needsOnboarding}>
+            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          </Stack.Protected>
+          <Stack.Protected guard={!isAuthenticated}>
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+          </Stack.Protected>
+          <Stack.Protected guard={isAuthenticated && isProfileComplete}>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          </Stack.Protected>
         </Stack>
         {hasSetupPin && isLocked && <PinLockScreen />}
       </View>

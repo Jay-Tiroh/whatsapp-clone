@@ -3,7 +3,9 @@ import {
   ActivityIndicator,
   Pressable,
   PressableProps,
+  StyleSheet,
   Text,
+  View,
 } from "react-native";
 import { EaseView } from "react-native-ease/uniwind";
 import { tv, type VariantProps } from "tailwind-variants";
@@ -106,10 +108,12 @@ const ThemedButton = ({
   className,
   onPressIn,
   onPressOut,
+  accessibilityState,
   ...props
 }: ThemedButtonProps) => {
   const [pressed, setPressed] = useState(false);
-  const isButtonDisabled = !!disabled || isLoading;
+  const isBusy = isLoading;
+  const isButtonDisabled = !!disabled || isBusy;
 
   // Determine if the variant uses white text so the ActivityIndicator contrasts properly against solid backgrounds
   const hasWhiteIndicator = [
@@ -123,6 +127,11 @@ const ThemedButton = ({
   return (
     <Pressable
       disabled={isButtonDisabled}
+      accessibilityState={{
+        ...accessibilityState,
+        busy: isBusy,
+        disabled: isButtonDisabled,
+      }}
       onPressIn={(e) => {
         if (!isButtonDisabled) setPressed(true);
         onPressIn?.(e);
@@ -145,14 +154,20 @@ const ThemedButton = ({
         }}
         transition={pressed ? PRESS_IN_TRANSITION : BOUNCE_RELEASE_TRANSITION}
       >
-        {isLoading ? (
-          <ActivityIndicator color={hasWhiteIndicator ? "#fff" : undefined} />
-        ) : (
-          <>
-            {iconLeft}
-            <Text className={textVariants({ variant })}>{label}</Text>
-            {iconRight}
-          </>
+        {iconLeft}
+        <Text
+          className={`${textVariants({ variant })} ${isBusy ? "opacity-0" : ""}`}
+        >
+          {label}
+        </Text>
+        {iconRight}
+        {isBusy && (
+          <View
+            style={StyleSheet.absoluteFill}
+            className="items-center justify-center"
+          >
+            <ActivityIndicator color={hasWhiteIndicator ? "#fff" : undefined} />
+          </View>
         )}
       </EaseView>
     </Pressable>

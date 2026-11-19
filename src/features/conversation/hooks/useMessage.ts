@@ -5,7 +5,13 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
+import { useDebouncedValue } from "@/shared/hooks/useDebouncedValue";
+
 import { messageApi } from "../api/message.api";
+import {
+  normalizeMessageSearchQuery,
+  validateMessageSearchQuery,
+} from "../validation/message.validation";
 
 import type {
   EditMessagePayload,
@@ -61,22 +67,31 @@ export const useGetMessages = (
   });
 };
 
+export const MESSAGE_SEARCH_DEBOUNCE_MS = 300;
+
 export const useSearchMessages = (
   conversationId: string,
   q: string,
   params?: Omit<MessageListQueryPayload, "cursor">,
 ) => {
-  return useInfiniteQuery({
-    queryKey: ["messages", conversationId, "search", q, params],
+  const debouncedQuery = useDebouncedValue(
+    normalizeMessageSearchQuery(q),
+    MESSAGE_SEARCH_DEBOUNCE_MS,
+  );
+
+  const validation = validateMessageSearchQuery(debouncedQuery);
+
+  const query = useInfiniteQuery({
+    queryKey: ["messages", conversationId, "search", validation.query, params],
 
     queryFn: ({ pageParam }) =>
       messageApi.search(conversationId, {
         ...params,
-        q,
+        q: validation.query,
         cursor: pageParam as string | undefined,
       }),
 
-    enabled: Boolean(conversationId) && Boolean(q),
+    enabled: Boolean(conversationId) && validation.isValid,
 
     staleTime: 30_000,
 
@@ -89,6 +104,15 @@ export const useSearchMessages = (
       return lastPage.pageInfo.nextCursor ?? undefined;
     },
   });
+
+  return {
+    ...query,
+    /** Debounced, trimmed query that is actually sent to the API. */
+    searchQuery: validation.query,
+    isSearchQueryValid: validation.isValid,
+    /** True while the typed value has not settled into `searchQuery` yet. */
+    isDebouncing: normalizeMessageSearchQuery(q) !== debouncedQuery,
+  };
 };
 
 export const useGetMessage = (conversationId: string, messageId: string) => {

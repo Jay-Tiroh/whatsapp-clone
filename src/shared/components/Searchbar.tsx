@@ -57,6 +57,7 @@ interface SearchBarProps
       | "onSubmitEditing"
       | "returnKeyType"
       | "autoFocus"
+      | "maxLength"
     >,
     VariantProps<typeof containerVariants> {
   placeholder?: string;

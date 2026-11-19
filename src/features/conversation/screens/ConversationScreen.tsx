@@ -24,6 +24,8 @@ export default function ConversationScreen() {
     otherUserReceipt,
     handleSend,
     retrySend,
+    sendImage,
+    discard,
     startTyping,
     stopTyping,
     refreshing,
@@ -49,6 +51,7 @@ export default function ConversationScreen() {
         bottomInput={
           <MessageInputBar
             onSend={handleSend}
+            onSendImage={sendImage}
             onTypingStart={startTyping}
             onTypingStop={stopTyping}
           />
@@ -74,6 +77,7 @@ export default function ConversationScreen() {
               onStartReached={onLoadMore}
               isFetchingOlder={isFetchingNextPage}
               onRetry={retrySend}
+              onDiscard={discard}
               isGroupConversation={isGroupConversation}
               conversation={conversation as any}
             />

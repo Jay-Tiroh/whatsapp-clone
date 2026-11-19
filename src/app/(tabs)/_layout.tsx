@@ -1,5 +1,4 @@
 // TabsLayout.tsx
-import { useAuthStore } from "@/features/auth";
 import PinPromptModal from "@/features/chats/components/PinPromptModal";
 import { usePinPromptModal } from "@/features/chats/hooks/usePinPromptModal";
 import QRCodeModal from "@/features/conversation/components/QRCodeModal";
@@ -12,7 +11,7 @@ import {
   TabBarLabelSize,
   TabBarLayout,
 } from "@/shared/constants/TabsConfig";
-import { Redirect, Tabs } from "expo-router";
+import { Tabs } from "expo-router";
 import { getFocusedRouteNameFromRoute } from "expo-router/build/react-navigation";
 import { ColorValue, Text, View, ViewStyle } from "react-native";
 import Animated, {
@@ -87,12 +86,7 @@ export default function TabsLayout() {
     "--font-display-medium",
     "--font-display-bold",
   ]);
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-
   const { modalVisible, handleDismiss } = usePinPromptModal();
-  if (!isAuthenticated) {
-    return <Redirect href="/(auth)/login" />;
-  }
 
   return (
     <View style={{ flex: 1 }}>

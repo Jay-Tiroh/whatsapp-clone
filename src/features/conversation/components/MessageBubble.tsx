@@ -4,10 +4,11 @@ import { MessageStatus } from "@/features/conversation/utils/messageStatus";
 import ThemedText from "@/shared/components/ThemedText";
 import { formatTime } from "@/shared/utils/date";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { Image } from "expo-image";
 import { Pressable, View } from "react-native";
 import { withUniwind } from "uniwind";
 import type { LocalDeliveryState, Message } from "../types/message.types";
-
+// Props:
 type Props = {
   item: Message;
   status?: MessageStatus;
@@ -15,6 +16,7 @@ type Props = {
   onRetry?: () => void;
   isGroupConversation?: boolean;
   participants?: GroupParticipant[];
+  onDiscard?: () => void;
 };
 
 const StyledIonicons = withUniwind(Ionicons);
@@ -26,12 +28,18 @@ export default function MessageBubble({
   participants,
   delivery,
   onRetry,
+  onDiscard,
 }: Props) {
   const myId = useAuthStore((state) => state.user?.id);
   const sentByMe = item.senderId === myId;
   const displayName = participants?.find(
     (p) => p.id === item.senderId,
   )?.displayName;
+  const image = item.attachments.find((a) => a.type === "image");
+  const ratio =
+    image?.width && image?.height
+      ? Math.min(Math.max(image.width / image.height, 0.6), 1.6)
+      : 1;
   const statusLabel =
     delivery === "pending"
       ? "Sending"
@@ -63,9 +71,20 @@ export default function MessageBubble({
             {displayName}
           </ThemedText>
         )}
-        <ThemedText className={sentByMe ? "text-white" : ""}>
-          {item.text}
-        </ThemedText>
+        {image && (
+          <Image
+            source={{ uri: image.url }}
+            style={{ width: 220, aspectRatio: ratio, borderRadius: 12 }}
+            contentFit="cover"
+            transition={150}
+            accessibilityLabel={sentByMe ? "Photo you sent" : "Photo"}
+          />
+        )}
+        {!!item.text && (
+          <ThemedText className={sentByMe ? "text-white" : ""}>
+            {item.text}
+          </ThemedText>
+        )}
       </View>
 
       <View className="flex-row items-center">
@@ -103,7 +122,19 @@ export default function MessageBubble({
             </ThemedText>
           </Pressable>
         )}
-
+        {sentByMe && delivery === "failed" && onDiscard && (
+          <Pressable
+            onPress={onDiscard}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Discard unsent message"
+            className="ml-3"
+          >
+            <ThemedText className="text-xs text-neutral-500 dark:text-neutral-400">
+              Discard
+            </ThemedText>
+          </Pressable>
+        )}
         {sentByMe && !delivery && (
           <View accessible accessibilityLabel={statusLabel}>
             <StyledIonicons

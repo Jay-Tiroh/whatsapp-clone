@@ -9,7 +9,7 @@ import Foundation from "@expo/vector-icons/Foundation";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Image } from "expo-image";
-import { useRouter } from "expo-router";
+import { Href, useRouter } from "expo-router";
 import { Pressable, View } from "react-native";
 import { withUniwind } from "uniwind";
 
@@ -57,6 +57,11 @@ export default function ChatHeader({
 
   const goToProfile = () => {
     router.push(`/chats/${conversation?.id}/profile`);
+  };
+
+  const goToSearch = () => {
+    if (!conversation?.id) return;
+    router.push(`/chats/${conversation.id}/search` as Href);
   };
 
   const isDirect = conversation?.type === "direct";
@@ -121,6 +126,18 @@ export default function ChatHeader({
             </View>
           </Pressable>
           <View className="flex-row gap-5 items-center">
+            <Pressable
+              className="active:opacity-70"
+              onPress={goToSearch}
+              accessibilityRole="button"
+              accessibilityLabel="Search messages"
+            >
+              <StyledMaterialIcons
+                name="search"
+                size={24}
+                className="text-white/90"
+              />
+            </Pressable>
             <Pressable className="active:opacity-70">
               <StyledFontAwesome6
                 name="video"

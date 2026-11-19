@@ -6,6 +6,7 @@ import type {
 } from "@/features/conversation/types/message.types";
 import ThemedText from "@/shared/components/ThemedText";
 import { FlashList } from "@shopify/flash-list";
+import { ActivityIndicator } from "react-native";
 import { getMessageStatus } from "../utils/messageStatus";
 import MessageBubble from "./MessageBubble";
 
@@ -15,8 +16,10 @@ type Props = {
   otherUserReceipt: ReceiptPayload | null;
   refreshing?: boolean;
   onRefresh?: () => void;
-  onEndReached?: () => void;
+  onStartReached?: () => void;
+  isFetchingOlder?: boolean;
   onRetry: (clientMessageId: string) => void;
+  onDiscard: (clientMessageId: string) => void;
   isGroupConversation?: boolean;
   conversation: Conversation;
 };
@@ -26,8 +29,10 @@ export default function MessageList({
   otherUserReceipt,
   refreshing,
   onRefresh,
-  onEndReached,
+  onStartReached,
+  isFetchingOlder,
   onRetry,
+  onDiscard,
   isGroupConversation,
   conversation,
 }: Props) {
@@ -64,8 +69,11 @@ export default function MessageList({
       }}
       refreshing={refreshing}
       onRefresh={onRefresh}
-      onEndReached={onEndReached}
-      onEndReachedThreshold={0.3}
+      onStartReached={onStartReached}
+      onStartReachedThreshold={0.3}
+      ListHeaderComponent={
+        isFetchingOlder ? <ActivityIndicator className="my-3" /> : null
+      }
       renderItem={({ item }) => (
         <MessageBubble
           item={item}
@@ -76,6 +84,7 @@ export default function MessageList({
           }
           delivery={item.delivery}
           onRetry={() => onRetry(item.clientMessageId)}
+          onDiscard={() => onDiscard(item.clientMessageId)}
           isGroupConversation={isGroupConversation}
           participants={participants}
         />

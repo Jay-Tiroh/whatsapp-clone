@@ -1,18 +1,7 @@
+import { useDebouncedValue } from "@/shared/hooks/useDebouncedValue";
 import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
 import { discoveryApi } from "../api/discovery.api";
 import type { MatchContactsDto } from "../types/discovery.types";
-
-export function useDebouncedValue<T>(value: T, delayMs = 300): T {
-  const [debounced, setDebounced] = useState(value);
-
-  useEffect(() => {
-    const id = setTimeout(() => setDebounced(value), delayMs);
-    return () => clearTimeout(id);
-  }, [value, delayMs]);
-
-  return debounced;
-}
 
 export function useSearchUsers(query: string, limit = 20) {
   const debouncedQuery = useDebouncedValue(query.trim(), 300);
